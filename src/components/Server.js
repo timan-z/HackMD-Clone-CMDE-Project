@@ -9,22 +9,22 @@ import cors from "cors";
 import pkg from 'lodash';
 const { throttle } = pkg;
 
-// BEGINNING OF PART-2 ADDITIONS:
-import { setupWSConnection } from "y-websocket/server";
-import WebSocket from "ws";
+/* NOTE-TO-SELF:
+ - io.emit will send this event to *all* clients (including the server, which here will be irrelevant).
+ - socket.emit will send the event *only* to the specific client that triggered it.
+ - socket.broadcast.emit will send the even to all *other* clients except the sender.
+*/
 
 // setup:
 const app = express();
 const server = http.createServer(app);
 
-// DEBUG: BASICALLY EVERYTHING BELOW IS COMING OVER FROM PART 1 OF THE "HACKMD-CLONE" PROJECT -- KEEPING IT HERE FOR NOW...
-// Socket.IO setup (KEEPING THIS FOR THE CHAT/PRESENCE FEATURE THAT I'LL BE ADDING LATER ON):
 const io = new Server(server, {
-   // Needed to bypass issues with cors:
-   cors: {
-    origin: "http://localhost:5173",  // This is **my** frontend URL.
-    methods: ["GET", "POST"],
-   },
+    // You need this stuff below to bypass issues with cors.
+    cors: {
+        origin: "http://localhost:5173", // This is **my** frontend URL; NOTE: I should have a variable for this in .env I think.
+        methods: ["GET", "POST"],
+    },
 });
 
 let documentData = "";
@@ -85,12 +85,5 @@ io.on("connection", (socket) => {
         broadcastCursors();
     });
 });
-// DEBUG: BASICALLY EVERYTHING ABOVE IS COMING OVER FROM PART 1 OF THE "HACKMD-CLONE" PROJECT -- KEEPING IT HERE FOR NOW...
 
-// NOTE: Below are the NEW additions:
-const wss = new WebSocket.Server({ server });
-wss.on("connection", (conn, req) => {
-    setupWSConnection(conn, req);   // Yjs stuff happens here.
-});
-
-server.listen(4000, () => console.log("Server running on port 4000")); // specify port 4000 as the server location.*/
+server.listen(4000, () => console.log("Server running on port 4000")); // specify port 4000 as the server location.
