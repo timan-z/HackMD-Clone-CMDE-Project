@@ -1,0 +1,264 @@
+
+
+
+/* This .placeholder styling is for the "placeholder text" that appears within the Text Editor pre-typing. */
+.placeholder {
+  position:absolute;
+  color:gray;
+  font-style:italic;
+  pointer-events:none;
+  padding:8px;
+  top:0.6em;
+}
+
+.black-outline {
+  border: 1px solid black;
+}
+
+.content-editable {
+  outline: none;
+  background-color:#d3d3d3; /* DEBUG: Tentative setting -- just so I can see the space I'm working with. */
+  /* NOTE-TO-SELF: The styling below is necessary to incorporate typed text wraparound:
+  - "word-wrap" and "overflow-wrap" make sure typed text wraps around.
+  - "width", "max-width", and "box-sizing" are for ensuring text doesn't flow beyond the container. */
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  width:100%;
+  max-width:100%;
+  height:100%;
+  max-height:100%;
+  box-sizing: border-box;
+  overflow-y:auto;  /* To add the vertical scroll bar when there's overflow. */
+}
+
+/* This is for when the user drags a ".md" file over the Text Editor space. There will be an
+inset shadow cast on the interior of the Text Editor to indicate drag-and-drop target (for now,
+I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to change with future design choices). */
+.content-editable.dragging {
+  box-shadow: inset 0 0 75px rgb(241, 207, 12); /* Inner shadow effect */
+  transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+}
+
+
+
+.remote-cursor {
+  transition: left 0.1s ease, top 0.1s ease;
+}
+
+
+.editor-textBold {
+  font-weight: bold;
+}
+
+/* new stuff to add: */
+.line-numbers {
+  width: 40px; /* Set a fixed width for the line numbers column */
+  text-align: right;
+  margin-top:15px; /* DEBUG: Adding some padding so the first line number aligns with the text editor space... */
+  margin-right: 10px; /* DEBUG: Adjust spacing between line numbers and content */
+}
+
+.editor-wrapper {
+  /* NOTE-TO-SELF: So, "display:flex" will organize the display such that items are sorted horizontally from left
+  to right. I want this to make sure that the line numbers for the text editor appear top-to-bottom to the left of 
+  the text editor itself. */
+  position:relative;
+  height:100%;
+  max-height:100%;
+}
+
+.editor-preview-overhead {
+  height:auto;
+  max-height:60px;
+  display: flex;
+}
+
+.editor-overhead {
+  position:relative;
+}
+
+
+/* This ".editor-preview-toggle" class is for the <div> container holding the side-by-side
+"Text-Editor|Split-View|Preview-Panel" buttons in the header space at the top of the webpage. */
+.editor-preview-toggle {
+  margin:auto;
+  margin-left:25%;
+  padding:3px;
+  background-color:darkgray;
+}
+
+.editor-upload-download {
+  margin: auto;
+  background-color:darkgray;
+  padding:10px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  border-radius:5px;
+}
+.upload-md-button {
+  background-color:white;
+  outline: 2px solid black;
+  padding: 1px;
+  padding-left:5px;
+  padding-right:5px;
+  border-radius:8px;
+  cursor:pointer;
+}
+.download-md-button {
+  font-size:16px;
+  font-family:'Times New Roman', Times, serif;
+  background-color:white;
+  border:none;
+  border-radius:8px;
+  outline: 2.5px solid black;
+  cursor:pointer;
+}
+
+
+
+
+
+
+
+
+
+
+/* DEBUG: Everything BELOW is for making the LHS/RHS, Text Editor, Preview Panel 50/50 thing work: */
+.editor-layout {
+  width: 100%;
+  height: calc(100vh - 80px); /* DEBUG: "Adjust for header and buttons" */
+  display: flex;
+  transition: all 0.3s ease-in-out;
+}
+
+/* For when the preview panel is hidden: */
+.editor-layout.full-view .text-editor-space-split
+.editor-layout.full-view .preview-panel-space-split {
+  width: 100%;
+}
+
+/* For when the preview panel is active: */
+.editor-layout.split-view .text-editor-space-split,
+.editor-layout.split-view .preview-panel-space-split {
+  flex: 1;
+  /*width: calc(50% - 5px) !important;*/
+}
+
+/* General styles for the text editor and preview panel: */
+.text-editor-space-split, .preview-panel-space-split {
+  height:100%;
+  display:flex;
+  flex-direction:column;
+}
+
+/* Ensuring that the editor and preview fill their sections: */
+.main-text-editor, .markdown-preview {
+  flex: 1;
+  /*overflow: auto;*/
+}
+.markdown-preview {
+  overflow: auto;
+}
+
+/* Editor content should fill the available space: */
+.editor-container, .md-preview-panel {
+  word-wrap: break-word;
+  width:100%;
+}
+/* DEBUG: Everything ABOVE is for making the LHS/RHS, Text Editor, Preview Panel 50/50 thing work! */
+
+
+
+
+
+
+
+
+
+
+/* DEBUG: Everything below is for the Text Editor Preview Toggle Functionality... */
+.text-editor-space-split {
+  /*display:relative;*/
+  flex: 0 0 auto !important;
+  /*flex:1;*/
+  /* ^ so I have flex:1; activated in one of the things above, which tells the panels to be in a 50/50 split, but
+  i need to override that here. */
+}
+.preview-panel-space-split {
+  /*display:relative;*/
+  flex: 0 0 auto !important;
+  /*flex:1;*/
+}
+.text-editor-space-full {
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  flex:1 !important;
+  /* flex:1; will make it so that the whole screen width is taken up (0 0 auto etc prevents it but makes the draggable divider work). 
+  DEBUG: ^ wait no this is not true, there's other stuff I need to add too, just looks like this way because my css is really messy (need to fix). */
+}
+.preview-panel-space-full {
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  flex:1 !important;
+}
+/* DEBUG: Everything above is for the Text Editor Preview Toggle Functionality... */
+
+.main-text-editor {
+  display:flex;
+  flex-grow: 1; /* should make it full stretch fully in the vertical direction? */
+  flex-direction: row;
+  height:100%;
+  overflow:auto;
+}
+
+.editor-container {
+  flex-grow: 1; /* Expand the content area to take up the remaining space */
+  height:99.75%;
+  display:flex;
+  flex-direction:column;
+  position:relative;
+  border:1px solid black;
+  background-color:gray;
+}
+
+
+
+
+
+
+
+
+
+
+.md-preview-panel {
+  outline: black;
+  outline-width:2px;
+  background-color:#b0c4de;
+
+  word-wrap: break-word;
+  overflow-wrap: break-word;
+  overflow-y:auto;
+  height:100%;
+  width:100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.resizeTEPP {
+  /*width: 10px;*/ /* debug: Thin draggable area */
+  cursor: ew-resize; /* debug: Change cursor when hovering over it */
+  /*background: #ccc; /* debug: Light gray bar */
+  transition: background 0.2s ease-in-out;
+  border: 2.5px solid black;
+  /*margin:0;
+  padding:0;*/
+}
+
+.resizeTEPP:hover {
+  background: #888; /* debug: Darker gray when hovered */
+}
