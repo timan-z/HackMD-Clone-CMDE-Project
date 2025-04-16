@@ -6,7 +6,7 @@ import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useState, useRef } from 'react';
-import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection } from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection, $createTextNode } from 'lexical';
 import { parseMarkdown } from "./MDParser.jsx";
 import { findCursorPos } from './UtilityFuncs.js';
 import Toolbar from "./Toolbar.jsx";
@@ -19,6 +19,10 @@ import { RemoteCursorNode } from './nodes/RemoteCursorNode.jsx'; // <-- DEBUG: n
 import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 const socket = io("http://localhost:4000"); // NOTE: This is what I'm picking for server port location in Server.js (maybe change it, doesn't matter, who cares).
 const dmp = new DiffMatchPatch();
+
+// NOTE: PART 2 ADDITIONS:
+import {ytext, awareness} from './collabProvider';
+
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -245,29 +249,7 @@ function EditorContent() {
 
 
 
-
-  // PHASE-3 UPDATE: Introducing two new "useEffect(()=>{...})" hooks for clarity as per how the Socket.IO Client-Server logic will work:
-  // NOTE: Hook #1 is only supposed to run ONCE I'm pretty sure...
-  // "useEffect(()=>{...})" Hook #1 - "start-up hook", for loading initial content from the server (after connecting to it for the first time).
-  useEffect(() => {
-    socket.on("load-document", (serverData) => {
-      setEditorContent(serverData);
-      setSocketID(socketID);
-      // setting the text editor content to whatever was on the server (NOTE: Not exactly really relevant to me yet (?) but might be very soon):
-      editor.update(() => {
-        const root = $getRoot();
-        root.clear(); // gets rid of current existing text.
-        const selection = $getSelection();
-        selection.insertText(serverData);
-      });
-    });
-
-    return () => {
-      socket.off("load-document");
-    };
-  }, [editor]);
-
-  // "useEffect(()=>{...})" Hook #2 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
+  // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
     const unregister = editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
@@ -284,33 +266,39 @@ function EditorContent() {
         // Okay and now I'm going to write some code to detect the current line of the Text Editor!
         const paraNodes = $getRoot().getChildren();
         const selection = $getSelection();
-
+        
         if(!selection) return;  // DEBUG: <-- see if this fixes my RemoteCursorNode.jsx-related problem. 
 
         let {anchor} = selection;
         let anchorNode = anchor.getNode();
         let anchorOffset = anchor.offset;
         let absoluteCursorPos = findCursorPos(paraNodes, anchorNode, anchorOffset); // let's see!
-        //setCursorPos(absoluteCursorPos);  // <-- DEBUG: Probably fine to keep, but might not be needed *here* in relation to keeping cursor pos after foreign edits.
-        cursorPos.current = absoluteCursorPos;
-        //console.log("PHASE-3-DEBUG: The value of cursorPos.current is = ", cursorPos.current);
-
-        //cursorPos.current = absoluteCursorPos;  // <-- DEBUG: ^ trying this instead now...
+        //cursorPos.current = absoluteCursorPos;
         
-        //console.log("DEBUG-PHASE-3: The value of absoluteCursorPos is: [", absoluteCursorPos, "]");
+        // PART-2-ADDITION: replacement for sending this client's absolute cursor position to the server:
+        awareness.setLocalStateField('cursor', {
+          index: absoluteCursorPos,
+          name: "test name", // <-- maybe toss in the ID of the socket for now? (I should implement account stuff).
+          color: "red",
+        });
+
+
         let textContentTrunc = textContent.slice(0, absoluteCursorPos);
         let currentLine = textContentTrunc.split("\n").length;
         //console.log("The current line is: ", currentLine);
         setCurrentLine(currentLine);
 
-        // PHASE-3 ADDITIONS:
-        sendTextToServer(textContent); // emit current Text Editor content to the server. (in external function due to throttle integration).
-        sendCursorToServer(absoluteCursorPos); // emit current Text Editor cursor pos to the server. ^ again, same.
+
+        // PART-2-ADDITION: replacement for sendTextToServer(...):
+        if(textContent !== ytext.toString()) {
+          ytext.delete(0, ytext.length);
+          ytext.insert(0, textContent);
+        }
+
         
         // NOTE: The stuff below is for the Markdown renderer... 
         setEditorContent(textContent);
         setParsedContent(parseMarkdown(textContent));
-
       });
     });
 
@@ -321,7 +309,45 @@ function EditorContent() {
   }, [editor]);
 
 
-  // "useEffect(()=>{...})" Hook #3 - For clientCursors updates (letting us know how to update the rendering):
+  // DEBUG: (PROJECT-PART-2-ADDITION): "useEffect(()=>{...})" Hook #1.5 - For YjS - Lexical syncing
+  useEffect(()=> {
+    // THIS BELOW REPLACES THE SOCKET I HAD FOR "load-document" FROM PART 1:
+    const syncFromYText = () => {
+      editor.update(() => {
+        const root = $getRoot();
+        root.clear();
+        root.append($createTextNode(ytext.toString()));
+      });
+    };
+    syncFromYText();  // initial sync from Yjs doc (basically my socket.on("load-document") replacement).
+    ytext.observe(syncFromYText);
+
+    return () => {
+      ytext.unobserve(syncFromYText);
+    };
+  }, [editor]);
+
+  // DEBUG: (PROJECT-PART-2-ADDITION): "useEffect(()=>{...})" Hook #1.75 - Replacing the "update-cursors" hook:
+  useEffect(() => {
+    const updateRemoteCursors = () => {
+      const allStates = Array.from(awareness.getStates().entries());
+      const remoteCursors = allStates; // <-- come back and see if i need to do any filtering later.
+      setOtherCursors(remoteCursors);
+    };
+
+    awareness.on('change', updateRemoteCursors);
+    return () => awareness.off('change', updateRemoteCursors);
+  }, []);
+
+
+
+
+
+
+
+
+
+  // "useEffect(()=>{...})" Hook #2 - For clientCursors updates (letting us know how to update the rendering):
   useEffect(() => {
     // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
     socket.on("update-cursors", (cursors) => {

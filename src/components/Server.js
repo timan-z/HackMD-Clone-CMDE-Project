@@ -10,7 +10,7 @@ import pkg from 'lodash';
 const { throttle } = pkg;
 
 // BEGINNING OF PART-2 ADDITIONS:
-import { setupWSConnection } from "y-websocket/bin/utils.js";
+import { setupWSConnection } from "y-websocket/server";
 import WebSocket from "ws";
 
 // setup:
