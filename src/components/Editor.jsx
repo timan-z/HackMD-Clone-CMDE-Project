@@ -6,7 +6,7 @@ import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useState, useRef } from 'react';
-import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection } from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection, $createTextNode, $createParagraphNode } from 'lexical';
 import { parseMarkdown } from "./MDParser.jsx";
 import { findCursorPos } from './UtilityFuncs.js';
 import Toolbar from "./Toolbar.jsx";
@@ -19,6 +19,10 @@ import { RemoteCursorNode } from './nodes/RemoteCursorNode.jsx'; // <-- DEBUG: n
 import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 const socket = io("http://localhost:4000"); // NOTE: This is what I'm picking for server port location in Server.js (maybe change it, doesn't matter, who cares).
 const dmp = new DiffMatchPatch();
+
+
+import {ydoc, ytext, awareness} from './collabProvider.js'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
+
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -284,12 +288,6 @@ function EditorContent() {
     return adjustedOffset;
   };
 
-
-
-
-
-
-
   // PHASE-3 UPDATE: Introducing two new "useEffect(()=>{...})" hooks for clarity as per how the Socket.IO Client-Server logic will work:
   // NOTE: Hook #1 is only supposed to run ONCE I'm pretty sure...
   // "useEffect(()=>{...})" Hook #1 - "start-up hook", for loading initial content from the server (after connecting to it for the first time).
@@ -351,6 +349,19 @@ function EditorContent() {
         sendTextToServer(textContent); // emit current Text Editor content to the server. (in external function due to throttle integration).
         sendCursorToServer(absoluteCursorPos); // emit current Text Editor cursor pos to the server. ^ again, same.
         
+        
+
+
+        // BELOW-DEBUG: Test stuff for Yjs:
+        if (textContent !== ytext.toString()) {
+          ytext.delete(0, ytext.length);
+          ytext.insert(0, textContent);
+        }
+        // ABOVE-DEBUG: Test stuff for yjs.
+
+
+
+
         // NOTE: The stuff below is for the Markdown renderer... 
         setEditorContent(textContent);
         setParsedContent(parseMarkdown(textContent));
@@ -363,6 +374,56 @@ function EditorContent() {
       unregister();
     };
   }, [editor]);
+
+
+
+
+
+
+
+
+
+
+  // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
+  useEffect(() => {
+    const updateEditorFromYjs = () => {
+      editor.update(() => {
+        const root = $getRoot();
+        root.clear();
+        root.append($createParagraphNode());
+
+        console.log("PART2-DEBUG: The value of root.getChildren() is => [", root.getChildren(), "]");
+        const paragraph = root.getFirstChild();
+        if(!$isParagraphNode(paragraph)) {
+          console.log("PART-2-DEBUG: SOMETHING WRONG!!!");
+          return;
+        }
+        
+        paragraph.append($createTextNode(ytext.toString()));
+
+      });
+    };
+    ytext.observe(updateEditorFromYjs);
+    updateEditorFromYjs(); // initial sync
+  
+    return () => ytext.unobserve(updateEditorFromYjs);
+  }, [editor]);
+  // ABOVE-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   // "useEffect(()=>{...})" Hook #3 - For listening for incoming Text Editor updates from other clients during real-time collaboration:
   useEffect(() => {
@@ -433,20 +494,19 @@ function EditorContent() {
     };
   }, []);
 
+
+
+
+
   // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
-      console.log("test");
+      console.log("DEBUG: debugFunction entered...");
 
-      /*console.log("DEBUG: The value of cursorPos.current is => [", cursorPos.current, "]");
-      const text = $getRoot().getTextContent();
-      console.log("DEBUG: The value of Text Editor content is => [", text, "]");
-      const theChar = text.charAt(cursorPos.current);
-      console.log("DEBUG: The value of theChar is => [", theChar, "]");
-      if(theChar === "\n") {
-        console.log("DEBUG: Damn it be a newline.");
-      }*/
+      console.log("Initial text: ", ytext.toString());
+      console.log("Awareness state: ", awareness.getStates());
 
+      console.log("DEBUG: debugFunction exited...");
     });
   }
 
