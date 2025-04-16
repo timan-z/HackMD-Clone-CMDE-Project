@@ -236,53 +236,9 @@ function EditorContent() {
     });
   };
 
-  // PHASE-3: Const below is for wrapping an emit from useEffect Hook #2 with Throttling:
-  const sendTextToServer = throttle((text) => {
-    socket.emit("send-text", text);
-  }, 150);  // only execute every 150ms (subsequent calls are ignored until each interval elapses).
-
-  // PHASE-3: Const below is for wrapping an emit from useEffect Hook #2 with Throttling (once again):
-  const sendCursorToServer = throttle((cursorPos) => {
-    socket.emit("send-cursor-pos", cursorPos, socket.id);
-  }, 100);
 
 
 
-
-
-
-
-  // PHASE-3: Function below is for adjusting cursor position when foreign edits occur from behind that may warp/delay where it should be:
-  const adjustCursorOffset = (originalOffset, diffs) => {
-    // note: this function seems to work fine.
-    let cursorIndex = 0;
-    let adjustedOffset = originalOffset;
-
-    console.log("DEBUG: FUNCTION \"adjustCursorOffset\" HAS BEEN ENTERED!!!");
-    console.log("DEBUG: The value of diffs is => [", diffs, "]");
-
-    for(let i = 0; i < diffs.length; i++) {
-      const [op, text] = diffs[i];
-      const len = text.length;
-      
-      if(op === 0) {
-        // equality:
-        cursorIndex += len;
-      } else if(op === -1) {
-        // deletion:
-        if(cursorIndex < adjustedOffset) {
-          adjustedOffset = Math.max(adjustedOffset - len, cursorIndex);
-        } 
-      } else if(op === 1) {
-        // insertion before cursor:
-        if(cursorIndex <= adjustedOffset) {
-          adjustedOffset += len;
-        }
-        cursorIndex += len;
-      }
-    }
-    return adjustedOffset;
-  };
 
 
 
@@ -364,61 +320,8 @@ function EditorContent() {
     };
   }, [editor]);
 
-  // "useEffect(()=>{...})" Hook #3 - For listening for incoming Text Editor updates from other clients during real-time collaboration:
-  useEffect(() => {
-    // Receiving Text Editor updates from real-time clients:
-    socket.on("receive-text", (serverData) => {
-      // Before replacing the current Text Editor content, I need to save the current client's cursor position within the Editor:
-      // NOTE:+PHASE-3-DEBUG: ^ Going to just try and rely on the setCursorPos state var stuff for now... if it's not reliable, COME BACK HERE!!!
 
-      // So updates will come in the form of the Text Editor content in its entirety (replacing the existing one):
-      setEditorContent((editorContent) => {
-        if(editorContent === serverData) {
-          return editorContent; // No update needed.
-        }
-        // Using diff-match-patch to check for differences:
-        const diffs = dmp.diff_main(editorContent, serverData);
-        const [patchedText] = dmp.patch_apply(dmp.patch_make(editorContent, diffs), editorContent);
-
-        editor.update(() => {
-          const root = $getRoot();
-          root.clear(); // gets rid of current existing text.
-          const selection = $getSelection();
-          selection.insertText(patchedText);
-
-          // Code below is for repositioning the cursor positions of foreign clients (post-re-render):
-          const paragraph = root.getFirstChild();
-          if(!$isParagraphNode(paragraph)) return;
-          let {anchor} = selection;
-          let anchorNode = anchor.getNode();
-          
-          const node = paragraph.getFirstChild();
-          if(!$isTextNode(node)) return;
-          const text = node.getTextContent();
-          const textLength = text.length;
-          console.log("debug: The value of cursorPos.current is: ", cursorPos.current);
-          //console.log("debug: The value of text is: ", text);
-          const newSelection = $createRangeSelection();
-
-          if(!(cursorPos.current > textLength)) {
-            newSelection.setTextNodeRange(anchorNode, cursorPos.current, anchorNode, cursorPos.current);
-          } else {
-            newSelection.setTextNodeRange(anchorNode, textLength, anchorNode, textLength);
-          }
-          $setSelection(newSelection);
-        });
-
-        // Return the new text editor content:
-        return patchedText;
-      });
-    });
-
-    return () => {
-      socket.off("receive-text");
-    };
-  }, [editor]);
-
-  // "useEffect(()=>{...})" Hook #4 - For clientCursors updates (letting us know how to update the rendering):
+  // "useEffect(()=>{...})" Hook #3 - For clientCursors updates (letting us know how to update the rendering):
   useEffect(() => {
     // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
     socket.on("update-cursors", (cursors) => {
