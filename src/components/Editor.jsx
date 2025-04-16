@@ -386,21 +386,18 @@ function EditorContent() {
 
   // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
   useEffect(() => {
+    let lastYText = ytext.toString(); // keeping track of the last value to avoid reapplying same update.
+
     const updateEditorFromYjs = () => {
+
+      const newYText = ytext.toString();
+      if(newYText === lastYText) return;
+
       editor.update(() => {
         const root = $getRoot();
-        root.clear();
-        root.append($createParagraphNode());
-
-        console.log("PART2-DEBUG: The value of root.getChildren() is => [", root.getChildren(), "]");
-        const paragraph = root.getFirstChild();
-        if(!$isParagraphNode(paragraph)) {
-          console.log("PART-2-DEBUG: SOMETHING WRONG!!!");
-          return;
-        }
-        
-        paragraph.append($createTextNode(ytext.toString()));
-
+        root.clear(); 
+        const selection = $getSelection();
+        selection.insertText(newYText);
       });
     };
     ytext.observe(updateEditorFromYjs);
