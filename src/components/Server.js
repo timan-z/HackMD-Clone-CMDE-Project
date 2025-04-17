@@ -30,26 +30,57 @@ const io = new Server(server, {
 let documentData = "";
 let clientCursors = []; // This will be my array variable holding the client-cursor info objects for rendering in each Text Editor.
 
+
+
+
+
+const docs = new Map(); // in-memory shared state
+function getYDoc(docName) {
+    if(!docs.has(docName)) {
+        const ydoc = new Y.Doc();
+        docs.set(docName, ydoc);
+    }
+    return docs.get(docName);
+}
+
 io.on("connection", (socket) => {
     // connection notice:
     console.log("A user connected: ", socket.id);
 
-    // send existing text editor content to new clients:
-    socket.emit("load-document", documentData);
-    
-    // Handle text editor changes:
-    socket.on("send-text", (data) => {
-        documentData = data;    // update document state.
-        socket.broadcast.emit("receive-text", data);    // send updates to all other clients.
+    const doc = getYDoc('room-1');
+    // When a client connects, send them the current Yjs state:
+    const stateUpdate = Y.encodeStateAsUpdate(doc);
+    socket.emit('yjs-init', Array.from(stateUpdate));
+
+    socket.on("yjs-update", (update) => {
+        console.log(`[SERVER] Received yjs-update from ${socket.id}`);
+        console.log("[YJS] update received:", update);
+        const binary = new Uint8Array(update);
+        Y.applyUpdate(doc, binary);
+        socket.broadcast.emit("yjs-update", update);    // forward to all others.
     });
 
+
+
+
+
+
+    // send existing text editor content to new clients:
+    //socket.emit("load-document", documentData);
+    
+    // Handle text editor changes:
+    /*socket.on("send-text", (data) => {
+        documentData = data;    // update document state.
+        socket.broadcast.emit("receive-text", data);    // send updates to all other clients.
+    });*/
+
     // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
-    const broadcastCursors = throttle(() => {
+    /*const broadcastCursors = throttle(() => {
         socket.broadcast.emit("update-cursors", clientCursors);
-    }, 100); // 100ms seems like a reasonable interval.
+    }, 100);*/ // 100ms seems like a reasonable interval.
 
     // Handle client sending their cursor position within the Text Editor (*will happen frequently*): 
-    socket.on("send-cursor-pos", (absCursorPos, clientId) => {
+    /*socket.on("send-cursor-pos", (absCursorPos, clientId) => {
         console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
         console.log("DEBUG: Their cursor position: ", absCursorPos);
         const clientCursor = {cursorPos: absCursorPos, id:clientId};
@@ -66,15 +97,15 @@ io.on("connection", (socket) => {
 
         // Broadcasting the state of clientCursors:
         broadcastCursors();
-    });
+    })*/
 
     // disconnection notice:
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
 
-        console.log("DEBUG: [clientCursors Pre-Splice] => ", clientCursors);
+        //console.log("DEBUG: [clientCursors Pre-Splice] => ", clientCursors);
         // After disconnection, I need to remove the recently-disconnected socket from array clientCursors too:
-        let targetIndex = 0;
+        /*let targetIndex = 0;
         clientCursors.forEach(client => {
             if(client.id === socket.id) {
                 clientCursors.splice(targetIndex, 1);
@@ -82,7 +113,7 @@ io.on("connection", (socket) => {
             targetIndex += 1; 
         });
         console.log("DEBUG: [clientCursors Post-Splice] => ", clientCursors);
-        broadcastCursors();
+        broadcastCursors();*/
     });
 });
 
