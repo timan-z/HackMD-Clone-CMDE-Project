@@ -338,6 +338,7 @@ function EditorContent() {
 
     const handleYjsUpdate = (update) => {
       console.log("[YJS] Local update triggered");
+      
       socket.emit('yjs-update', Array.from(update));  // convert Uint8Array to Array
     };
 
@@ -376,13 +377,14 @@ function EditorContent() {
   useEffect(() => {
     socket.on('yjs-init', (update) => {
       const binary = new Uint8Array(update);
+      console.log("[YJS] Received initial state");
       Y.applyUpdate(ydoc, binary);
-      console.log("[YJS] Initial document state applied");
+      console.log("[YJS] Initial document state applied:", ytext.toString());
     });
   
     return () => socket.off('yjs-init');
-  }, []);  
-
+  }, []);
+  
 
   // DEBUG: TESTING SOME STUFF ABOVE!!!
 

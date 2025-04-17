@@ -19,6 +19,13 @@ const { throttle } = pkg;
 const app = express();
 const server = http.createServer(app);
 
+
+// RAAAAAAAAAAAAA
+import * as Y from 'yjs';
+
+
+
+
 const io = new Server(server, {
     // You need this stuff below to bypass issues with cors.
     cors: {
@@ -26,13 +33,6 @@ const io = new Server(server, {
         methods: ["GET", "POST"],
     },
 });
-
-let documentData = "";
-let clientCursors = []; // This will be my array variable holding the client-cursor info objects for rendering in each Text Editor.
-
-
-
-
 
 const docs = new Map(); // in-memory shared state
 function getYDoc(docName) {
@@ -57,63 +57,16 @@ io.on("connection", (socket) => {
         console.log("[YJS] update received:", update);
         const binary = new Uint8Array(update);
         Y.applyUpdate(doc, binary);
+
+        console.log("[SERVER] Emitting yjs-init to", socket.id)
+
         socket.broadcast.emit("yjs-update", update);    // forward to all others.
     });
-
-
-
-
-
-
-    // send existing text editor content to new clients:
-    //socket.emit("load-document", documentData);
-    
-    // Handle text editor changes:
-    /*socket.on("send-text", (data) => {
-        documentData = data;    // update document state.
-        socket.broadcast.emit("receive-text", data);    // send updates to all other clients.
-    });*/
-
-    // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
-    /*const broadcastCursors = throttle(() => {
-        socket.broadcast.emit("update-cursors", clientCursors);
-    }, 100);*/ // 100ms seems like a reasonable interval.
-
-    // Handle client sending their cursor position within the Text Editor (*will happen frequently*): 
-    /*socket.on("send-cursor-pos", (absCursorPos, clientId) => {
-        console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
-        console.log("DEBUG: Their cursor position: ", absCursorPos);
-        const clientCursor = {cursorPos: absCursorPos, id:clientId};
-        const isItAlrThere = clientCursors.findIndex(item => item.id === clientId); // Check if there's already an obj in clientCursors rep'ing this socket.        
-
-        if(isItAlrThere !== -1) {
-            // Obj with id===clientId present in clientCursors means that specific element needs to be replaced (isItAlrThere === index):
-            clientCursors[isItAlrThere] = clientCursor;
-        } else {
-            // Not present, so we can push it in:
-            clientCursors.push(clientCursor);
-        }
-        console.log("DEBUG: Current state of clientCursors: ", clientCursors);
-
-        // Broadcasting the state of clientCursors:
-        broadcastCursors();
-    })*/
 
     // disconnection notice:
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
 
-        //console.log("DEBUG: [clientCursors Pre-Splice] => ", clientCursors);
-        // After disconnection, I need to remove the recently-disconnected socket from array clientCursors too:
-        /*let targetIndex = 0;
-        clientCursors.forEach(client => {
-            if(client.id === socket.id) {
-                clientCursors.splice(targetIndex, 1);
-            }
-            targetIndex += 1; 
-        });
-        console.log("DEBUG: [clientCursors Post-Splice] => ", clientCursors);
-        broadcastCursors();*/
     });
 });
 
