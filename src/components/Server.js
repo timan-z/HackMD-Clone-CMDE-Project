@@ -24,8 +24,6 @@ const server = http.createServer(app);
 import * as Y from 'yjs';
 
 
-
-
 const io = new Server(server, {
     // You need this stuff below to bypass issues with cors.
     cors: {
@@ -47,7 +45,7 @@ io.on("connection", (socket) => {
     // connection notice:
     console.log("A user connected: ", socket.id);
 
-    const doc = getYDoc('room-1');
+    /*const doc = getYDoc('room-1');
     // When a client connects, send them the current Yjs state:
     const stateUpdate = Y.encodeStateAsUpdate(doc);
     socket.emit('yjs-init', Array.from(stateUpdate));
@@ -61,7 +59,7 @@ io.on("connection", (socket) => {
         console.log("[SERVER] Emitting yjs-init to", socket.id)
 
         socket.broadcast.emit("yjs-update", update);    // forward to all others.
-    });
+    });*/
 
     // disconnection notice:
     socket.on("disconnect", () => {

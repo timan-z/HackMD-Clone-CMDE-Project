@@ -1,9 +1,8 @@
+// GOING TO BE SWITCHING BACK TO USING y-websocket NOW.
 import * as Y from 'yjs';
-import { Awareness } from 'y-protocols/awareness.js'
+import { WebsocketProvider } from 'y-websocket';
 
-export const ydoc = new Y.Doc(); // this will be the shared document.
-export const ytext = ydoc.getText('content'); // shared text.
-export const awareness = new Awareness(ydoc); // for cursor/presence tracking.
-
-
-console.log("[INIT] ydoc ID:", ydoc.clientID);
+export const ydoc = new Y.Doc();
+export const provider = new WebsocketProvider('ws://localhost:1234', 'room-1', ydoc);
+export const ytext = ydoc.getText('content');
+export const awareness = provider.awareness;

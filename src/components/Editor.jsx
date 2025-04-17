@@ -12,13 +12,8 @@ import { findCursorPos } from './UtilityFuncs.js';
 import Toolbar from "./Toolbar.jsx";
 
 // NOTE: Following lines are for Phase 3 (Introducing Real-Time Collaboration).
-import { io } from "socket.io-client";
-import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
-//import DiffMatchPatch from "diff-match-patch";
 import { RemoteCursorNode } from './nodes/RemoteCursorNode.jsx'; // <-- DEBUG: ngl i might not need this one anymore now that i'm relaying on an overlay instead...
 import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
-const socket = io("http://localhost:4000"); // NOTE: This is what I'm picking for server port location in Server.js (maybe change it, doesn't matter, who cares).
-//const dmp = new DiffMatchPatch();
 
 // PART-2-ADDITIONS:
 import {ydoc, ytext, awareness} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
@@ -114,10 +109,6 @@ const initialConfig = {
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
 function EditorContent() {
-
-  console.log("[Editor] Using ydoc ID:", ydoc.clientID);
-
-
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -244,149 +235,12 @@ function EditorContent() {
     });
   };
 
-  // PHASE-3: Const below is for wrapping an emit from useEffect Hook #2 with Throttling:
-  /*const sendTextToServer = throttle((text) => {
-    socket.emit("send-text", text);
-  }, 150);*/  // only execute every 150ms (subsequent calls are ignored until each interval elapses).
-
-  // PHASE-3: Const below is for wrapping an emit from useEffect Hook #2 with Throttling (once again):
-  /*const sendCursorToServer = throttle((cursorPos) => {
-    socket.emit("send-cursor-pos", cursorPos, socket.id);
-  }, 100);*/
-
-  // PHASE-3: Function below is for adjusting cursor position when foreign edits occur from behind that may warp/delay where it should be:
-  const adjustCursorOffset = (originalOffset, diffs) => {
-    // note: this function seems to work fine.
-    let cursorIndex = 0;
-    let adjustedOffset = originalOffset;
-
-    console.log("DEBUG: FUNCTION \"adjustCursorOffset\" HAS BEEN ENTERED!!!");
-    console.log("DEBUG: The value of diffs is => [", diffs, "]");
-
-    for(let i = 0; i < diffs.length; i++) {
-      const [op, text] = diffs[i];
-      const len = text.length;
-      
-      if(op === 0) {
-        // equality:
-        cursorIndex += len;
-      } else if(op === -1) {
-        // deletion:
-        if(cursorIndex < adjustedOffset) {
-          adjustedOffset = Math.max(adjustedOffset - len, cursorIndex);
-        } 
-      } else if(op === 1) {
-        // insertion before cursor:
-        if(cursorIndex <= adjustedOffset) {
-          adjustedOffset += len;
-        }
-        cursorIndex += len;
-      }
-    }
-    return adjustedOffset;
-  };
-
-  // PHASE-3 UPDATE: Introducing two new "useEffect(()=>{...})" hooks for clarity as per how the Socket.IO Client-Server logic will work:
-  // NOTE: Hook #1 is only supposed to run ONCE I'm pretty sure...
-  // "useEffect(()=>{...})" Hook #1 - "start-up hook", for loading initial content from the server (after connecting to it for the first time).
-  /*useEffect(() => {
-    socket.on("load-document", (serverData) => {
-      setEditorContent(serverData);
-      setSocketID(socketID);
-      // setting the text editor content to whatever was on the server (NOTE: Not exactly really relevant to me yet (?) but might be very soon):
-      editor.update(() => {
-        const root = $getRoot();
-        root.clear(); // gets rid of current existing text.
-        const selection = $getSelection();
-        selection.insertText(serverData);
-      });
-    });
-
-    return () => {
-      socket.off("load-document");
-    };
-  }, [editor]);*/
 
 
 
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // DEBUG: TESTING SOME STUFF BELOW!!!
-  // Send local Yjs updates to other clients:
-  useEffect(()=> {
-
-    console.log("RAAAAAAAAAAAAAAAAA 11111111111");
-
-    const handleYjsUpdate = (update) => {
-      console.log("[YJS] Local update triggered");
-      
-      socket.emit('yjs-update', Array.from(update));  // convert Uint8Array to Array
-    };
-
-    ydoc.on('update', handleYjsUpdate);
-    return () => {
-      ydoc.off('update', handleYjsUpdate);
-    };
-  }, []);
-
-
-  // Receive Yjs updates from other clients:
-  useEffect(()=> {
-
-    console.log("RAAAAAAAAAAHHHHHHHHHHHH 222222222222");
-
-    const handleSocketUpdate = (update) => {
-      console.log("[YJS] Remote update received");
-      const binaryUpdate = new Uint8Array(update);  // convert back to Uint8Array
-
-      console.log("[YJS] Applying update to ydoc:", ydoc.clientID);
-
-      Y.applyUpdate(ydoc, update);
-
-      console.log("[YJS] ytext (post-apply):", ytext.toString());
-
-    };
-
-    socket.on('yjs-update', handleSocketUpdate);
-    return () => {
-      socket.off('yjs-update', handleSocketUpdate);
-    };
-  }, []);
-
-
-
-  useEffect(() => {
-    socket.on('yjs-init', (update) => {
-      const binary = new Uint8Array(update);
-      console.log("[YJS] Received initial state");
-      Y.applyUpdate(ydoc, binary);
-      console.log("[YJS] Initial document state applied:", ytext.toString());
-    });
-  
-    return () => socket.off('yjs-init');
-  }, []);
-  
-
-  // DEBUG: TESTING SOME STUFF ABOVE!!!
 
 
 
@@ -446,18 +300,15 @@ function EditorContent() {
         //console.log("PHASE-3-DEBUG: The value of cursorPos.current is = ", cursorPos.current);
 
         //cursorPos.current = absoluteCursorPos;  // <-- DEBUG: ^ trying this instead now...
-        
+
         //console.log("DEBUG-PHASE-3: The value of absoluteCursorPos is: [", absoluteCursorPos, "]");
         let textContentTrunc = textContent.slice(0, absoluteCursorPos);
         let currentLine = textContentTrunc.split("\n").length;
         //console.log("The current line is: ", currentLine);
         setCurrentLine(currentLine);
 
-        // PHASE-3 ADDITIONS:
-        //sendTextToServer(textContent); // emit current Text Editor content to the server. (in external function due to throttle integration).
-        //sendCursorToServer(absoluteCursorPos); // emit current Text Editor cursor pos to the server. ^ again, same.
-        
-        
+
+
 
 
         // BELOW-DEBUG: Test stuff for Yjs:
@@ -495,22 +346,11 @@ function EditorContent() {
   // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
   useEffect(() => {
     //let lastYText = ytext.toString(); // keeping track of the last value to avoid reapplying same update.
-
     const updateEditorFromYjs = () => {
-
-      console.log("[LEXICAL] Applying update from Yjs");
-
       const newYText = ytext.toString();
       //if(newYText === lastYText) return;
 
-      console.log("1. [LEXICAL] ytext value:", ytext.toString());
-
-
       editor.update(() => {
-
-        console.log("2. [LEXICAL] ytext value:", ytext.toString());
-
-
         const root = $getRoot();
         root.clear(); 
         const selection = $getSelection();
@@ -539,78 +379,6 @@ function EditorContent() {
 
 
 
-  // "useEffect(()=>{...})" Hook #3 - For listening for incoming Text Editor updates from other clients during real-time collaboration:
-  /*useEffect(() => {
-    // Receiving Text Editor updates from real-time clients:
-    socket.on("receive-text", (serverData) => {
-      // Before replacing the current Text Editor content, I need to save the current client's cursor position within the Editor:
-      // NOTE:+PHASE-3-DEBUG: ^ Going to just try and rely on the setCursorPos state var stuff for now... if it's not reliable, COME BACK HERE!!!
-
-      // So updates will come in the form of the Text Editor content in its entirety (replacing the existing one):
-      setEditorContent((editorContent) => {
-        if(editorContent === serverData) {
-          return editorContent; // No update needed.
-        }
-        // Using diff-match-patch to check for differences:
-        const diffs = dmp.diff_main(editorContent, serverData);
-        const [patchedText] = dmp.patch_apply(dmp.patch_make(editorContent, diffs), editorContent);
-
-        editor.update(() => {
-          const root = $getRoot();
-          root.clear(); // gets rid of current existing text.
-          const selection = $getSelection();
-          selection.insertText(patchedText);
-
-          // Code below is for repositioning the cursor positions of foreign clients (post-re-render):
-          const paragraph = root.getFirstChild();
-          if(!$isParagraphNode(paragraph)) return;
-          let {anchor} = selection;
-          let anchorNode = anchor.getNode();
-          
-          const node = paragraph.getFirstChild();
-          if(!$isTextNode(node)) return;
-          const text = node.getTextContent();
-          const textLength = text.length;
-          console.log("debug: The value of cursorPos.current is: ", cursorPos.current);
-          //console.log("debug: The value of text is: ", text);
-          const newSelection = $createRangeSelection();
-
-          if(!(cursorPos.current > textLength)) {
-            newSelection.setTextNodeRange(anchorNode, cursorPos.current, anchorNode, cursorPos.current);
-          } else {
-            newSelection.setTextNodeRange(anchorNode, textLength, anchorNode, textLength);
-          }
-          $setSelection(newSelection);
-        });
-
-        // Return the new text editor content:
-        return patchedText;
-      });
-    });
-
-    return () => {
-      socket.off("receive-text");
-    };
-  }, [editor]);*/
-
-  // "useEffect(()=>{...})" Hook #4 - For clientCursors updates (letting us know how to update the rendering):
-  /*useEffect(() => {
-    // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
-    socket.on("update-cursors", (cursors) => {
-      //console.log("DEBUG: Received clientCursors update! cursors = [", cursors, "]");
-      //console.log("Debug: Also btw the value of socket.id is: ", socket.id);
-      setOtherCursors(cursors.filter(cursor => cursor.id !== socket.id)); // The "=> cursor.id !== socket.id" part is for not including *this* client's ID.
-      //otherCursors won't automatically update to "cursors" immediately, will need to wait for the next time
-      //the Editor renders (which I can catch with another useEffect hook dedicated to detecting when otherCursors changes).    
-    });
-    return () => {
-      socket.off("update-cursors");
-    };
-  }, []);*/
-
-
-
-
 
   // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
   const debugFunction = (editor, id, color, label, offset) => {
@@ -623,6 +391,7 @@ function EditorContent() {
       console.log("DEBUG: debugFunction exited...");
     });
   }
+
 
 
 
