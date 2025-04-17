@@ -15,9 +15,13 @@ import Toolbar from "./Toolbar.jsx";
 import { RemoteCursorNode } from './nodes/RemoteCursorNode.jsx'; // <-- DEBUG: ngl i might not need this one anymore now that i'm relaying on an overlay instead...
 import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 
+
 // PART-2-ADDITIONS:
-import {ydoc, ytext, awareness} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
 import * as Y from 'yjs';
+import {ydoc, ytext, awareness} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
+import { useMemo } from 'react';
+
+
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -136,6 +140,12 @@ function EditorContent() {
   const [otherCursors, setOtherCursors] = useState([]);
   const [socketID, setSocketID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
+
+
+  // PART-2-ADDITIONS - TESTING IF THESE WORK:
+  const userID = useMemo(() => crypto.randomUUID(), []);
+  console.log("The value of userID is: ", userID);
+
 
   // Function for handling the webpage view toggle between the Text Editor and Preview Panel (Split, Editor, Preview):
   const handleViewChange = (mode) => {
@@ -308,9 +318,6 @@ function EditorContent() {
         setCurrentLine(currentLine);
 
 
-
-
-
         // BELOW-DEBUG: Test stuff for Yjs:
         if (textContent !== ytext.toString()) {
           ytext.delete(0, ytext.length);
@@ -319,12 +326,9 @@ function EditorContent() {
         // ABOVE-DEBUG: Test stuff for yjs.
 
 
-
-
         // NOTE: The stuff below is for the Markdown renderer... 
         setEditorContent(textContent);
         setParsedContent(parseMarkdown(textContent));
-
       });
     });
 
@@ -333,15 +337,6 @@ function EditorContent() {
       unregister();
     };
   }, [editor]);
-
-
-
-
-
-
-
-
-
 
   // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
   useEffect(() => {
@@ -365,6 +360,33 @@ function EditorContent() {
   // ABOVE-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
 
 
+
+
+
+  // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- SHARING LOCAL CURSOR POSITION WITH "awareness":
+  useEffect(() => {
+    // This function will execute every 100ms
+    const interval = setInterval(() => {
+      editor.getEditorState().read(() => {
+        const root = $getRoot();
+        const selection = $getSelection();
+
+        if ($isRangeSelection(selection)) {
+          
+          awareness.setLocalStateField('cursor', {
+            pos: cursorPos.current,
+            id: userID, // <-- use the Server.js id???? (idk it's too crazy)
+          });
+
+          console.log("PART2-DEBUG: Sending cursor: ", cursorPos.current, userID); 
+
+        }
+
+      });
+    }, 100); // throttle this a bit
+  
+    return () => clearInterval(interval);
+  }, [editor, userID]);
 
 
 
