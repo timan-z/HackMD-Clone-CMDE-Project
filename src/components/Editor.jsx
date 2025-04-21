@@ -138,13 +138,21 @@ function EditorContent() {
   const [isDraggingMD, setIsDraggingMD] = useState(false);
   // The following const(s) is for rendering the cursors of the *other* clients in the Text Editor during real-time collaboration:
   const [otherCursors, setOtherCursors] = useState([]);
+  //const [userID, setUserID] = useState("");
   const [socketID, setSocketID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
+  
 
 
+  
   // PART-2-ADDITIONS - TESTING IF THESE WORK:
-  const userID = useMemo(() => crypto.randomUUID(), []);
-  console.log("The value of userID is: ", userID);
+  /*const debug = useMemo(() => crypto.randomUUID(), []);
+  console.log("The value of userID is: ", debug);
+  setUserID(debug);*/
+  const userID = useRef(useMemo(() => crypto.randomUUID(), []));
+
+
+
 
 
   // Function for handling the webpage view toggle between the Text Editor and Preview Panel (Split, Editor, Preview):
@@ -258,29 +266,6 @@ function EditorContent() {
 
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // "useEffect(()=>{...})" Hook #2 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
     const unregister = editor.registerUpdateListener(({ editorState }) => {
@@ -363,34 +348,70 @@ function EditorContent() {
 
 
 
-  // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- SHARING LOCAL CURSOR POSITION WITH "awareness":
-  useEffect(() => {
-    // This function will execute every 100ms
-    const interval = setInterval(() => {
-      editor.getEditorState().read(() => {
-        const root = $getRoot();
-        const selection = $getSelection();
 
+
+
+
+
+
+  // PART-2: "useEffect(()=>{...})" HOOK -- SHARING LOCAL CURSOR POSITION WITH "awareness":
+  useEffect(() => {
+    // this will execute each time you move the cursor in the text editor (works good)    
+    return editor.registerUpdateListener(({editorState}) => {
+      editorState.read(()=> {
+        const selection = $getSelection();
         if ($isRangeSelection(selection)) {
-          
           awareness.setLocalStateField('cursor', {
             pos: cursorPos.current,
             id: userID, // <-- use the Server.js id???? (idk it's too crazy)
           });
-
           console.log("PART2-DEBUG: Sending cursor: ", cursorPos.current, userID); 
-
         }
-
       });
-    }, 100); // throttle this a bit
-  
-    return () => clearInterval(interval);
+    });
   }, [editor, userID]);
+  
+
+  // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
+  useEffect(()=> {
+    const updateCursors = () => {
+      const states = awareness.getStates();
+      const cursors = [];
+      // basically just shortening 
+      for(const [key, value] of states) {
+        const valueItem = value.cursor;
+        cursors.push(valueItem);
+        console.log("The value of valueItem is: ", valueItem);
+      }
+      setOtherCursors(cursors.filter(cursor => cursor.id !== userID));
+      
+
+
+      //console.log("The value of userID is: ", userID);
+      // filter out the ID of *this* client from array cursors:
+      //setOtherCursors(cursors.filter(cursor => cursor.id !== socket.id));
+      //setOtherCursors(cursors);
+    };
+
+    awareness.on('change', updateCursors);
+    updateCursors();
+    return () => awareness.off('change', updateCursors);
+  }, []);
 
 
 
 
+
+
+
+
+
+
+
+
+
+
+  
 
 
 
