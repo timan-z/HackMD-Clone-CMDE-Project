@@ -150,8 +150,8 @@ function EditorContent() {
   console.log("The value of userID is: ", debug);
   setUserID(debug);*/
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
-
-
+  const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
+  //const recoverACP = Y.createAbsolutePositionFromRelativePosition(relativePos, ydoc);
 
 
 
@@ -363,6 +363,7 @@ function EditorContent() {
         if ($isRangeSelection(selection)) {
           awareness.setLocalStateField('cursor', {
             pos: cursorPos.current,
+            relPos: relativePos,
             id: userID, // <-- use the Server.js id???? (idk it's too crazy)
           });
           console.log("PART2-DEBUG: Sending cursor: ", cursorPos.current, userID); 
@@ -371,10 +372,6 @@ function EditorContent() {
     });
   }, [editor, userID]);
   
-
-
-
-
   // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
   useEffect(()=> {
     const updateCursors = () => {
@@ -387,16 +384,7 @@ function EditorContent() {
 
         const valueItem = value.cursor;
         cursors.push(valueItem);
-        /*
-        console.log("DEBUG-1: The value of value is: ", value);
-        console.log("DEBUG-2: The value of valueItem is: ", valueItem);
-        console.log("DEBUG-3: The value of valueItem.pos is: ", valueItem.pos);
-        console.log("DEBUG-4: The value of valueItem.id.current is: ", valueItem.id.current);
-        if(valueItem.id.current === userID.current) {
-          console.log("DEBUG: if-condition worked...");
-        }*/
       }
-      //console.log("DEBUG: The value of userID is => ", userID);
       setOtherCursors(cursors.filter(cursor => cursor.id.current !== userID.current));
     };
 
