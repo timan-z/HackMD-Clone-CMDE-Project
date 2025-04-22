@@ -372,31 +372,40 @@ function EditorContent() {
   }, [editor, userID]);
   
 
+
+
+
   // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
   useEffect(()=> {
     const updateCursors = () => {
       const states = awareness.getStates();
       const cursors = [];
-      // basically just shortening 
+      // NOTE: basically just shortening what i was doing before...
       for(const [key, value] of states) {
+        // Ignore irrelevant values inside of states (stuff I'm not interested in):
+        if(!value || !value.cursor) return;
+
         const valueItem = value.cursor;
         cursors.push(valueItem);
-        console.log("The value of valueItem is: ", valueItem);
+        /*
+        console.log("DEBUG-1: The value of value is: ", value);
+        console.log("DEBUG-2: The value of valueItem is: ", valueItem);
+        console.log("DEBUG-3: The value of valueItem.pos is: ", valueItem.pos);
+        console.log("DEBUG-4: The value of valueItem.id.current is: ", valueItem.id.current);
+        if(valueItem.id.current === userID.current) {
+          console.log("DEBUG: if-condition worked...");
+        }*/
       }
-      setOtherCursors(cursors.filter(cursor => cursor.id !== userID));
-      
-
-
-      //console.log("The value of userID is: ", userID);
-      // filter out the ID of *this* client from array cursors:
-      //setOtherCursors(cursors.filter(cursor => cursor.id !== socket.id));
-      //setOtherCursors(cursors);
+      //console.log("DEBUG: The value of userID is => ", userID);
+      setOtherCursors(cursors.filter(cursor => cursor.id.current !== userID.current));
     };
 
     awareness.on('change', updateCursors);
     updateCursors();
     return () => awareness.off('change', updateCursors);
   }, []);
+
+
 
 
 
@@ -430,6 +439,8 @@ function EditorContent() {
 
       console.log("Initial text: ", ytext.toString());
       console.log("Awareness state: ", awareness.getStates());
+
+      console.log("The value of otherCursors is => [", otherCursors, "]");
 
       console.log("DEBUG: debugFunction exited...");
     });
