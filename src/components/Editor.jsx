@@ -145,7 +145,10 @@ function EditorContent() {
   // PART-2-ADDITIONS - TESTING IF THESE WORK:
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
   const relativePos = useRef(0); // <-- going to be 0 as a default for now, will now change values in a UseEffect hook bc directly calculating here causes issues.
-  
+  const lastCursorOffset = useRef(null);
+  const isApplyingRemoteUpdate = useRef(false);
+
+
   //const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
   //const recoverACP = Y.createAbsolutePositionFromRelativePosition(relativePos, ydoc);
 
@@ -362,13 +365,21 @@ function EditorContent() {
         $setSelection(newSelection);
       });
     };
-    const observer = (event) => updateEditorFromYjs(event); // NOTE: Used to just be updateEditorFromYjs(); which left some issues with cursor repos, changing it to this fixed them entirely??? not sure why tbh 
+    const observer = (event) => {
+      isApplyingRemoteUpdate.current = true;
+      updateEditorFromYjs(event);
+      isApplyingRemoteUpdate.current = false;
+    }; // NOTE: Used to just be updateEditorFromYjs(); which left some issues with cursor repos, changing it to this fixed them entirely??? not sure why tbh 
     ytext.observe(observer);
     updateEditorFromYjs(); // initial sync
   
     return () => ytext.unobserve(observer);
   }, [editor]);
   // ABOVE-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
+
+
+
+
 
 
 
@@ -405,6 +416,16 @@ function EditorContent() {
           const offset = cursorPos.current;
           const yTextCurrent = ytext.toString();
 
+          // DEBUG: Only recalculate relPos if the cursor moved
+          if (isApplyingRemoteUpdate.current || offset === lastCursorOffset.current) return;
+          lastCursorOffset.current = offset;
+          // DEBUG: Don't create relPos if doc is empty
+          if (ytext.length === 0) {
+            console.warn("DBEUG: relPos skipped: empty doc");
+            return;
+          }
+
+
           console.log("DEBUG: ytext contents →", yTextCurrent);
           console.log("DEBUG: cursor offset →", offset);
           console.log("DEBUG: ytext length →", yTextCurrent.length);
@@ -412,7 +433,23 @@ function EditorContent() {
 
           if(yTextCurrent.length >= offset) {
             let rel = null;
-            if(offset === yTextCurrent.length) {
+
+            // Prevent invalid offset when doc is empty:
+            /*const safeOffset = Math.min(offset, Math.max(0, yTextCurrent.length - 1));
+            // If inserting at end of doc and doc is non-empty, use assoc:1
+            if(offset === yTextCurrent.length && yTextCurrent.length > 0) {
+              rel = Y.createRelativePositionFromTypeIndex(ytext, safeOffset, 1);
+              console.log("DEBUG: Special relPos created for END of non-empty doc (assoc = 1)");
+            } else {
+              rel = Y.createRelativePositionFromTypeIndex(ytext, safeOffset);
+              console.log("DEBUG: relPos created with assoc = 0");
+            }*/
+            /*if (ytext.length === 0) {
+              // Don't create a relPos yet — nothing to anchor to
+              console.warn("DBEUG: Cannot create relPos: ytext is empty");
+              return;
+            }*/
+            if(offset === ytext.length) {
               // assoc = 1 means position *after* last character. need this for RemoteCursorOverlay.jsx 
               rel = Y.createRelativePositionFromTypeIndex(ytext, offset, 1);
               // ^ just know I need that extra "1" param to enable end-of-doc positioning with the overlay. Otherwise, it caps at 1 char prior.
@@ -420,6 +457,11 @@ function EditorContent() {
             } else {
               rel = Y.createRelativePositionFromTypeIndex(ytext, offset);
             }
+
+            console.log("DEBUG: relPos details → type:", rel.type);
+            console.log("DEBUG: relPos.item:", rel.item);
+            console.log("DEBUG: relPos.assoc:", rel.assoc);
+
             relativePos.current = rel;
 
             /*const safeOffset = Math.min(offset, Math.max(0, ytext.length - 1));
@@ -434,20 +476,23 @@ function EditorContent() {
 
             console.log("DEBUG: relPos details → type:", rel.type, "item:", rel.item, "assoc:", rel.assoc);
 
-
+            // DEBUGGING
+            console.log("DEBUG: relPos.item:", rel.item);
+            if (rel.item) {
+              console.log("DEBUG: item clock:", rel.item.clock, "client:", rel.item.client);
+            }
 
             awareness.setLocalStateField('cursor', {
               pos: offset,
               id: userID, // <-- use the Server.js id???? (idk it's too crazy)
               relPos: rel
             });
-            console.log("GOOD: relativePos.current =", rel);
-            console.log("0-HEEM-DEBUG: relativePos.current value => [", relativePos.current, "]");
-            
-
+            //console.log("GOOD: relativePos.current =", rel);
+            //console.log("0-HEEM-DEBUG: relativePos.current value => [", relativePos.current, "]");
+          
           } else {
-            console.warn("ytext too short for relPos");
-            console.warn("1-HEEM-DEBUG: ytext NOT YET SYNC'ED!!!");
+            //console.warn("ytext too short for relPos");
+            //console.warn("1-HEEM-DEBUG: ytext NOT YET SYNC'ED!!!");
           }
         }, 0);
         // Using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments:
