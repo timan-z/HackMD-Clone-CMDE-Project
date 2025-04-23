@@ -150,8 +150,15 @@ function EditorContent() {
   console.log("The value of userID is: ", debug);
   setUserID(debug);*/
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
-  const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
+  const relativePos = useRef(0); // <-- going to be 0 as a default for now, will now change values in a UseEffect hook bc directly calculating here causes issues.
+  //const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
+  
+  
+  
   //const recoverACP = Y.createAbsolutePositionFromRelativePosition(relativePos, ydoc);
+
+
+  console.log("OG-DEBUG: The value of relativePos is => [", relativePos, "]");
 
 
 
@@ -292,9 +299,11 @@ function EditorContent() {
         let absoluteCursorPos = findCursorPos(paraNodes, anchorNode, anchorOffset); // let's see!
         //setCursorPos(absoluteCursorPos);  // <-- DEBUG: Probably fine to keep, but might not be needed *here* in relation to keeping cursor pos after foreign edits.
         cursorPos.current = absoluteCursorPos;
-        //console.log("PHASE-3-DEBUG: The value of cursorPos.current is = ", cursorPos.current);
 
+        //const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
+        //console.log("PHASE-3-DEBUG: The value of cursorPos.current is = ", cursorPos.current);
         //cursorPos.current = absoluteCursorPos;  // <-- DEBUG: ^ trying this instead now...
+
 
         //console.log("DEBUG-PHASE-3: The value of absoluteCursorPos is: [", absoluteCursorPos, "]");
         let textContentTrunc = textContent.slice(0, absoluteCursorPos);
@@ -310,6 +319,9 @@ function EditorContent() {
         }
         // ABOVE-DEBUG: Test stuff for yjs.
 
+        // Using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments:
+        relativePos.current = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // Calculating relative position given current Text Editor content and this client's cursor position.
+        console.log("DEBUGGING: The value of relativePos.current => [", relativePos.current, "]");
 
         // NOTE: The stuff below is for the Markdown renderer... 
         setEditorContent(textContent);
@@ -359,12 +371,20 @@ function EditorContent() {
     // this will execute each time you move the cursor in the text editor (works good)    
     return editor.registerUpdateListener(({editorState}) => {
       editorState.read(()=> {
+
+        // Using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments:
+        console.log("1-DEBUG: The value of cursorPos prior to doing Y.createRelativePos... is => [", cursorPos, "]");
+        console.log("2-DEBUG: The value of ytext is => [", ytext, "]");
+
+        //relativePos.current = Y.createRelativePositionFromTypeIndex(ytext, cursorPos);
+        //console.log("DEBUG: The value of relativePos.current is => [", relativePos.current, "]");
+
         const selection = $getSelection();
         if ($isRangeSelection(selection)) {
           awareness.setLocalStateField('cursor', {
             pos: cursorPos.current,
-            relPos: relativePos,
             id: userID, // <-- use the Server.js id???? (idk it's too crazy)
+            relPos: relativePos.current
           });
           console.log("PART2-DEBUG: Sending cursor: ", cursorPos.current, userID); 
         }
@@ -382,10 +402,27 @@ function EditorContent() {
         // Ignore irrelevant values inside of states (stuff I'm not interested in):
         if(!value || !value.cursor) return;
 
-        const valueItem = value.cursor;
-        cursors.push(valueItem);
+        // relPos in its current form ("in value") is just raw data so it needs to be transformed into something stable:
+        const relPos = value.cursor.relPos;
+        /* Line below is *very* important for maintaining cursor preservation during collaborative text editing.
+        I'm making this new var "absVal" instead of "pos" (the absolute cursor position I have stored as a useRef variable) because
+        "absVal" is a special Yjs MUTATION-AWARE value that *will* actively adjust its position with real-time changes in the text editor/ydoc. */
+        const absVal = Y.createAbsolutePositionFromRelativePosition(relPos, ydoc);
+
+
+        console.log("DEBUG: the value of absVal.index is => [", absVal.index, "]");
+
+
+        if(absVal && absVal.index !== null && value.cursor.id.current !== userID.current) {
+          cursors.push({
+            pos: absVal.index,
+            id: value.cursor.id.current
+          });
+        }
       }
-      setOtherCursors(cursors.filter(cursor => cursor.id.current !== userID.current));
+      
+      setOtherCursors(cursors);
+      //setOtherCursors(cursors.filter(cursor => cursor.id.current !== userID.current));
     };
 
     awareness.on('change', updateCursors);
@@ -430,9 +467,21 @@ function EditorContent() {
 
       console.log("The value of otherCursors is => [", otherCursors, "]");
 
+
+      
+      for(const cursor in otherCursors) {
+        console.log("debug-1: This is cursor => [", otherCursors[cursor], "]");
+        console.log("debug-2: The value of otherCursors[cursor].relPos is => [", otherCursors[cursor].relPos, "]");
+      }
+
+
       console.log("DEBUG: debugFunction exited...");
     });
   }
+
+
+
+
 
 
 
