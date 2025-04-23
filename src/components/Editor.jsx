@@ -333,6 +333,26 @@ function EditorContent() {
         root.clear(); 
         const selection = $getSelection();
         selection.insertText(newYText);
+
+        // Preserving the cursor position of *this* client post-editor update:
+        const paragraph = root.getFirstChild();
+        if(!$isParagraphNode(paragraph)) return;
+        let {anchor} = selection;
+        let anchorNode = anchor.getNode();
+        const node = paragraph.getFirstChild();
+
+        if(!$isTextNode(node)) return;
+        const text = node.getTextContent();
+        const textLength = text.length;
+        console.log("debug: The value of cursorPos.current is: ", cursorPos.current);
+        const newSelection = $createRangeSelection();
+
+        if(!(cursorPos.current > textLength)) {
+          newSelection.setTextNodeRange(anchorNode, cursorPos.current, anchorNode, cursorPos.current);
+        } else {
+          newSelection.setTextNodeRange(anchorNode, textLength, anchorNode, textLength);
+        }
+        $setSelection(newSelection);
       });
     };
     ytext.observe(updateEditorFromYjs);
@@ -341,6 +361,16 @@ function EditorContent() {
     return () => ytext.unobserve(updateEditorFromYjs);
   }, [editor]);
   // ABOVE-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -423,18 +453,6 @@ function EditorContent() {
     });
   }, [editor, userID]);
   
-
-
-
-
-
-
-
-
-
-
-
-
   // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
   useEffect(()=> {
     const updateCursors = () => {
@@ -479,10 +497,23 @@ function EditorContent() {
     return () => awareness.off('change', updateCursors);
   }, []);
 
+  // PART-2: "useEffect(()=>{...})" HOOK -- Watches for changes in ytext with ytext.observe(), and uses that for Cursor Preservation during collab editing:
+  useEffect(()=> {
+    const observer = () => {
+      const localState = awareness.getLocalState();
+      const relPos = localState?.cursor?.relPos;
+      if(!relPos) return;
 
+      const absVal = Y.createAbsolutePositionFromRelativePosition(relPos, ydoc);
 
+      if(absVal?.index != null) {
+        console.log("DABBA-DEE-DEBUG: The value of absVal.index is => [", absVal.index, "]");
+      }
+    };
 
-
+    ytext.observe(observer);
+    return () => ytext.unobserve(observer);
+  });
 
 
 
