@@ -15,13 +15,10 @@ import Toolbar from "./Toolbar.jsx";
 import { RemoteCursorNode } from './nodes/RemoteCursorNode.jsx'; // <-- DEBUG: ngl i might not need this one anymore now that i'm relaying on an overlay instead...
 import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 
-
 // PART-2-ADDITIONS:
 import * as Y from 'yjs';
 import {ydoc, ytext, awareness} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
 import { useMemo } from 'react';
-
-
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -146,20 +143,11 @@ function EditorContent() {
 
   
   // PART-2-ADDITIONS - TESTING IF THESE WORK:
-  /*const debug = useMemo(() => crypto.randomUUID(), []);
-  console.log("The value of userID is: ", debug);
-  setUserID(debug);*/
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
   const relativePos = useRef(0); // <-- going to be 0 as a default for now, will now change values in a UseEffect hook bc directly calculating here causes issues.
+  
   //const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
-  
-  
-  
   //const recoverACP = Y.createAbsolutePositionFromRelativePosition(relativePos, ydoc);
-
-
-
-
 
   // Function for handling the webpage view toggle between the Text Editor and Preview Panel (Split, Editor, Preview):
   const handleViewChange = (mode) => {
@@ -283,13 +271,11 @@ function EditorContent() {
         const textContent = $getRoot().getTextContent();
 
         // NOTE: MOVING THE LEXICAL-YJS SYNC BLOCK UP TO THE TOP OF THIS HOOK:
-        // BELOW-DEBUG: Test stuff for Yjs:
         if (textContent !== ytext.toString()) {
           ytext.delete(0, ytext.length);
           ytext.insert(0, textContent);
           console.log("LEXICAL → YJS: Inserted text:", textContent);
         }
-        // ABOVE-DEBUG: Test stuff for yjs.
 
         // NOTE: The stuff below is for the text editor line counter...
         const lines = textContent.split("\n").length;
@@ -391,12 +377,12 @@ function EditorContent() {
             if(offset === yTextCurrent.length) {
               // assoc = 1 means position *after* last character. need this for RemoteCursorOverlay.jsx 
               rel = Y.createRelativePositionFromTypeIndex(ytext, offset, 1);
+              // ^ just know I need that extra "1" param to enable end-of-doc positioning with the overlay. Otherwise, it caps at 1 char prior.
               console.log("DEBUG: Special relPos created for end of the doc.");
             } else {
               rel = Y.createRelativePositionFromTypeIndex(ytext, offset);
             }
             relativePos.current = rel;
-
 
             /*const safeOffset = Math.min(offset, Math.max(0, ytext.length - 1));
             console.log("DEBUG: relPos safeOffset:", safeOffset);
@@ -412,10 +398,10 @@ function EditorContent() {
               id: userID, // <-- use the Server.js id???? (idk it's too crazy)
               relPos: rel
             });
-            console.log("✅ GOOD: relativePos.current =", rel);
+            console.log("GOOD: relativePos.current =", rel);
             console.log("0-HEEM-DEBUG: relativePos.current value => [", relativePos.current, "]");
           } else {
-            console.warn("⛔ ytext too short for relPos");
+            console.warn("ytext too short for relPos");
             console.warn("1-HEEM-DEBUG: ytext NOT YET SYNC'ED!!!");
           }
         }, 0);
