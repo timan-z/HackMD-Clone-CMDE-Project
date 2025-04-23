@@ -387,15 +387,25 @@ function EditorContent() {
           console.log("DEBUG: ytext internal length →", ytext._length); // YText-specific, shows actual item count
 
           if(yTextCurrent.length >= offset) {
-            const safeOffset = Math.min(offset, Math.max(0, ytext.length - 1));
+            let rel = null;
+            if(offset === yTextCurrent.length) {
+              // assoc = 1 means position *after* last character. need this for RemoteCursorOverlay.jsx 
+              rel = Y.createRelativePositionFromTypeIndex(ytext, offset, 1);
+              console.log("DEBUG: Special relPos created for end of the doc.");
+            } else {
+              rel = Y.createRelativePositionFromTypeIndex(ytext, offset);
+            }
+            relativePos.current = rel;
+
+
+            /*const safeOffset = Math.min(offset, Math.max(0, ytext.length - 1));
             console.log("DEBUG: relPos safeOffset:", safeOffset);
             const rel = Y.createRelativePositionFromTypeIndex(ytext, safeOffset);
             relativePos.current = rel;
-
             console.log("****");
             console.log("DEBUG: relPos created:", rel);
             console.log("DEBUG: relPos details → type:", rel.type, "item:", rel.item, "assoc:", rel.assoc);
-            console.log("****");
+            console.log("****");*/
 
             awareness.setLocalStateField('cursor', {
               pos: offset,
@@ -448,23 +458,29 @@ function EditorContent() {
       for(const [key, value] of states) {
         // Ignore irrelevant values inside of states (stuff I'm not interested in):
         if(!value || !value.cursor) return;
+        if(value.cursor.id === userID.current) return;
 
         // relPos in its current form ("in value") is just raw data so it needs to be transformed into something stable:
-        const relPos = value.cursor.relPos;
+        const {relPos, id} = value.cursor;
+        //const relPos = value.cursor.relPos;
         /* Line below is *very* important for maintaining cursor preservation during collaborative text editing.
         I'm making this new var "absVal" instead of "pos" (the absolute cursor position I have stored as a useRef variable) because
         "absVal" is a special Yjs MUTATION-AWARE value that *will* actively adjust its position with real-time changes in the text editor/ydoc. */
         const absVal = Y.createAbsolutePositionFromRelativePosition(relPos, ydoc);
-
-
-        console.log("DEBUG: the value of absVal.index is => [", absVal.index, "]");
-
-
-        if(absVal && absVal.index !== null && value.cursor.id.current !== userID.current) {
+        const absIndex = absVal?.index ?? null;
+        console.log("AHHHHHHHHHHHHHH. The value of absIndex => [", absIndex, "]");
+        console.log("AHHHHHHHHHHHHHH. The value of id is => [", id ,"]");
+        console.log("AHHHHHHHHHHHHHH. The value of userID is => [", userID, "]");
+        console.log("AHHHHHHHHHHHHHH. The value of userID.current is => [", userID.current, "]");
+        //console.log("DEBUG: the value of absVal.index is => [", absVal.index, "]");
+        /*if(absVal && absVal.index !== null && value.cursor.id.current !== userID.current) {
           cursors.push({
             pos: absVal.index,
             id: value.cursor.id.current
           });
+        }*/
+        if(absIndex !== null && id !== userID ) {
+          cursors.push({ pos: absIndex, id: id});
         }
       }
       
