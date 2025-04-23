@@ -345,7 +345,7 @@ function EditorContent() {
         selection.insertText(newYText);
 
         // Preserving the cursor position of *this* client post-editor update:
-        const paragraph = root.getFirstChild();
+        /*const paragraph = root.getFirstChild();
         if(!$isParagraphNode(paragraph)) return;
         let {anchor} = selection;
         let anchorNode = anchor.getNode();
@@ -362,7 +362,7 @@ function EditorContent() {
         } else {
           newSelection.setTextNodeRange(anchorNode, textLength, anchorNode, textLength);
         }
-        $setSelection(newSelection);
+        $setSelection(newSelection);*/
       });
     };
     const observer = (event) => {
@@ -449,14 +449,16 @@ function EditorContent() {
               console.warn("DBEUG: Cannot create relPos: ytext is empty");
               return;
             }*/
-            if(offset === ytext.length) {
+            /*if(offset === ytext.length) {
               // assoc = 1 means position *after* last character. need this for RemoteCursorOverlay.jsx 
               rel = Y.createRelativePositionFromTypeIndex(ytext, offset, 1);
               // ^ just know I need that extra "1" param to enable end-of-doc positioning with the overlay. Otherwise, it caps at 1 char prior.
               console.log("DEBUG: Special relPos created for end of the doc.");
             } else {
               rel = Y.createRelativePositionFromTypeIndex(ytext, offset);
-            }
+            }*/
+            rel = Y.createRelativePositionFromTypeIndex(ytext, offset, 1); // assoc: 1 always
+
 
             console.log("DEBUG: relPos details → type:", rel.type);
             console.log("DEBUG: relPos.item:", rel.item);
