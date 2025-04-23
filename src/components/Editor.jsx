@@ -158,7 +158,6 @@ function EditorContent() {
   //const recoverACP = Y.createAbsolutePositionFromRelativePosition(relativePos, ydoc);
 
 
-  console.log("OG-DEBUG: The value of relativePos is => [", relativePos, "]");
 
 
 
@@ -277,12 +276,22 @@ function EditorContent() {
   useEffect(() => {
     const unregister = editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
-        // NOTE: The stuff below is for the text editor line counter...
         /* From the Lexical documentation:
         "There is only ever a single RootNode in an EditorState and it is always at the top and it represents the contenteditable itself. 
         This means that the RootNode does not have a parent or siblings. To get the text content of the entire editor, you should use 
         rootNode.getTextContent()." <-- and by "using rootNode", seems like I'd have to invoke "$getRoot()" */
         const textContent = $getRoot().getTextContent();
+
+        // NOTE: MOVING THE LEXICAL-YJS SYNC BLOCK UP TO THE TOP OF THIS HOOK:
+        // BELOW-DEBUG: Test stuff for Yjs:
+        if (textContent !== ytext.toString()) {
+          ytext.delete(0, ytext.length);
+          ytext.insert(0, textContent);
+          console.log("LEXICAL → YJS: Inserted text:", textContent);
+        }
+        // ABOVE-DEBUG: Test stuff for yjs.
+
+        // NOTE: The stuff below is for the text editor line counter...
         const lines = textContent.split("\n").length;
         setLineCount(lines);
         //console.log("Current line count in text editor: ", lines);
@@ -304,24 +313,15 @@ function EditorContent() {
         //console.log("PHASE-3-DEBUG: The value of cursorPos.current is = ", cursorPos.current);
         //cursorPos.current = absoluteCursorPos;  // <-- DEBUG: ^ trying this instead now...
 
-
         //console.log("DEBUG-PHASE-3: The value of absoluteCursorPos is: [", absoluteCursorPos, "]");
         let textContentTrunc = textContent.slice(0, absoluteCursorPos);
         let currentLine = textContentTrunc.split("\n").length;
         //console.log("The current line is: ", currentLine);
         setCurrentLine(currentLine);
 
-
-        // BELOW-DEBUG: Test stuff for Yjs:
-        if (textContent !== ytext.toString()) {
-          ytext.delete(0, ytext.length);
-          ytext.insert(0, textContent);
-        }
-        // ABOVE-DEBUG: Test stuff for yjs.
-
         // Using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments:
-        relativePos.current = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // Calculating relative position given current Text Editor content and this client's cursor position.
-        console.log("DEBUGGING: The value of relativePos.current => [", relativePos.current, "]");
+        //relativePos.current = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // Calculating relative position given current Text Editor content and this client's cursor position.
+        //console.log("DEBUGGING: The value of relativePos.current => [", relativePos.current, "]");
 
         // NOTE: The stuff below is for the Markdown renderer... 
         setEditorContent(textContent);
@@ -366,20 +366,55 @@ function EditorContent() {
 
 
 
+
+
+
+
   // PART-2: "useEffect(()=>{...})" HOOK -- SHARING LOCAL CURSOR POSITION WITH "awareness":
   useEffect(() => {
     // this will execute each time you move the cursor in the text editor (works good)    
     return editor.registerUpdateListener(({editorState}) => {
       editorState.read(()=> {
+        // Delay the relativePos.current = "Y.createRelativePosition..." assignment until Yjs finishes syncing:
+        // NOTE: setTimeout(...,0) queues this operation after the current JS event loop apparently.
+        setTimeout(()=> {
+          const offset = cursorPos.current;
+          const yTextCurrent = ytext.toString();
 
+          console.log("DEBUG: ytext contents →", yTextCurrent);
+          console.log("DEBUG: cursor offset →", offset);
+          console.log("DEBUG: ytext length →", yTextCurrent.length);
+          console.log("DEBUG: ytext internal length →", ytext._length); // YText-specific, shows actual item count
+
+          if(yTextCurrent.length >= offset) {
+            const safeOffset = Math.min(offset, Math.max(0, ytext.length - 1));
+            console.log("DEBUG: relPos safeOffset:", safeOffset);
+            const rel = Y.createRelativePositionFromTypeIndex(ytext, safeOffset);
+            relativePos.current = rel;
+
+            console.log("****");
+            console.log("DEBUG: relPos created:", rel);
+            console.log("DEBUG: relPos details → type:", rel.type, "item:", rel.item, "assoc:", rel.assoc);
+            console.log("****");
+
+            awareness.setLocalStateField('cursor', {
+              pos: offset,
+              id: userID, // <-- use the Server.js id???? (idk it's too crazy)
+              relPos: rel
+            });
+            console.log("✅ GOOD: relativePos.current =", rel);
+            console.log("0-HEEM-DEBUG: relativePos.current value => [", relativePos.current, "]");
+          } else {
+            console.warn("⛔ ytext too short for relPos");
+            console.warn("1-HEEM-DEBUG: ytext NOT YET SYNC'ED!!!");
+          }
+        }, 0);
         // Using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments:
-        console.log("1-DEBUG: The value of cursorPos prior to doing Y.createRelativePos... is => [", cursorPos, "]");
-        console.log("2-DEBUG: The value of ytext is => [", ytext, "]");
-
+        //console.log("1-DEBUG: The value of cursorPos prior to doing Y.createRelativePos... is => [", cursorPos, "]");
+        //console.log("2-DEBUG: The value of ytext is => [", ytext, "]");
         //relativePos.current = Y.createRelativePositionFromTypeIndex(ytext, cursorPos);
         //console.log("DEBUG: The value of relativePos.current is => [", relativePos.current, "]");
-
-        const selection = $getSelection();
+        /*const selection = $getSelection();
         if ($isRangeSelection(selection)) {
           awareness.setLocalStateField('cursor', {
             pos: cursorPos.current,
@@ -387,11 +422,23 @@ function EditorContent() {
             relPos: relativePos.current
           });
           console.log("PART2-DEBUG: Sending cursor: ", cursorPos.current, userID); 
-        }
+        }*/
       });
     });
   }, [editor, userID]);
   
+
+
+
+
+
+
+
+
+
+
+
+
   // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
   useEffect(()=> {
     const updateCursors = () => {
