@@ -278,9 +278,12 @@ function EditorContent() {
           ytext.doc?.transact(() => {
             ytext.delete(0, ytext.length);
             ytext.insert(0, textContent);
-          }, 'local'); // <-- wrapping this with transct so we can tell when an update to Lexical/Yjs is local or not
+          }, 'local'); // <-- wrapping this with transact so we can tell when an update to Lexical/Yjs is local or not
           console.log("LEXICAL → YJS: Inserted text:", textContent);
         }
+
+
+
 
         // NOTE: The stuff below is for the text editor line counter...
         const lines = textContent.split("\n").length;
@@ -326,6 +329,11 @@ function EditorContent() {
     };
   }, [editor]);
 
+
+
+
+
+
   // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
   useEffect(() => {
     //let lastYText = ytext.toString(); // keeping track of the last value to avoid reapplying same update.
@@ -334,18 +342,42 @@ function EditorContent() {
 
       //const isLocal = event?.transaction?.origin === 'local';
       //console.log("The value of isLocal is => [", isLocal, "]");
-
-
       //if(newYText === lastYText) return;
 
+
+      console.log("-------------PRIOR TO THE editor.update() STATEMENT!!!-------------");
+      console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
+
+
       editor.update(() => {
+
+
+        console.log("-------------PRIOR TO THE root.clear() STATEMENT!!!-------------");
+        console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
+        
+
         const root = $getRoot();
         root.clear(); 
         const selection = $getSelection();
         selection.insertText(newYText);
 
+
+        console.log("-------------AFTER THE root.clear() STATEMENT!!!-------------");
+        console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
+
+
+
+        //console.log("DEBUG: The value of isApplyingRemoteUpdate.current = [", isApplyingRemoteUpdate.current, "]");
+        /*if(isApplyingRemoteUpdate.current) {
+          console.log("DEBUG: APPLYING REMOTE UPDATE!!!!!!");
+          console.log("DEBUG: The value of otherCursors => [", otherCursors, "]");
+          console.log("DEBUG: The value of cursorPos => [", cursorPos, "]");
+          return;
+        }*/
+
+
         // Preserving the cursor position of *this* client post-editor update:
-        /*const paragraph = root.getFirstChild();
+        const paragraph = root.getFirstChild();
         if(!$isParagraphNode(paragraph)) return;
         let {anchor} = selection;
         let anchorNode = anchor.getNode();
@@ -362,7 +394,7 @@ function EditorContent() {
         } else {
           newSelection.setTextNodeRange(anchorNode, textLength, anchorNode, textLength);
         }
-        $setSelection(newSelection);*/
+        $setSelection(newSelection);
       });
     };
     const observer = (event) => {
@@ -518,9 +550,7 @@ function EditorContent() {
   // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
   useEffect(()=> {
     const updateCursors = () => {
-
-      console.log("CURSOR OR TEXT HAS CHANGED!!!!!!");
-
+      //console.log("CURSOR OR TEXT HAS CHANGED!!!!!!");
       const states = awareness.getStates();
       const cursors = [];
       // NOTE: basically just shortening what i was doing before...
@@ -550,7 +580,6 @@ function EditorContent() {
         }*/
         if(absIndex !== null && id !== userID ) {
           cursors.push({ pos: absIndex, id: id});
-
 
           const charAtIndex = ytext.toString()[absIndex];
           console.log(`[OVERLAY] ID: ${id}, absIndex: ${absIndex}, char: "${charAtIndex}"`);
@@ -585,28 +614,6 @@ function EditorContent() {
     ytext.observe(observer);
     return () => ytext.unobserve(observer);
   });*/
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-
-
-
-
-
 
   // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
   const debugFunction = (editor, id, color, label, offset) => {
