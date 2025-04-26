@@ -273,14 +273,18 @@ function EditorContent() {
         rootNode.getTextContent()." <-- and by "using rootNode", seems like I'd have to invoke "$getRoot()" */
         const textContent = $getRoot().getTextContent();
 
+
+
+
+
         // NOTE: MOVING THE LEXICAL-YJS SYNC BLOCK UP TO THE TOP OF THIS HOOK:
-        if (textContent !== ytext.toString()) {
+        /*if (textContent !== ytext.toString()) {
           ytext.doc?.transact(() => {
             ytext.delete(0, ytext.length);
             ytext.insert(0, textContent);
           }, 'local'); // <-- wrapping this with transact so we can tell when an update to Lexical/Yjs is local or not
           console.log("LEXICAL → YJS: Inserted text:", textContent);
-        }
+        }*/
 
 
 
@@ -335,45 +339,33 @@ function EditorContent() {
 
 
   // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
-  useEffect(() => {
+  /*useEffect(() => {
     //let lastYText = ytext.toString(); // keeping track of the last value to avoid reapplying same update.
     const updateEditorFromYjs = (event) => {
       const newYText = ytext.toString();
 
-      //const isLocal = event?.transaction?.origin === 'local';
-      //console.log("The value of isLocal is => [", isLocal, "]");
-      //if(newYText === lastYText) return;
-
-
       console.log("-------------PRIOR TO THE editor.update() STATEMENT!!!-------------");
       console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
 
-
       editor.update(() => {
-
-
         console.log("-------------PRIOR TO THE root.clear() STATEMENT!!!-------------");
-        console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
-        
+        console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]"); 
 
         const root = $getRoot();
         root.clear(); 
         const selection = $getSelection();
         selection.insertText(newYText);
 
-
         console.log("-------------AFTER THE root.clear() STATEMENT!!!-------------");
         console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
 
-
-
         //console.log("DEBUG: The value of isApplyingRemoteUpdate.current = [", isApplyingRemoteUpdate.current, "]");
-        /*if(isApplyingRemoteUpdate.current) {
+        if(isApplyingRemoteUpdate.current) {
           console.log("DEBUG: APPLYING REMOTE UPDATE!!!!!!");
           console.log("DEBUG: The value of otherCursors => [", otherCursors, "]");
           console.log("DEBUG: The value of cursorPos => [", cursorPos, "]");
           return;
-        }*/
+        }
 
 
         // Preserving the cursor position of *this* client post-editor update:
@@ -406,7 +398,7 @@ function EditorContent() {
     updateEditorFromYjs(); // initial sync
   
     return () => ytext.unobserve(observer);
-  }, [editor]);
+  }, [editor]);*/
   // ABOVE-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
 
 
@@ -438,7 +430,7 @@ function EditorContent() {
 
 
   // PART-2: "useEffect(()=>{...})" HOOK -- SHARING LOCAL CURSOR POSITION WITH "awareness":
-  useEffect(() => {
+  /*useEffect(() => {
     // this will execute each time you move the cursor in the text editor (works good)    
     return editor.registerUpdateListener(({editorState}) => {
       editorState.read(()=> {
@@ -448,107 +440,14 @@ function EditorContent() {
           const offset = cursorPos.current;
           const yTextCurrent = ytext.toString();
 
-          // DEBUG: Only recalculate relPos if the cursor moved
-          if (isApplyingRemoteUpdate.current || offset === lastCursorOffset.current) return;
-          lastCursorOffset.current = offset;
-          // DEBUG: Don't create relPos if doc is empty
-          if (ytext.length === 0) {
-            console.warn("DBEUG: relPos skipped: empty doc");
-            return;
-          }
-
-
-          console.log("DEBUG: ytext contents →", yTextCurrent);
-          console.log("DEBUG: cursor offset →", offset);
-          console.log("DEBUG: ytext length →", yTextCurrent.length);
-          console.log("DEBUG: ytext internal length →", ytext._length); // YText-specific, shows actual item count
-
-          if(yTextCurrent.length >= offset) {
-            let rel = null;
-
-            // Prevent invalid offset when doc is empty:
-            /*const safeOffset = Math.min(offset, Math.max(0, yTextCurrent.length - 1));
-            // If inserting at end of doc and doc is non-empty, use assoc:1
-            if(offset === yTextCurrent.length && yTextCurrent.length > 0) {
-              rel = Y.createRelativePositionFromTypeIndex(ytext, safeOffset, 1);
-              console.log("DEBUG: Special relPos created for END of non-empty doc (assoc = 1)");
-            } else {
-              rel = Y.createRelativePositionFromTypeIndex(ytext, safeOffset);
-              console.log("DEBUG: relPos created with assoc = 0");
-            }*/
-            /*if (ytext.length === 0) {
-              // Don't create a relPos yet — nothing to anchor to
-              console.warn("DBEUG: Cannot create relPos: ytext is empty");
-              return;
-            }*/
-            /*if(offset === ytext.length) {
-              // assoc = 1 means position *after* last character. need this for RemoteCursorOverlay.jsx 
-              rel = Y.createRelativePositionFromTypeIndex(ytext, offset, 1);
-              // ^ just know I need that extra "1" param to enable end-of-doc positioning with the overlay. Otherwise, it caps at 1 char prior.
-              console.log("DEBUG: Special relPos created for end of the doc.");
-            } else {
-              rel = Y.createRelativePositionFromTypeIndex(ytext, offset);
-            }*/
-            rel = Y.createRelativePositionFromTypeIndex(ytext, offset, 1); // assoc: 1 always
-
-
-            console.log("DEBUG: relPos details → type:", rel.type);
-            console.log("DEBUG: relPos.item:", rel.item);
-            console.log("DEBUG: relPos.assoc:", rel.assoc);
-
-            relativePos.current = rel;
-
-            /*const safeOffset = Math.min(offset, Math.max(0, ytext.length - 1));
-            console.log("DEBUG: relPos safeOffset:", safeOffset);
-            const rel = Y.createRelativePositionFromTypeIndex(ytext, safeOffset);
-            relativePos.current = rel;
-            console.log("****");
-            console.log("DEBUG: relPos created:", rel);
-            console.log("DEBUG: relPos details → type:", rel.type, "item:", rel.item, "assoc:", rel.assoc);
-            console.log("****");*/
-
-
-            console.log("DEBUG: relPos details → type:", rel.type, "item:", rel.item, "assoc:", rel.assoc);
-
-            // DEBUGGING
-            console.log("DEBUG: relPos.item:", rel.item);
-            if (rel.item) {
-              console.log("DEBUG: item clock:", rel.item.clock, "client:", rel.item.client);
-            }
-
-            awareness.setLocalStateField('cursor', {
-              pos: offset,
-              id: userID, // <-- use the Server.js id???? (idk it's too crazy)
-              relPos: rel
-            });
-            //console.log("GOOD: relativePos.current =", rel);
-            //console.log("0-HEEM-DEBUG: relativePos.current value => [", relativePos.current, "]");
-          
-          } else {
-            //console.warn("ytext too short for relPos");
-            //console.warn("1-HEEM-DEBUG: ytext NOT YET SYNC'ED!!!");
-          }
         }, 0);
-        // Using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments:
-        //console.log("1-DEBUG: The value of cursorPos prior to doing Y.createRelativePos... is => [", cursorPos, "]");
-        //console.log("2-DEBUG: The value of ytext is => [", ytext, "]");
-        //relativePos.current = Y.createRelativePositionFromTypeIndex(ytext, cursorPos);
-        //console.log("DEBUG: The value of relativePos.current is => [", relativePos.current, "]");
-        /*const selection = $getSelection();
-        if ($isRangeSelection(selection)) {
-          awareness.setLocalStateField('cursor', {
-            pos: cursorPos.current,
-            id: userID, // <-- use the Server.js id???? (idk it's too crazy)
-            relPos: relativePos.current
-          });
-          console.log("PART2-DEBUG: Sending cursor: ", cursorPos.current, userID); 
-        }*/
       });
     });
-  }, [editor, userID]);
+  }, [editor, userID]);*/
   
+
   // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
-  useEffect(()=> {
+  /*useEffect(()=> {
     const updateCursors = () => {
       //console.log("CURSOR OR TEXT HAS CHANGED!!!!!!");
       const states = awareness.getStates();
@@ -562,22 +461,11 @@ function EditorContent() {
         // relPos in its current form ("in value") is just raw data so it needs to be transformed into something stable:
         const {relPos, id} = value.cursor;
         //const relPos = value.cursor.relPos;
-        /* Line below is *very* important for maintaining cursor preservation during collaborative text editing.
+         Line below is *very* important for maintaining cursor preservation during collaborative text editing.
         I'm making this new var "absVal" instead of "pos" (the absolute cursor position I have stored as a useRef variable) because
-        "absVal" is a special Yjs MUTATION-AWARE value that *will* actively adjust its position with real-time changes in the text editor/ydoc. */
+        "absVal" is a special Yjs MUTATION-AWARE value that *will* actively adjust its position with real-time changes in the text editor/ydoc. 
         const absVal = Y.createAbsolutePositionFromRelativePosition(relPos, ydoc);
         const absIndex = absVal?.index ?? null;
-        /*console.log("AHHHHHHHHHHHHHH. The value of absIndex => [", absIndex, "]");
-        console.log("AHHHHHHHHHHHHHH. The value of id is => [", id ,"]");
-        console.log("AHHHHHHHHHHHHHH. The value of userID is => [", userID, "]");
-        console.log("AHHHHHHHHHHHHHH. The value of userID.current is => [", userID.current, "]");*/
-        //console.log("DEBUG: the value of absVal.index is => [", absVal.index, "]");
-        /*if(absVal && absVal.index !== null && value.cursor.id.current !== userID.current) {
-          cursors.push({
-            pos: absVal.index,
-            id: value.cursor.id.current
-          });
-        }*/
         if(absIndex !== null && id !== userID ) {
           cursors.push({ pos: absIndex, id: id});
 
@@ -593,9 +481,7 @@ function EditorContent() {
     awareness.on('change', updateCursors);
     updateCursors();
     return () => awareness.off('change', updateCursors);
-  }, []);
-
-
+  }, []);*/
 
   // PART-2: "useEffect(()=>{...})" HOOK -- Watches for changes in ytext with ytext.observe(), and uses that for Cursor Preservation during collab editing:
   /*useEffect(()=> {
