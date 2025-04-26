@@ -17,8 +17,18 @@ import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 
 // PART-2-ADDITIONS:
 import * as Y from 'yjs';
+//import { useYjsCollaboration } from '@lexical/yjs';
+
+import {useYjsCollaboration} from '@lexical/react';
+
+//import { bindYjsToLexical } from '@lexical/yjs';
+
 import {ydoc, ytext, awareness} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
 import { useMemo } from 'react';
+
+
+//import { LexicalCollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
+
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -111,6 +121,13 @@ const initialConfig = {
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
 function EditorContent() {
   const [editor] = useLexicalComposerContext();
+
+
+  // PART-2-ADDITION: BELOW.
+  useYjsCollaboration(editor, provider, { awareness }); // DEBUG: VERY IMPORTANT -- THIS IS MY LEXICAL/YJS AUTO-SYNC TOOL!!!
+  // PART-2-ADDITION: ABOVE.
+
+
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
 
