@@ -17,14 +17,13 @@ import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 
 // PART-2-ADDITIONS:
 import * as Y from 'yjs';
-//import { useYjsCollaboration } from '@lexical/yjs';
-
-import {useYjsCollaboration} from '@lexical/react';
 
 //import { bindYjsToLexical } from '@lexical/yjs';
 
-import {ydoc, ytext, awareness} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
+import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
+import {ydoc, ytext, awareness, provider, yjsDocMap} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
 import { useMemo } from 'react';
+import { WebsocketProvider } from 'y-websocket';
 
 
 //import { LexicalCollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
@@ -124,7 +123,7 @@ function EditorContent() {
 
 
   // PART-2-ADDITION: BELOW.
-  useYjsCollaboration(editor, provider, { awareness }); // DEBUG: VERY IMPORTANT -- THIS IS MY LEXICAL/YJS AUTO-SYNC TOOL!!!
+  //useYjsCollaboration(editor, provider, { awareness }); // DEBUG: VERY IMPORTANT -- THIS IS MY LEXICAL/YJS AUTO-SYNC TOOL!!!
   // PART-2-ADDITION: ABOVE.
 
 
@@ -794,6 +793,39 @@ function EditorContent() {
                   />
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> {/* <-- PHASE-3-DEBUG: Testing some stuff... */}
                   <HistoryPlugin/> {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
+
+                  {/*<CollaborationPlugin
+                    id="room-1"
+                    providerFactory={(id) => provider}
+                    shouldBootstrap={true}
+                    doc={ydoc}
+                  />*/}
+                  {/*<CollaborationPlugin
+                    id="room-1"
+                    providerFactory={(id) => {
+                      const doc = yjsDocMap.get(id);
+                      if (!doc) {
+                        throw new Error(`No Y.Doc found for id: ${id}`);
+                      }
+                      return new WebsocketProvider('ws://localhost:1234', id, doc);
+                    }}
+                    shouldBootstrap={true}
+                    yjsDocMap={yjsDocMap}
+                  />*/}
+                  <CollaborationPlugin
+                    id="room-1"
+                    providerFactory={(id, yjsDocMap) => {
+                      const doc = yjsDocMap.get(id);
+                      if (!doc) {
+                        throw new Error(`No Y.Doc found for id: ${id}`);
+                      } 
+                      console.log("CollaborationPlugin-DEBUG: NO ERROR!!!");
+                      return new WebsocketProvider('ws://localhost:1234', id, doc);
+                    }}
+                    shouldBootstrap={true}
+                    yjsDocMap={yjsDocMap}
+                  />
+
                 </div>
                 
                 <div>Line Count: {lineCount} | Current Line: {currentLine}</div>
