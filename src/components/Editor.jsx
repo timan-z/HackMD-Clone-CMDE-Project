@@ -822,7 +822,7 @@ function EditorContent() {
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
-                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc);
+                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
                       return provider;
                     }}
                     shouldBootstrap={true}
