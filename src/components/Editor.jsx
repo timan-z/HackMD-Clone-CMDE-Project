@@ -27,7 +27,6 @@ import { useMemo } from 'react';
 import { WebsocketProvider } from 'y-websocket';
 
 
-//import { LexicalCollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
 
 
 /* NOTE-TO-SELF:
@@ -116,7 +115,6 @@ const initialConfig = {
   onError: (error) => {
     console.error('Lexical Error:', error);
   },
-  nodes: [RemoteCursorNode], // DEBUG: For foreign cursor rendering... (testing)
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
@@ -157,9 +155,6 @@ function EditorContent() {
   const [socketID, setSocketID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
-
-
-  
   // PART-2-ADDITIONS - TESTING IF THESE WORK:
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
   const relativePos = useRef(0); // <-- going to be 0 as a default for now, will now change values in a UseEffect hook bc directly calculating here causes issues.
@@ -167,8 +162,17 @@ function EditorContent() {
   const isApplyingRemoteUpdate = useRef(false);
 
 
-  //const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
-  //const recoverACP = Y.createAbsolutePositionFromRelativePosition(relativePos, ydoc);
+
+
+
+
+
+  // NOTE: This one (below) is for fixing the "Websocket is closed before the connection is established" warning I'm getting with <CollaborationPlugin/> [1/2]:
+  const providerRef = useRef(null); 
+
+
+
+
 
   // Function for handling the webpage view toggle between the Text Editor and Preview Panel (Split, Editor, Preview):
   const handleViewChange = (mode) => {
@@ -276,7 +280,13 @@ function EditorContent() {
 
 
 
-
+  // "useEffect(()=>{...})" Hook #1 -- for connecting the Websocket provider up to the server:
+  useEffect(()=> {
+    if(providerRef.current) {
+      console.log("CONNECTING DAAAAA!!!");
+      providerRef.current.connect();
+    }
+  }, []);
 
 
 
@@ -808,6 +818,7 @@ function EditorContent() {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
+                      providerRef.current = provider; // <-- NOTE: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
                       return provider;
                     }}
                     shouldBootstrap={false}

@@ -1,0 +1,19 @@
+DO THIS ONCE I FIGURE OUT HOW TO WIRE <CollaborationPlugin> TO MY CUSTOM <RemoteCursorOverlay> SETUP!!!
+
+I want to integrate Socket.IO BACK into my project (remnants of which can be seen in Server.js and my /mde-part1 repo) 
+for the purposes of non-doc real-time features like:
+- Chat Messages
+- Notifications
+- Live Presence Indicators (e.g., [Insert Username] is editing)
+Possibly also:
+- Live Chat Sidebar (something that can pop up and layer over the render panel).
+- Active Users List (box pop-up over the whole webpage).
+
+AFTER THAT:
+Figure out how I want to complete this project:
+- Still aiming for some kind of accounts and authentication feature.
+- Possibly something with SQL for storing and saving different editing sessions.
+
+**Maybe** but really not high priority:
+- Integrate some 3rd-party software that can help me complete the "Insert Table" functionality in the toolbar
+(it's kind of impossible without some sort of external 3rd-party software).
