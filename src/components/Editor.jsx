@@ -111,6 +111,7 @@ const sampleTheme = {
 };
 
 const initialConfig = {
+  editorState:null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state).
   namespace: 'BaseMarkdownEditor',
   sampleTheme,
   onError: (error) => {
@@ -814,8 +815,8 @@ function EditorContent() {
                     ErrorBoundary={LexicalErrorBoundary}
                   />
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> {/* <-- PHASE-3-DEBUG: Testing some stuff... */}
-                  <HistoryPlugin/> {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
-
+                  {/*<HistoryPlugin/>**/} {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
+                  {/* UPDATE: ^ Seems like <HistoryPlugin/> is something I should NOT use in conjunction with <CollaborationPlugin/> acc to the Lexical documentation! */}
 
                   <CollaborationPlugin
                     id="room-1"
@@ -825,7 +826,10 @@ function EditorContent() {
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
                       return provider;
                     }}
-                    shouldBootstrap={true}
+                    shouldBootstrap={false}
+                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
+                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
+                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." */
                   />
 
 
