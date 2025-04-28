@@ -8,7 +8,7 @@ export const yjsDocMap = new Map([['room-1', ydoc]]);
 
 export const provider = new WebsocketProvider('ws://localhost:1234', 'room-1', ydoc); // <-- NOTE-TO-SELF: This thing is insanely powerful.
 
-yjsDocMap.set('room-1', ydoc); // Set the initial doc into the map.
+//yjsDocMap.set('room-1', ydoc); // Set the initial doc into the map.
 
 export const ytext = ydoc.getText('content');
 export const awareness = provider.awareness;

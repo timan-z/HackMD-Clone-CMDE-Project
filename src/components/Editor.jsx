@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer'; 
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
@@ -21,7 +21,9 @@ import * as Y from 'yjs';
 //import { bindYjsToLexical } from '@lexical/yjs';
 
 import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
-import {ydoc, ytext, awareness, provider, yjsDocMap} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
+//import {ydoc, ytext, awareness, provider, yjsDocMap} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
+
+
 import { useMemo } from 'react';
 import { WebsocketProvider } from 'y-websocket';
 
@@ -666,6 +668,26 @@ function EditorContent() {
     }
   }
 
+
+
+
+
+
+
+  // DEBUG: Seeing if this below works for <CollaborationPlugin/>:
+  /*const providerFactory = useCallback(
+    (id: string, yjsDocMap: Map<string, Y.Doc>) => {
+      const doc = getDocFromMap(id, yjsDocMap);
+
+      return new WebsocketProvider('ws://localhost:1234', id, doc, {
+        connect: false,
+      });
+    }, [],
+  );*/
+
+
+
+
   return(
     <div className="editor-wrapper">
 
@@ -794,38 +816,34 @@ function EditorContent() {
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> {/* <-- PHASE-3-DEBUG: Testing some stuff... */}
                   <HistoryPlugin/> {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
 
-                  {/*<CollaborationPlugin
-                    id="room-1"
-                    providerFactory={(id) => provider}
-                    shouldBootstrap={true}
-                    doc={ydoc}
-                  />*/}
-                  {/*<CollaborationPlugin
-                    id="room-1"
-                    providerFactory={(id) => {
-                      const doc = yjsDocMap.get(id);
-                      if (!doc) {
-                        throw new Error(`No Y.Doc found for id: ${id}`);
-                      }
-                      return new WebsocketProvider('ws://localhost:1234', id, doc);
-                    }}
-                    shouldBootstrap={true}
-                    yjsDocMap={yjsDocMap}
-                  />*/}
+
                   <CollaborationPlugin
                     id="room-1"
                     providerFactory={(id, yjsDocMap) => {
-                      const doc = yjsDocMap.get(id);
-                      if (!doc) {
-                        throw new Error(`No Y.Doc found for id: ${id}`);
-                      } 
-                      console.log("CollaborationPlugin-DEBUG: NO ERROR!!!");
-                      return new WebsocketProvider('ws://localhost:1234', id, doc);
+                      const doc = new Y.Doc();
+                      yjsDocMap.set(id, doc);
+                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc);
+                      return provider;
                     }}
                     shouldBootstrap={true}
-                    yjsDocMap={yjsDocMap}
                   />
 
+
+                  {/*{yjsDocMap.get('room-1') && (
+                    <CollaborationPlugin
+                      id="room-1"
+                      providerFactory={(id) => {
+                        const doc = yjsDocMap.get(id);
+                        if (!doc) {
+                          throw new Error(`No Y.Doc found for id: ${id}`);
+                        } 
+                        console.log("CollaborationPlugin-DEBUG: NO ERROR!!!");
+                        return new WebsocketProvider('ws://localhost:1234', id, doc);
+                      }}
+                      shouldBootstrap={true}
+                      yjsDocMap={yjsDocMap}
+                    />
+                  )}*/}
                 </div>
                 
                 <div>Line Count: {lineCount} | Current Line: {currentLine}</div>
