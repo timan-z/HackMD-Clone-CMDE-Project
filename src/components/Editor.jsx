@@ -12,7 +12,6 @@ import { findCursorPos } from './UtilityFuncs.js';
 import Toolbar from "./Toolbar.jsx";
 
 // NOTE: Following lines are for Phase 3 (Introducing Real-Time Collaboration).
-import { RemoteCursorNode } from './nodes/RemoteCursorNode.jsx'; // <-- DEBUG: ngl i might not need this one anymore now that i'm relaying on an overlay instead...
 import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 
 // PART-2-ADDITIONS:
@@ -834,8 +833,6 @@ function EditorContent() {
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> {/* <-- PHASE-3-DEBUG: Testing some stuff... */}
                   {/*<HistoryPlugin/>**/} {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
                   {/* UPDATE: ^ Seems like <HistoryPlugin/> is something I should NOT use in conjunction with <CollaborationPlugin/> acc to the Lexical documentation! */}
-
-                  
                 </div>
                 
                 <div>Line Count: {lineCount} | Current Line: {currentLine}</div>
