@@ -801,6 +801,23 @@ function EditorContent() {
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
 
                 <div className={'content-editable'} style={{position:"relative"}}> 
+
+
+                  <CollaborationPlugin
+                    id="room-1"
+                    providerFactory={(id, yjsDocMap) => {
+                      const doc = new Y.Doc();
+                      yjsDocMap.set(id, doc);
+                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
+                      return provider;
+                    }}
+                    shouldBootstrap={false}
+                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
+                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
+                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." */
+                  />
+
+
                   {/* Need to wrap the ContentEditable inside the PlainTextPlugin (I didn't do this originally, that's why the Placeholder wasn't working). */}
                   <PlainTextPlugin
                     contentEditable={
@@ -818,36 +835,7 @@ function EditorContent() {
                   {/*<HistoryPlugin/>**/} {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
                   {/* UPDATE: ^ Seems like <HistoryPlugin/> is something I should NOT use in conjunction with <CollaborationPlugin/> acc to the Lexical documentation! */}
 
-                  <CollaborationPlugin
-                    id="room-1"
-                    providerFactory={(id, yjsDocMap) => {
-                      const doc = new Y.Doc();
-                      yjsDocMap.set(id, doc);
-                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
-                      return provider;
-                    }}
-                    shouldBootstrap={false}
-                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
-                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." */
-                  />
-
-
-                  {/*{yjsDocMap.get('room-1') && (
-                    <CollaborationPlugin
-                      id="room-1"
-                      providerFactory={(id) => {
-                        const doc = yjsDocMap.get(id);
-                        if (!doc) {
-                          throw new Error(`No Y.Doc found for id: ${id}`);
-                        } 
-                        console.log("CollaborationPlugin-DEBUG: NO ERROR!!!");
-                        return new WebsocketProvider('ws://localhost:1234', id, doc);
-                      }}
-                      shouldBootstrap={true}
-                      yjsDocMap={yjsDocMap}
-                    />
-                  )}*/}
+                  
                 </div>
                 
                 <div>Line Count: {lineCount} | Current Line: {currentLine}</div>
