@@ -27,20 +27,19 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
 
                 // MAKE THE TO-BE-RENDERED CURSORS BASED ON otherCursors INFORMATION:
                 otherCursors.forEach(cursor => {
-                    const {pos, id} = cursor; // GETTING THE CURSOR POSITION AND ID OF THIS CURSOR (LET'S KEEP IT SIMPLE, THAT'S ALL I WANT).
-                    const idVal = id.current;
-
+                    const {cursorPos, id} = cursor; // GETTING THE CURSOR POSITION AND ID OF THIS CURSOR (LET'S KEEP IT SIMPLE, THAT'S ALL I WANT).
+                    
                     let dummyVal = 1.1;
                     //console.log("DEBUG-1: The value of dummyVal is = ", dummyVal);
                     dummyVal += 1;
                     //console.log("DEBUG-2: The value of dummyVal is = ", dummyVal);
                     //console.log("DEBUG-3: The value of fontSize is = ", fontSize);
 
-                    if(idVal !== null) {
+                    if(id !== null) {
                         const range = dom.createRange();
                         const walker = dom.createTreeWalker(editorRoot, NodeFilter.SHOW_TEXT);
                         let node = walker.nextNode();
-                        let offsetRemaining = pos;
+                        let offsetRemaining = cursorPos;
 
                         while (node && offsetRemaining > node.textContent.length) {
                             offsetRemaining -= node.textContent.length;
@@ -77,7 +76,7 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
                         cursorEl.style.zIndex = 10;
                         // This is the horizontal ID-tag that appears next to the vert line.
                         const label = document.createElement("div");
-                        label.textContent = idVal;
+                        label.textContent = id;
                         label.style.position = "absolute";
                         label.style.top = "-1.5em";
                         label.style.left = "4px";
