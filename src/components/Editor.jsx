@@ -24,8 +24,6 @@ import { io } from "socket.io-client"; // <-- Bringing this one back.
 import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
-
-
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
   - ContentEditable is the area where the user types.
@@ -255,14 +253,9 @@ function EditorContent() {
     });
   };
 
-
-
   const sendCursorToServer = throttle((cursorPos) => {
     socket.emit("send-cursor-pos", cursorPos, socket.id);
-  }, 100);
-
-
-
+  }, 100); // <-- throttle causes a slight delay in the rendering (it'll trail behind the actual typing pos, but I think that's okay and good).
 
   // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
@@ -312,9 +305,6 @@ function EditorContent() {
     };
   }, [editor]);
 
-
-
-
   // "useEffect(()=>{...})" Hook #2 - For clientCursors updates (letting us know when to update the RemoteCursorOverlay rendering):
   useEffect(() => {
     // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
@@ -323,7 +313,8 @@ function EditorContent() {
       //console.log("Debug: Also btw the value of socket.id is: ", socket.id);
       setOtherCursors(cursors.filter(cursor => cursor.id !== socket.id)); // The "=> cursor.id !== socket.id" part is for not including *this* client's ID.
       /* otherCursors won't automatically update to "cursors" immediately, will need to wait for the next time
-      the Editor renders (which I can catch with another useEffect hook dedicated to detecting when otherCursors changes). */      
+      the Editor renders (which I can catch with another useEffect hook dedicated to detecting when otherCursors changes). */  
+
     });
     return () => {
       socket.off("update-cursors");
@@ -339,19 +330,15 @@ function EditorContent() {
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
       console.log("DEBUG: debugFunction entered...");
-      console.log("Initial text: ", ytext.toString());
-      console.log("Awareness state: ", awareness.getStates());
 
       console.log("The value of otherCursors is => [", otherCursors, "]");
-
-      for(const cursor in otherCursors) {
-        console.log("debug-1: This is cursor => [", otherCursors[cursor], "]");
-        console.log("debug-2: The value of otherCursors[cursor].relPos is => [", otherCursors[cursor].relPos, "]");
-      }
 
       console.log("DEBUG: debugFunction exited...");
     });
   }
+
+
+
 
 
 
@@ -478,14 +465,8 @@ function EditorContent() {
 
       {/* The horizontal bar at the top of the webpage (where the site title is, "Text Editor|Split|Preview Panel" toggles are, etc): */}
       <div className="editor-preview-overhead">
-        <h1>HACKMD CLONE!!!</h1>  {/* DEBUG:+NOTE: Change this to something proper eventually... */}
+        
 
-        {/* The "Text Editor|Split|Preview Panel" toggles: */}
-        <div className="editor-preview-toggle">
-          <button onClick={()=> handleViewChange("editor-only")} disabled={viewMode==="editor-only"}>Text Editor</button>
-          <button onClick={()=> handleViewChange("split")} disabled={viewMode==="split"}>Split-View</button>
-          <button onClick={()=> handleViewChange("preview-only")} disabled={viewMode==="preview-only"}>Preview Panel</button>
-        </div>
         {/* The "Upload File" (.md) and "Download File" (.md) buttons: */}
         <div className="editor-upload-download">
           {/* The Upload .md File Button: */}
@@ -497,6 +478,23 @@ function EditorContent() {
           {/* The Download Text Editor Content -> .md File Button: */}
           <button onClick={handleDownloadMD} className="download-md-button">Download as .md</button>
         </div>
+
+
+        {/* The "Text Editor|Split|Preview Panel" toggles: */}
+        <div className="editor-preview-toggle">
+          <button onClick={()=> handleViewChange("editor-only")} disabled={viewMode==="editor-only"}>Text Editor</button>
+          <button onClick={()=> handleViewChange("split")} disabled={viewMode==="split"}>Split-View</button>
+          <button onClick={()=> handleViewChange("preview-only")} disabled={viewMode==="preview-only"}>Preview Panel</button>
+        </div>
+
+
+        
+
+
+
+        <h1>HACKMD CLONE!!!</h1>  {/* DEBUG:+NOTE: Change this to something proper eventually... */}
+
+
       </div>
 
       {/* The <div> below will encase the "main body" of the webpage (the Text Editor and Preview Panel, or just one of them isolated).
