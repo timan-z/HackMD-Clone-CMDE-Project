@@ -500,8 +500,8 @@ function EditorContent() {
 
 
         {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
-        <div className="users-list-button" onClick={()=> alert("TEST")}>
-          <img className="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
+        <div id="users-list-button" onClick={()=> createUsersListBar()}>
+          <img id="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
         </div>
 
 
