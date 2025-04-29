@@ -1,6 +1,4 @@
 
-
-
 /* This .placeholder styling is for the "placeholder text" that appears within the Text Editor pre-typing. */
 .placeholder {
   position:absolute;
@@ -39,12 +37,9 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
 }
 
-
-
 .remote-cursor {
   transition: left 0.1s ease, top 0.1s ease;
 }
-
 
 .editor-textBold {
   font-weight: bold;
@@ -77,12 +72,11 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   position:relative;
 }
 
-
 /* This ".editor-preview-toggle" class is for the <div> container holding the side-by-side
 "Text-Editor|Split-View|Preview-Panel" buttons in the header space at the top of the webpage. */
 .editor-preview-toggle {
   margin:auto;
-  margin-left:25%;
+  /*margin-left:25%;*/
   padding:3px;
   background-color:darkgray;
 }
@@ -114,15 +108,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   outline: 2.5px solid black;
   cursor:pointer;
 }
-
-
-
-
-
-
-
-
-
 
 /* DEBUG: Everything BELOW is for making the LHS/RHS, Text Editor, Preview Panel 50/50 thing work: */
 .editor-layout {
@@ -167,15 +152,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   width:100%;
 }
 /* DEBUG: Everything ABOVE is for making the LHS/RHS, Text Editor, Preview Panel 50/50 thing work! */
-
-
-
-
-
-
-
-
-
 
 /* DEBUG: Everything below is for the Text Editor Preview Toggle Functionality... */
 .text-editor-space-split {
@@ -226,15 +202,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   background-color:gray;
 }
 
-
-
-
-
-
-
-
-
-
 .md-preview-panel {
   outline: black;
   outline-width:2px;
@@ -262,3 +229,24 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 .resizeTEPP:hover {
   background: #888; /* debug: Darker gray when hovered */
 }
+
+
+
+
+/* Styling for the "Users-List" button on the top-right of the T.E. room webpage: */
+.users-list-button {
+  background: #008F11;
+  border-style: solid;
+  border-width: 5px;
+  cursor:pointer;
+
+  /*box-shadow: 0px 0px 0px 4000px rgba(27, 61, 88, 0.5) inset;*/ /* <-- NOTE: This line is for the shadow overlay to be cast over the button after clicking it! */
+
+}
+.users-list-icon {
+  width:100%;
+  max-width:50px;
+  height:auto;
+}
+
+

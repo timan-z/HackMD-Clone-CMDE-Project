@@ -18,11 +18,13 @@ import * as Y from 'yjs';
 import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
 import { useMemo } from 'react';
 import { WebsocketProvider } from 'y-websocket';
-
-// BRINGING THESE BELOW BACK!!!:
+// BRINGING THESE 3 BELOW BACK!!!:
 import { io } from "socket.io-client"; // <-- Bringing this one back.
 import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
+
+import { createUsersListBar } from './supplementary/usersListBar.js';
+
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -330,8 +332,15 @@ function EditorContent() {
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
       console.log("DEBUG: debugFunction entered...");
+      console.log("DEBUG:The value of otherCursors is => [", otherCursors, "]");
 
-      console.log("The value of otherCursors is => [", otherCursors, "]");
+
+      console.log("debugger... Let's call usersListBar!!!");
+      console.log("***************************************");
+      createUsersListBar();
+      console.log("***************************************");
+
+
 
       console.log("DEBUG: debugFunction exited...");
     });
@@ -486,13 +495,14 @@ function EditorContent() {
           <button onClick={()=> handleViewChange("split")} disabled={viewMode==="split"}>Split-View</button>
           <button onClick={()=> handleViewChange("preview-only")} disabled={viewMode==="preview-only"}>Preview Panel</button>
         </div>
-
-
-        
+        {/*<h1>HACKMD CLONE!!!</h1>*/}  {/* DEBUG:+NOTE: Change this to something proper eventually... */}
 
 
 
-        <h1>HACKMD CLONE!!!</h1>  {/* DEBUG:+NOTE: Change this to something proper eventually... */}
+        {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
+        <div className="users-list-button" onClick={()=> alert("TEST")}>
+          <img className="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
+        </div>
 
 
       </div>
