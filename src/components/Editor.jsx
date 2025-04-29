@@ -167,8 +167,20 @@ function EditorContent() {
 
 
 
+
+
+
+
   // NOTE: This one (below) is for fixing the "Websocket is closed before the connection is established" warning I'm getting with <CollaborationPlugin/> [1/2]:
   const providerRef = useRef(null); 
+  const [providerReady, setProviderReady] = useState(false);
+  //const [isConnected, setIsConnnected] = useState(false);
+
+
+
+
+
+
 
 
 
@@ -280,13 +292,23 @@ function EditorContent() {
 
 
 
+
+
+
   // "useEffect(()=>{...})" Hook #1 -- for connecting the Websocket provider up to the server:
-  useEffect(()=> {
-    if(providerRef.current) {
-      console.log("CONNECTING DAAAAA!!!");
-      providerRef.current.connect();
-    }
-  }, []);
+  // DEBUG: BELOW.
+  /*useEffect(()=> {
+
+
+
+
+  }, []);*/
+  // DEBUG: ABOVE.
+
+
+
+
+
 
 
 
@@ -812,20 +834,28 @@ function EditorContent() {
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
 
+
                   <CollaborationPlugin
                     id="room-1"
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
+
+                      provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status))
+                      provider.on('sync', (isSynced) => console.log('DEBUG: Doc synced?', isSynced))
+
                       providerRef.current = provider; // <-- NOTE: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
+                      
                       return provider;
                     }}
                     shouldBootstrap={false}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." */
+                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) */
                   />
+                
+                  
 
 
                   {/* Need to wrap the ContentEditable inside the PlainTextPlugin (I didn't do this originally, that's why the Placeholder wasn't working). */}
