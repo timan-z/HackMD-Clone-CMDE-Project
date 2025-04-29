@@ -1,7 +1,6 @@
 import React, { useCallback } from 'react';
 import { LexicalComposer } from '@lexical/react/LexicalComposer'; 
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
-import { HistoryPlugin } from '@lexical/react/LexicalHistoryPlugin';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
@@ -16,16 +15,14 @@ import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
 
 // PART-2-ADDITIONS:
 import * as Y from 'yjs';
-
-//import { bindYjsToLexical } from '@lexical/yjs';
-
 import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
-//import {ydoc, ytext, awareness, provider, yjsDocMap} from './collabProvider'; // PART-2-ADDITION. (INTEGRATING Yjs INTO PROJECT).
-
-
 import { useMemo } from 'react';
 import { WebsocketProvider } from 'y-websocket';
 
+// BRINGING THESE BELOW BACK!!!:
+import { io } from "socket.io-client"; // <-- Bringing this one back.
+import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
+const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
 
 
@@ -120,13 +117,6 @@ const initialConfig = {
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
 function EditorContent() {
   const [editor] = useLexicalComposerContext();
-
-
-  // PART-2-ADDITION: BELOW.
-  //useYjsCollaboration(editor, provider, { awareness }); // DEBUG: VERY IMPORTANT -- THIS IS MY LEXICAL/YJS AUTO-SYNC TOOL!!!
-  // PART-2-ADDITION: ABOVE.
-
-
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
 
@@ -152,34 +142,15 @@ function EditorContent() {
   // The following const(s) is for rendering the cursors of the *other* clients in the Text Editor during real-time collaboration:
   const [otherCursors, setOtherCursors] = useState([]);
   //const [userID, setUserID] = useState("");
-  const [socketID, setSocketID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
+
+
+
+
   // PART-2-ADDITIONS - TESTING IF THESE WORK:
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
-  const relativePos = useRef(0); // <-- going to be 0 as a default for now, will now change values in a UseEffect hook bc directly calculating here causes issues.
-  const lastCursorOffset = useRef(null);
-  const isApplyingRemoteUpdate = useRef(false);
-
-
-
-
-
-
-
-
-
-
-
-  // NOTE: This one (below) is for fixing the "Websocket is closed before the connection is established" warning I'm getting with <CollaborationPlugin/> [1/2]:
-  const providerRef = useRef(null); 
-  const [providerReady, setProviderReady] = useState(false);
-  //const [isConnected, setIsConnnected] = useState(false);
-
-
-
-
-
+  
 
 
 
@@ -286,34 +257,14 @@ function EditorContent() {
 
 
 
+  const sendCursorToServer = throttle((cursorPos) => {
+    socket.emit("send-cursor-pos", cursorPos, socket.id);
+  }, 100);
 
 
 
 
-
-
-
-
-
-  // "useEffect(()=>{...})" Hook #1 -- for connecting the Websocket provider up to the server:
-  // DEBUG: BELOW.
-  /*useEffect(()=> {
-
-
-
-
-  }, []);*/
-  // DEBUG: ABOVE.
-
-
-
-
-
-
-
-
-
-  // "useEffect(()=>{...})" Hook #2 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
+  // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
     const unregister = editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
@@ -322,22 +273,6 @@ function EditorContent() {
         This means that the RootNode does not have a parent or siblings. To get the text content of the entire editor, you should use 
         rootNode.getTextContent()." <-- and by "using rootNode", seems like I'd have to invoke "$getRoot()" */
         const textContent = $getRoot().getTextContent();
-
-
-
-
-
-        // NOTE: MOVING THE LEXICAL-YJS SYNC BLOCK UP TO THE TOP OF THIS HOOK:
-        /*if (textContent !== ytext.toString()) {
-          ytext.doc?.transact(() => {
-            ytext.delete(0, ytext.length);
-            ytext.insert(0, textContent);
-          }, 'local'); // <-- wrapping this with transact so we can tell when an update to Lexical/Yjs is local or not
-          console.log("LEXICAL → YJS: Inserted text:", textContent);
-        }*/
-
-
-
 
         // NOTE: The stuff below is for the text editor line counter...
         const lines = textContent.split("\n").length;
@@ -348,28 +283,22 @@ function EditorContent() {
         const paraNodes = $getRoot().getChildren();
         const selection = $getSelection();
 
-        if(!selection) return;  // DEBUG: <-- see if this fixes my RemoteCursorNode.jsx-related problem. 
+        if(!selection) return;  // Originally added this line to prevent errors with a scrapped feature. Keeping it for good practice!
 
         let {anchor} = selection;
         let anchorNode = anchor.getNode();
         let anchorOffset = anchor.offset;
         let absoluteCursorPos = findCursorPos(paraNodes, anchorNode, anchorOffset); // let's see!
-        //setCursorPos(absoluteCursorPos);  // <-- DEBUG: Probably fine to keep, but might not be needed *here* in relation to keeping cursor pos after foreign edits.
         cursorPos.current = absoluteCursorPos;
 
-        //const relativePos = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments.
-        //console.log("PHASE-3-DEBUG: The value of cursorPos.current is = ", cursorPos.current);
-        //cursorPos.current = absoluteCursorPos;  // <-- DEBUG: ^ trying this instead now...
+        //console.log("DEBUG: The value of cursorPos.current is = ", cursorPos.current);
 
-        //console.log("DEBUG-PHASE-3: The value of absoluteCursorPos is: [", absoluteCursorPos, "]");
         let textContentTrunc = textContent.slice(0, absoluteCursorPos);
         let currentLine = textContentTrunc.split("\n").length;
-        //console.log("The current line is: ", currentLine);
+        //console.log("DEBUG: The current line is: ", currentLine);
         setCurrentLine(currentLine);
 
-        // Using Yjs' "Relative Positions" for dynamic cursor indice text-change adjustments:
-        //relativePos.current = Y.createRelativePositionFromTypeIndex(ytext, cursorPos); // Calculating relative position given current Text Editor content and this client's cursor position.
-        //console.log("DEBUGGING: The value of relativePos.current => [", relativePos.current, "]");
+        sendCursorToServer(cursorPos.current); // emit current Text Editor cursor pos to the server (in external function so throttling can be applied).
 
         // NOTE: The stuff below is for the Markdown renderer... 
         setEditorContent(textContent);
@@ -386,197 +315,43 @@ function EditorContent() {
 
 
 
-
-
-  // BELOW-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
-  /*useEffect(() => {
-    //let lastYText = ytext.toString(); // keeping track of the last value to avoid reapplying same update.
-    const updateEditorFromYjs = (event) => {
-      const newYText = ytext.toString();
-
-      console.log("-------------PRIOR TO THE editor.update() STATEMENT!!!-------------");
-      console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
-
-      editor.update(() => {
-        console.log("-------------PRIOR TO THE root.clear() STATEMENT!!!-------------");
-        console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]"); 
-
-        const root = $getRoot();
-        root.clear(); 
-        const selection = $getSelection();
-        selection.insertText(newYText);
-
-        console.log("-------------AFTER THE root.clear() STATEMENT!!!-------------");
-        console.log("DEBUG: The value of otherCursors is => [", otherCursors, "]");
-
-        //console.log("DEBUG: The value of isApplyingRemoteUpdate.current = [", isApplyingRemoteUpdate.current, "]");
-        if(isApplyingRemoteUpdate.current) {
-          console.log("DEBUG: APPLYING REMOTE UPDATE!!!!!!");
-          console.log("DEBUG: The value of otherCursors => [", otherCursors, "]");
-          console.log("DEBUG: The value of cursorPos => [", cursorPos, "]");
-          return;
-        }
-
-
-        // Preserving the cursor position of *this* client post-editor update:
-        const paragraph = root.getFirstChild();
-        if(!$isParagraphNode(paragraph)) return;
-        let {anchor} = selection;
-        let anchorNode = anchor.getNode();
-        const node = paragraph.getFirstChild();
-
-        if(!$isTextNode(node)) return;
-        const text = node.getTextContent();
-        const textLength = text.length;
-        console.log("debug: The value of cursorPos.current is: ", cursorPos.current);
-        const newSelection = $createRangeSelection();
-
-        if(!(cursorPos.current > textLength)) {
-          newSelection.setTextNodeRange(anchorNode, cursorPos.current, anchorNode, cursorPos.current);
-        } else {
-          newSelection.setTextNodeRange(anchorNode, textLength, anchorNode, textLength);
-        }
-        $setSelection(newSelection);
-      });
-    };
-    const observer = (event) => {
-      isApplyingRemoteUpdate.current = true;
-      updateEditorFromYjs(event);
-      isApplyingRemoteUpdate.current = false;
-    }; // NOTE: Used to just be updateEditorFromYjs(); which left some issues with cursor repos, changing it to this fixed them entirely??? not sure why tbh 
-    ytext.observe(observer);
-    updateEditorFromYjs(); // initial sync
-  
-    return () => ytext.unobserve(observer);
-  }, [editor]);*/
-  // ABOVE-DEBUG: TEST "useEffect(()=>){...}" HOOK -- MAKING SURE Yjs WORKS WELL!!!
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // PART-2: "useEffect(()=>{...})" HOOK -- SHARING LOCAL CURSOR POSITION WITH "awareness":
-  /*useEffect(() => {
-    // this will execute each time you move the cursor in the text editor (works good)    
-    return editor.registerUpdateListener(({editorState}) => {
-      editorState.read(()=> {
-        // Delay the relativePos.current = "Y.createRelativePosition..." assignment until Yjs finishes syncing:
-        // NOTE: setTimeout(...,0) queues this operation after the current JS event loop apparently.
-        setTimeout(()=> {
-          const offset = cursorPos.current;
-          const yTextCurrent = ytext.toString();
-
-        }, 0);
-      });
+  // "useEffect(()=>{...})" Hook #2 - For clientCursors updates (letting us know when to update the RemoteCursorOverlay rendering):
+  useEffect(() => {
+    // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
+    socket.on("update-cursors", (cursors) => {
+      //console.log("DEBUG: Received clientCursors update! cursors = [", cursors, "]");
+      //console.log("Debug: Also btw the value of socket.id is: ", socket.id);
+      setOtherCursors(cursors.filter(cursor => cursor.id !== socket.id)); // The "=> cursor.id !== socket.id" part is for not including *this* client's ID.
+      /* otherCursors won't automatically update to "cursors" immediately, will need to wait for the next time
+      the Editor renders (which I can catch with another useEffect hook dedicated to detecting when otherCursors changes). */      
     });
-  }, [editor, userID]);*/
-  
-
-  // PART-2: "useEffect(()=>{...})" HOOK -- TRACKING OTHER CURSORS WITH "awareness":
-  /*useEffect(()=> {
-    const updateCursors = () => {
-      //console.log("CURSOR OR TEXT HAS CHANGED!!!!!!");
-      const states = awareness.getStates();
-      const cursors = [];
-      // NOTE: basically just shortening what i was doing before...
-      for(const [key, value] of states) {
-        // Ignore irrelevant values inside of states (stuff I'm not interested in):
-        if(!value || !value.cursor) return;
-        if(value.cursor.id === userID.current) return;
-
-        // relPos in its current form ("in value") is just raw data so it needs to be transformed into something stable:
-        const {relPos, id} = value.cursor;
-        //const relPos = value.cursor.relPos;
-         Line below is *very* important for maintaining cursor preservation during collaborative text editing.
-        I'm making this new var "absVal" instead of "pos" (the absolute cursor position I have stored as a useRef variable) because
-        "absVal" is a special Yjs MUTATION-AWARE value that *will* actively adjust its position with real-time changes in the text editor/ydoc. 
-        const absVal = Y.createAbsolutePositionFromRelativePosition(relPos, ydoc);
-        const absIndex = absVal?.index ?? null;
-        if(absIndex !== null && id !== userID ) {
-          cursors.push({ pos: absIndex, id: id});
-
-          const charAtIndex = ytext.toString()[absIndex];
-          console.log(`[OVERLAY] ID: ${id}, absIndex: ${absIndex}, char: "${charAtIndex}"`);
-        }
-      }
-      
-      setOtherCursors(cursors);
-      //setOtherCursors(cursors.filter(cursor => cursor.id.current !== userID.current));
+    return () => {
+      socket.off("update-cursors");
     };
+  }, []);
 
-    awareness.on('change', updateCursors);
-    updateCursors();
-    return () => awareness.off('change', updateCursors);
-  }, []);*/
 
-  // PART-2: "useEffect(()=>{...})" HOOK -- Watches for changes in ytext with ytext.observe(), and uses that for Cursor Preservation during collab editing:
-  /*useEffect(()=> {
-    const observer = () => {
-      const localState = awareness.getLocalState();
-      const relPos = localState?.cursor?.relPos;
-      if(!relPos) return;
 
-      const absVal = Y.createAbsolutePositionFromRelativePosition(relPos, ydoc);
 
-      if(absVal?.index != null) {
-        console.log("DABBA-DEE-DEBUG: The value of absVal.index is => [", absVal.index, "]");
-      }
-    };
 
-    ytext.observe(observer);
-    return () => ytext.unobserve(observer);
-  });*/
 
   // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
       console.log("DEBUG: debugFunction entered...");
-
       console.log("Initial text: ", ytext.toString());
       console.log("Awareness state: ", awareness.getStates());
 
       console.log("The value of otherCursors is => [", otherCursors, "]");
 
-
-      
       for(const cursor in otherCursors) {
         console.log("debug-1: This is cursor => [", otherCursors[cursor], "]");
         console.log("debug-2: The value of otherCursors[cursor].relPos is => [", otherCursors[cursor].relPos, "]");
       }
 
-
       console.log("DEBUG: debugFunction exited...");
     });
   }
-
-
-
-
-
 
 
 
@@ -598,7 +373,6 @@ function EditorContent() {
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   };
-
   // Configuring event listeners for certain keys:
   const handleKeyInput = (event) => {
     // Making sure that pressing the "tab" key in the text editor will work as intended (multiple spaces instead of selecting stuff in browser):
@@ -699,27 +473,6 @@ function EditorContent() {
       });
     }
   }
-
-
-
-
-
-
-
-  // DEBUG: Seeing if this below works for <CollaborationPlugin/>:
-  /*const providerFactory = useCallback(
-    (id: string, yjsDocMap: Map<string, Y.Doc>) => {
-      const doc = getDocFromMap(id, yjsDocMap);
-
-      return new WebsocketProvider('ws://localhost:1234', id, doc, {
-        connect: false,
-      });
-    }, [],
-  );*/
-
-
-
-
   return(
     <div className="editor-wrapper">
 
@@ -833,20 +586,15 @@ function EditorContent() {
 
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
-
-
                   <CollaborationPlugin
                     id="room-1"
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
-
-                      provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status))
-                      provider.on('sync', (isSynced) => console.log('DEBUG: Doc synced?', isSynced))
-
-                      providerRef.current = provider; // <-- NOTE: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
-                      
+                      provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
+                      provider.on('sync', (isSynced) => console.log('DEBUG: Doc synced?', isSynced)) // DEBUG:
+                      //providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
                       return provider;
                     }}
                     shouldBootstrap={false}
@@ -854,9 +602,10 @@ function EditorContent() {
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) */
                   />
-                
-                  
 
+                  {/* NOTE-TO-SELF: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
+                  I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
+                  since it would feel like a waste otherwise... (and I get more customization with it) */}
 
                   {/* Need to wrap the ContentEditable inside the PlainTextPlugin (I didn't do this originally, that's why the Placeholder wasn't working). */}
                   <PlainTextPlugin

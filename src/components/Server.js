@@ -19,11 +19,6 @@ const { throttle } = pkg;
 const app = express();
 const server = http.createServer(app);
 
-
-// RAAAAAAAAAAAAA
-import * as Y from 'yjs';
-
-
 const io = new Server(server, {
     // You need this stuff below to bypass issues with cors.
     cors: {
@@ -32,39 +27,52 @@ const io = new Server(server, {
     },
 });
 
-const docs = new Map(); // in-memory shared state
-function getYDoc(docName) {
-    if(!docs.has(docName)) {
-        const ydoc = new Y.Doc();
-        docs.set(docName, ydoc);
-    }
-    return docs.get(docName);
-}
+let clientCursors = []; // This will be my array variable holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
 io.on("connection", (socket) => {
     // connection notice:
     console.log("A user connected: ", socket.id);
 
-    /*const doc = getYDoc('room-1');
-    // When a client connects, send them the current Yjs state:
-    const stateUpdate = Y.encodeStateAsUpdate(doc);
-    socket.emit('yjs-init', Array.from(stateUpdate));
+    // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
+    const broadcastCursors = throttle(() => {
+        socket.broadcast.emit("update-cursors", clientCursors);
+    }, 100); // 100ms seems like a reasonable interval.
 
-    socket.on("yjs-update", (update) => {
-        console.log(`[SERVER] Received yjs-update from ${socket.id}`);
-        console.log("[YJS] update received:", update);
-        const binary = new Uint8Array(update);
-        Y.applyUpdate(doc, binary);
+    // Handle client sending their cursor position within the Text Editor (*will happen frequently*). Needed for foreign cursor rendering!!!: 
+    socket.on("send-cursor-pos", (absCursorPos, clientId) => {
+        console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
+        console.log("DEBUG: Their cursor position: ", absCursorPos);
+        const clientCursor = {cursorPos: absCursorPos, id:clientId};
+        const isItAlrThere = clientCursors.findIndex(item => item.id === clientId); // Check if there's already an obj in clientCursors rep'ing this socket.        
 
-        console.log("[SERVER] Emitting yjs-init to", socket.id)
-
-        socket.broadcast.emit("yjs-update", update);    // forward to all others.
-    });*/
+        if(isItAlrThere !== -1) {
+            // Obj with id===clientId present in clientCursors means that specific element needs to be replaced (isItAlrThere === index):
+            clientCursors[isItAlrThere] = clientCursor;
+        } else {
+            // Not present, so we can push it in:
+            clientCursors.push(clientCursor);
+        }
+        console.log("DEBUG: Current state of clientCursors: ", clientCursors);
+        // Broadcasting the state of clientCursors:
+        broadcastCursors();
+    });
 
     // disconnection notice:
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
-
+        console.log("DEBUG: [clientCursors Pre-Splice] => ", clientCursors);
+        // After disconnection, I need to remove the recently-disconnected socket from array clientCursors too:
+        let targetIndex = 0;
+        clientCursors.forEach(client => {
+            /* NOTE:+DEBUG: Eventually I'm going to phase out "socket.id" as my foreign cursor identifier (what appears in the tag)
+            so *maybe* note I'll need to rework this (but ig I could keep "socket.id" and just use add another parameter for the display name). */
+            if(client.id === socket.id) {
+                clientCursors.splice(targetIndex, 1);
+            }
+            targetIndex += 1; 
+        });
+        console.log("DEBUG: [clientCursors Post-Splice] => ", clientCursors);
+        broadcastCursors();
     });
 });
 
