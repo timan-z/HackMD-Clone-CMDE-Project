@@ -1,13 +1,15 @@
-
+function removeUsersListBar() {
+    const removeUsersList = document.getElementById('users-list-bar');
+    document.body.removeChild(removeUsersList);
+    usersListBtn = document.getElementById('users-list-button'); // Get rid of the shadow overlay effect.
+    usersListBtn.classList.remove('users-l-add-shadow');
+}
 
 export function createUsersListBar() {
     let usersListBtn = null;
     // If function invoked while Users-List bar is already present in the DOM, it should be removed (so I don't double+ import it):
     if(document.getElementById('users-list-bar')) {
-        const removeUsersList = document.getElementById('users-list-bar');
-        document.body.removeChild(removeUsersList);
-        usersListBtn = document.getElementById('users-list-button'); // Get rid of the shadow overlay effect.
-        usersListBtn.classList.remove('users-l-add-shadow');
+        removeUsersListBar();
         return;
     } else {
         // Otherwise, apply darkened shadow styling to the "className="users-list-button" User Icon <div> to imply Users List is active:
@@ -15,7 +17,8 @@ export function createUsersListBar() {
         usersListBtn.classList.add('users-l-add-shadow');
     }
 
-    // Creating the Users-List Bar (DEBUG: WORK IN PROGRESS duh):
+    // Creating the Users-List Bar:
+    // 1. The main usersListBar (non-expanded):
     const usersListBar = document.createElement('div');
     usersListBar.id = 'users-list-bar';
     Object.assign(usersListBar.style, {
@@ -23,16 +26,92 @@ export function createUsersListBar() {
         height:'50px',
         top:'0%',
         zIndex: 99999,
+        fontSize: '37px',
+        fontWeight: 'bold',
+        fontFamily: 'Arial, sans-serif',
+        justifyContent: 'space-between',
+        alignItems: 'center',
         backgroundColor: '#008F11',
+        borderColor: '#0D0208',
         borderRadius: '7.5%',
+        borderStyle: 'solid',
+        borderWidth: '5px',
+        cursor:'grab',
+        display:'flex',
         position:'fixed', /* Combination of a high zIndex and position:'fixed' will make sure this <div> won't interfere with existing webpage HTML. */
     });
     usersListBar.textContent = 'Users List';
+
+    // 2. The buttons within the usersListBar ([2.1]:"V" = expand downwards, [2.2]:"^" = expand upwards, [2.3]:"X" = close):
+    let buttonStyling = {
+        width: '37px',
+        height: '37px',
+        backgroundColor: '#0D0208',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '35px',
+        borderColor: '#00FF41',
+        borderStyle: 'solid',
+        borderWidth: '3px',
+        color: '#00FF41',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontFamily: 'Arial, sans-serif',
+        userSelect: 'none',
+    }; // All three buttons will use the same styling, including "^" but it has transform(180deg) because it's just flipping a "V".
+
+    // [2.1] - Making the "V" button:
+    const expDownBtn = document.createElement('div');
+    expDownBtn.id = 'ulb-expd-btn';
+    Object.assign(expDownBtn.style, buttonStyling);
+    expDownBtn.textContent = 'V';
+    usersListBar.appendChild(expDownBtn);
+
+    // [2.2] - Making the "^" button:
+    const expUpBtn = document.createElement('div');
+    expUpBtn.id = 'ulb-expu-btn';
+    Object.assign(expUpBtn.style, {
+        width: '40px',
+        height: '40px',
+        backgroundColor: '#0D0208',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '35px',
+        borderColor: '#00FF41',
+        borderStyle: 'solid',
+        borderWidth: '3px',
+        color: '#00FF41',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontFamily: 'Arial, sans-serif',
+        userSelect: 'none',
+        transform: 'rotate(180deg)',
+    });
+    expUpBtn.textContent = 'V';
+    usersListBar.appendChild(expUpBtn);
+
+    // [2.3] - Making the "X" button:
+    const closeBtn = document.createElement('div');
+    closeBtn.id = 'ulb-close-btn';
+    Object.assign(closeBtn.style, buttonStyling);
+    closeBtn.textContent = 'X';
+    closeBtn.addEventListener("click", function () {
+        removeUsersListBar();
+    });
+    usersListBar.appendChild(closeBtn);
 
     // Append Users List Bar to the webpage DOM:
     document.body.appendChild(usersListBar);
     addDragFunc(usersListBar);  // Make it "draggable".
 }
+
+
+
+
 
 // NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):
 // (This code here may feel very foreign and that's because it is largely stuff I'm refactoring from old university projects).
@@ -119,7 +198,6 @@ function addDragFunc(element) {
     // Custom positioning of the <div> element:
     positionToTheRight(element);
 }
-
 
 
 
