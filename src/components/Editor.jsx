@@ -23,7 +23,7 @@ import { io } from "socket.io-client"; // <-- Bringing this one back.
 import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
-import { createUsersListBar } from './supplementary/usersListBar.js';
+import { createUsersList } from './supplementary/usersListBar.js';
 
 
 /* NOTE-TO-SELF:
@@ -337,7 +337,7 @@ function EditorContent() {
 
       console.log("debugger... Let's call usersListBar!!!");
       console.log("***************************************");
-      createUsersListBar();
+      createUsersList();
       console.log("***************************************");
 
 
@@ -529,7 +529,7 @@ function EditorContent() {
 
 
         {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
-        <div id="users-list-button" onClick={()=> createUsersListBar()}>
+        <div id="users-list-button" onClick={()=> createUsersList()}>
           <img id="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
         </div>
 

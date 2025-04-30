@@ -1,21 +1,39 @@
-function removeUsersListBar() {
+function removeUsersListBar(usersListBtn) {
     const removeUsersList = document.getElementById('users-list-bar');
     document.body.removeChild(removeUsersList);
     usersListBtn = document.getElementById('users-list-button'); // Get rid of the shadow overlay effect.
     usersListBtn.classList.remove('users-l-add-shadow');
 }
 
-export function createUsersListBar() {
+export function createUsersList() {
     let usersListBtn = null;
     // If function invoked while Users-List bar is already present in the DOM, it should be removed (so I don't double+ import it):
     if(document.getElementById('users-list-bar')) {
-        removeUsersListBar();
+        removeUsersListBar(usersListBtn);
         return;
     } else {
         // Otherwise, apply darkened shadow styling to the "className="users-list-button" User Icon <div> to imply Users List is active:
         usersListBtn = document.getElementById('users-list-button');
         usersListBtn.classList.add('users-l-add-shadow');
     }
+
+
+
+    // Wrapper for the usersListBar (what initially appears in collapsed form) and the hidden section (the actual Users List).
+    /*const usersListWrapper = document.createElement('div');
+    usersListWrapper.id = 'users-list-wrapper';
+    Object.assign(usersListWrapper.style, {
+        position: 'fixed',
+        zIndex: 99999,
+        top: '0',
+        left: '0',
+        transform: 'translate3d(0, 0, 0)',
+    });*/
+
+
+
+
+
 
     // Creating the Users-List Bar:
     // 1. The main usersListBar (non-expanded):
@@ -100,7 +118,7 @@ export function createUsersListBar() {
     Object.assign(closeBtn.style, buttonStyling);
     closeBtn.textContent = 'X';
     closeBtn.addEventListener("click", function () {
-        removeUsersListBar();
+        removeUsersListBar(usersListBtn);
     });
     usersListBar.appendChild(closeBtn);
 
@@ -113,32 +131,6 @@ export function createUsersListBar() {
     
     
     
-    /*const usersListPanel = document.createElement('div');
-    usersListPanel.id = 'users-list-panel';
-    Object.assign(usersListPanel.style, {
-        width: '335px',
-        maxHeight: '0',
-        overflow: 'hidden',
-        backgroundColor: '#001f0d',
-        color: '#00FF41',
-        transition: 'max-height 0.4s ease-in-out',
-        position: 'fixed',
-        top: '60px',
-        right: '32px',
-        border: '3px solid #00FF41',
-        borderRadius: '8px',
-        zIndex: 99998,
-    });*/
-    // Example content inside the panel
-    /*usersListPanel.innerHTML = `<ul style="margin: 10px; padding: 0; list-style: none;">
-        <li>User 1</li>
-        <li>User 2</li>
-        <li>User 3</li>
-    </ul>`;*/
-
-
-
-
 
 
 
@@ -240,7 +232,3 @@ function addDragFunc(element) {
     // Custom positioning of the <div> element:
     positionToTheRight(element);
 }
-
-
-
-
