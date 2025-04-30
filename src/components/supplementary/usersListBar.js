@@ -104,14 +104,56 @@ export function createUsersListBar() {
     });
     usersListBar.appendChild(closeBtn);
 
+    /* 3. The "V" and "^" buttons are meant to expand a rectangular <div> element downwards or upwards,
+    and that rectangular <div> is where the Users List will be rendered. Section below will be for writing that <div>: */
+    
+    
+    
+    
+    
+    
+    
+    /*const usersListPanel = document.createElement('div');
+    usersListPanel.id = 'users-list-panel';
+    Object.assign(usersListPanel.style, {
+        width: '335px',
+        maxHeight: '0',
+        overflow: 'hidden',
+        backgroundColor: '#001f0d',
+        color: '#00FF41',
+        transition: 'max-height 0.4s ease-in-out',
+        position: 'fixed',
+        top: '60px',
+        right: '32px',
+        border: '3px solid #00FF41',
+        borderRadius: '8px',
+        zIndex: 99998,
+    });*/
+    // Example content inside the panel
+    /*usersListPanel.innerHTML = `<ul style="margin: 10px; padding: 0; list-style: none;">
+        <li>User 1</li>
+        <li>User 2</li>
+        <li>User 3</li>
+    </ul>`;*/
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // Append Users List Bar to the webpage DOM:
     document.body.appendChild(usersListBar);
     addDragFunc(usersListBar);  // Make it "draggable".
 }
-
-
-
-
 
 // NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):
 // (This code here may feel very foreign and that's because it is largely stuff I'm refactoring from old university projects).
