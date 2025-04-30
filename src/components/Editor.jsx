@@ -499,7 +499,7 @@ function EditorContent() {
     }
   }
   return(
-    <div className="editor-wrapper">
+    <div id="the-editor-wrapper" className="editor-wrapper">
 
       {/* The horizontal bar at the top of the webpage (where the site title is, "Text Editor|Split|Preview Panel" toggles are, etc): */}
       <div className="editor-preview-overhead">

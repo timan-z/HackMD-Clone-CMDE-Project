@@ -20,7 +20,8 @@ export function createUsersListBar() {
     usersListBar.id = 'users-list-bar';
     Object.assign(usersListBar.style, {
         width:'335px',
-        height:'75px',
+        height:'50px',
+        top:'0%',
         zIndex: 99999,
         backgroundColor: '#008F11',
         borderRadius: '7.5%',
@@ -79,11 +80,12 @@ function addDragFunc(element) {
         let reposElement = document.getElementById(element.id);
         if(reposElement) {
             var viewportWidth = window.innerWidth; // I want to shift it to the top right corner so I need the width.
+            var viewportHeight = window.innerHeight;
             var rect = reposElement.getBoundingClientRect();
             dragObj.x_pos_og = 0; // DEBUG: <-- I can probably get rid of these =0 lines now that I added individual objects but I'm incoherent rn. 
             dragObj.y_pos_og = 0;
             dragObj.x_offset = viewportWidth - rect.width - 32; // DISCLAIMER: 16 PIXELS = 1 REM (THIS IS FOR THE RIGHTMOST PADDING).
-            dragObj.y_offset = 0;
+            dragObj.y_offset = viewportHeight - (viewportHeight - 75);
             dragObj.drag_in_prog = reposElement;
             newPosition(dragObj);
         }
