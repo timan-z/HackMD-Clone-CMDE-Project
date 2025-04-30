@@ -369,6 +369,35 @@ function EditorContent() {
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   };
+
+  // The following const functions are for making the T.E. supplementary elements (Users List Bar, Notifications Bar, etc) draggable:
+  /*const startDragging = (e, dragObj) => {
+    let 
+
+  }*/
+  
+  /*function start_dragging(e, dragObj) {
+    // making sure I can't drag the menu or legend's inner contents (e.g., buttons etc).
+    if ((e.target === drag_menu || e.target === drag_legend) && !dragObj.drag_active) {
+      dragObj.drag_in_prog = e.target;
+      setOriginalPosition(e, dragObj);
+      dragObj.drag_active = true;
+      activeDragObj = dragObj;
+    }
+  }*/
+
+
+
+
+
+
+
+
+
+
+
+
+
   // Configuring event listeners for certain keys:
   const handleKeyInput = (event) => {
     // Making sure that pressing the "tab" key in the text editor will work as intended (multiple spaces instead of selecting stuff in browser):

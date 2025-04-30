@@ -24,36 +24,101 @@ export function createUsersListBar() {
         zIndex: 99999,
         backgroundColor: '#008F11',
         borderRadius: '7.5%',
+        position:'fixed', /* Combination of a high zIndex and position:'fixed' will make sure this <div> won't interfere with existing webpage HTML. */
     });
+    usersListBar.textContent = 'Users List';
 
     // Append Users List Bar to the webpage DOM:
-    document.body.appendChild(usersListBar);    
+    document.body.appendChild(usersListBar);
+    addDragFunc(usersListBar);  // Make it "draggable".
+}
 
-
-
-
-
-
-
-
-    // Implementing "drag" functionality for the webpage:
-    /*let dragUsersLBar = {
+// NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):
+// (This code here may feel very foreign and that's because it is largely stuff I'm refactoring from old university projects).
+function addDragFunc(element) {
+    const dragObj = {
         drag_active: false,
         drag_in_prog: null,
         x_pos_og: 0,
         y_pos_og: 0,
         x_offset: 0,
-        y_offset: 0
+        y_offset: 0,
     };
-    let activeDragObj = null;   // Active object "being dragged" reference.*/
-    // Initiate dragging:
 
+    // Series of nested functions below are for updating the coordinates of the <div> during and after the dragging:
+    // 1. "setOriginalPosition":
+    function setOriginalPosition(e, dragObj) {
+        dragObj.x_pos_og = e.clientX - dragObj.x_offset;
+        dragObj.y_pos_og = e.clientY - dragObj.y_offset;
+    }
+    // 2. "updatePosition" (mid-drag):
+    function updatePosition(e, dragObj) {
+        let newX = e.clientX - dragObj.x_pos_og;
+        let newY = e.clientY - dragObj.y_pos_og;
+        // viewport stuff
+        let viewportWidth = window.innerWidth;
+        let viewportHeight = window.innerHeight;
+        let rect = dragObj.drag_in_prog.getBoundingClientRect();
+        // ceil/floor
+        newX = Math.min(viewportWidth - rect.width, Math.max(0, newX));
+        newY = Math.min(viewportHeight - rect.height, Math.max(0, newY));
+        dragObj.x_offset = newX;
+        dragObj.y_offset = newY;
+    }
+    // 3. "newPosition" (after-drag):
+    function newPosition(dragObj) {
+        if (dragObj.drag_in_prog) {
+            dragObj.drag_in_prog.style.transform = "translate3d(" + dragObj.x_offset + "px, " + dragObj.y_offset + "px, 0)";
+        }
+    }
 
+    /* Above, the boundaries over which the passed element can be dragged are defined, but defined based on the initial positioning 
+    of said element, and so to correctly capture the user's viewport, it needs to be manually positioned at the right space.
+    (Setting it at the top-right corner of the webpage, totally not because this is recycled code from a previous project and I'm lazy). */
+    function positionToTheRight(element) {
+        let reposElement = document.getElementById(element.id);
+        if(reposElement) {
+            var viewportWidth = window.innerWidth; // I want to shift it to the top right corner so I need the width.
+            var rect = reposElement.getBoundingClientRect();
+            dragObj.x_pos_og = 0; // DEBUG: <-- I can probably get rid of these =0 lines now that I added individual objects but I'm incoherent rn. 
+            dragObj.y_pos_og = 0;
+            dragObj.x_offset = viewportWidth - rect.width - 32; // DISCLAIMER: 16 PIXELS = 1 REM (THIS IS FOR THE RIGHTMOST PADDING).
+            dragObj.y_offset = 0;
+            dragObj.drag_in_prog = reposElement;
+            newPosition(dragObj);
+        }
+    }
 
+    // Adding the event listeners for the "draggability" feature to the <div> element and webpage document:
+    // 1.
+    element.addEventListener("mousedown", (e) => {
+        if(e.target === element && !dragObj.drag_active) {
+            dragObj.drag_in_prog = element;
+            setOriginalPosition(e, dragObj);
+            dragObj.drag_active = true;
+        }
+    });
+    // 2.
+    document.addEventListener("mousemove", (e) => {
+        if (dragObj.drag_active) {
+          e.preventDefault();
+          updatePosition(e, dragObj);
+          newPosition(dragObj);
+        }
+    });
+    // 3.
+    document.addEventListener("mouseup", () => {
+        if (dragObj.drag_active) {
+          dragObj.drag_in_prog = null;
+          dragObj.drag_active = false;
+        }
+    });
 
-
-
-
+    // Custom positioning of the <div> element:
+    positionToTheRight(element);
 }
+
+
+
 
 
