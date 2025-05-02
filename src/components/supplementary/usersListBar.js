@@ -1,5 +1,5 @@
-function removeUsersListBar(usersListBtn) {
-    const removeUsersList = document.getElementById('users-list-bar');
+function removeUsersList(usersListBtn) {
+    const removeUsersList = document.getElementById('users-list-container');
     document.body.removeChild(removeUsersList);
     usersListBtn = document.getElementById('users-list-button'); // Get rid of the shadow overlay effect.
     usersListBtn.classList.remove('users-l-add-shadow');
@@ -8,8 +8,8 @@ function removeUsersListBar(usersListBtn) {
 export function createUsersList() {
     let usersListBtn = null;
     // If function invoked while Users-List bar is already present in the DOM, it should be removed (so I don't double+ import it):
-    if(document.getElementById('users-list-bar')) {
-        removeUsersListBar(usersListBtn);
+    if(document.getElementById('users-list-container')) {
+        removeUsersList(usersListBtn);
         return;
     } else {
         // Otherwise, apply darkened shadow styling to the "className="users-list-button" User Icon <div> to imply Users List is active:
@@ -17,25 +17,15 @@ export function createUsersList() {
         usersListBtn.classList.add('users-l-add-shadow');
     }
 
-
-
-    // Wrapper for the usersListBar (what initially appears in collapsed form) and the hidden section (the actual Users List).
-    /*const usersListWrapper = document.createElement('div');
-    usersListWrapper.id = 'users-list-wrapper';
-    Object.assign(usersListWrapper.style, {
-        position: 'fixed',
+    // Creating Users-List Container that'll wrap the header (Users-List Bar) and collaspible body (the User List):
+    const usersListContainer = document.createElement('div');
+    usersListContainer.id = 'users-list-container';
+    Object.assign(usersListContainer.style, {
+        width: '335px',
         zIndex: 99999,
-        top: '0',
-        left: '0',
-        transform: 'translate3d(0, 0, 0)',
-    });*/
-
-
-
-
-
-
-
+        fontFamily: 'Arial, sans-serif',
+        position: 'fixed',
+    });
 
     // Creating the Users-List Bar:
     // 1. The main usersListBar (non-expanded):
@@ -61,12 +51,6 @@ export function createUsersList() {
         position:'fixed', /* Combination of a high zIndex and position:'fixed' will make sure this <div> won't interfere with existing webpage HTML. */
     });
     usersListBar.textContent = 'Users List';
-
-
-
-
-
-
 
     // 2. The buttons within the usersListBar ([2.1]:"V" = expand downwards, [2.2]:"^" = expand upwards, [2.3]:"X" = close):
     let buttonStyling = {
@@ -126,33 +110,32 @@ export function createUsersList() {
     Object.assign(closeBtn.style, buttonStyling);
     closeBtn.textContent = 'X';
     closeBtn.addEventListener("click", function () {
-        removeUsersListBar(usersListBtn);
+        removeUsersList(usersListBtn);
     });
     usersListBar.appendChild(closeBtn);
 
-    /* 3. The "V" and "^" buttons are meant to expand a rectangular <div> element downwards or upwards,
-    and that rectangular <div> is where the Users List will be rendered. Section below will be for writing that <div>: */
+    // Collapsible Body:
+    const usersListBody = document.createElement('div');
+    usersListBody.id = 'users-list-body';
+    Object.assign(usersListBody, {
+        backgroundColor: '#002B0C',
+        padding: '10px',
+        display: 'none', // Collapsed by default
+        color: '#00FF41',
+        borderRadius: '0 0 10px 10px',
+        borderTop: '1px solid #00FF41',
+    });
+    usersListBody.innerHTML = 'DEBUG: USER ITEMS GO HERE!!!1';
     
-    
-    
-    
-    
-    
-    
+    // DEBUG: INSERT THE TOGGLE LOGIC HERE LATER!!!!    
 
-
-
-
-
-
-
-
-
-
+    // Assemble the thing:
+    usersListContainer.appendChild(usersListBar);
+    usersListContainer.appendChild(usersListBody);
 
     // Append Users List Bar to the webpage DOM:
-    document.body.appendChild(usersListBar);
-    addDragFunc(usersListBar);  // Make it "draggable".
+    document.body.appendChild(usersListContainer);
+    //addDragFunc(usersListContainer);  // Make it "draggable".
 }
 
 // NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):
