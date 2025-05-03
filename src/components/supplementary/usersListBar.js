@@ -17,46 +17,110 @@ export function createUsersList() {
         usersListBtn.classList.add('users-l-add-shadow');
     }
 
-
-
-
-
-
     // Creating Users-List Container that'll wrap the header (Users-List Bar) and collaspible body (the actual Users List):
     const usersListContainer = document.createElement('div');
     usersListContainer.id = 'users-list-container';
     Object.assign(usersListContainer.style, {
+        top:'0%', // Important for positioning it at the top (the positionToTheRight() function I added *only* does that).
+        width:'335px',
+        backgroundColor: '#008F11',
+        border: '5px solid #0D0208',
+        borderRadius: '7.5%',
+        fontFamily: 'Arial, sans-serif',
+        position: 'fixed',
+        zIndex: 99999,
+    });
+
+    // Creating the Users-List Bar (only element that will show when the full Users List Component is collapse):
+    const usersListBar = document.createElement('div');
+    usersListBar.id = 'users-list-bar';
+    Object.assign(usersListBar.style, {
         width:'335px',
         height:'50px',
-        top:'0%',
-        zIndex: 99999,
-        fontSize: '37px',
+        fontSize: '24px',
         fontWeight: 'bold',
         fontFamily: 'Arial, sans-serif',
         justifyContent: 'space-between',
         alignItems: 'center',
         backgroundColor: '#008F11',
-        borderColor: '#0D0208',
-        borderRadius: '7.5%',
-        borderStyle: 'solid',
-        borderWidth: '5px',
-        cursor:'grab',
-        display:'flex',
-        position:'fixed',
+        position:'relative',
+        cursor: 'grab'
     });
 
+    // Creating the collapsible body for the Users List Container (DEBUG: Come back and flesh this out when I've got the time).
+    const usersListBody = document.createElement('div');
+    usersListBody.id = 'users-list-body';
+    Object.assign(usersListBody.style, {
+        backgroundColor: '#001F10',
+        color: '#BLUE',
+        height: '10px',
+        padding: '10px',
+        /*display: 'none',*/ // Initially collapsed (or maybe not??? DEBUG: Maybe make it initially open???)
+    });
+    usersListBody.textContent = 'THIS IS WHERE I WOULD LOAD IN THE USER INFORMATION...';
+
+
+
+
+    // BELOW-DEBUG: JUST GOING TO ADD THE "X" BUTTON FOR NOW -- DON'T FORGET TO ADD THE OTHERS BACK LATER...
+
+    // 2. The buttons within the usersListBar ([2.1]:"V" = expand downwards, [2.2]:"^" = expand upwards, [2.3]:"X" = close):
+    let buttonStyling = {
+        width: '37px',
+        height: '37px',
+        backgroundColor: '#0D0208',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '35px',
+        borderColor: '#00FF41',
+        borderStyle: 'solid',
+        borderWidth: '3px',
+        color: '#00FF41',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontFamily: 'Arial, sans-serif',
+        userSelect: 'none',
+    }; // All three buttons will use the same styling, including "^" but it has transform(180deg) because it's just flipping a "V".
+    
+    // [2.1] - Making the "V" button:
+    const expDownBtn = document.createElement('div');
+    expDownBtn.id = 'ulb-expd-btn';
+    Object.assign(expDownBtn.style, buttonStyling);
+    expDownBtn.textContent = 'V';
+    usersListBar.appendChild(expDownBtn);
+
+    // [2.3] - Making the "X" button:
+    const closeBtn = document.createElement('div');
+    closeBtn.id = 'ulb-close-btn';
+    Object.assign(closeBtn.style, buttonStyling);
+    closeBtn.textContent = 'X';
+    closeBtn.addEventListener("click", function () {
+        removeUsersList(usersListBtn);
+    });
+    usersListBar.appendChild(closeBtn);
+
+    // ABOVE-DEBUG: JUST GOING TO ADD THE "X" BUTTON FOR NOW -- DON'T FORGET TO ADD THE OTHERS BACK LATER...
+    
+    
+
+
+
+    usersListContainer.appendChild(usersListBar);
+    usersListContainer.appendChild(usersListBody);
     document.body.appendChild(usersListContainer);
     addDragFunc(usersListContainer);  // Make it "draggable".
 
+
+
+
+
+
+
+
     // Creating Users-List Container that'll wrap the header (Users-List Bar) and collaspible body (the User List):
-    /*const usersListContainer = document.createElement('div');
-    usersListContainer.id = 'users-list-container';
-    Object.assign(usersListContainer.style, {
-        width: '335px',
-        zIndex: 99999,
-        fontFamily: 'Arial, sans-serif',
-        position: 'fixed',
-    });
+    /*
 
     // Creating the Users-List Bar:
     // 1. The main usersListBar (non-expanded):
@@ -253,11 +317,6 @@ function addDragFunc(element) {
           dragObj.drag_active = false;
         }
     });
-
-
-
-    console.log("Function positionToTheRight(...) is about to be invoked...");
-
 
     // Custom positioning of the <div> element:
     positionToTheRight(element);
