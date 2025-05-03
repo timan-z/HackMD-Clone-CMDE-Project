@@ -1,5 +1,5 @@
-function removeUsersList(usersListBtn) {
-    const removeUsersList = document.getElementById('users-list-container');
+function removeUsersListBar(usersListBtn) {
+    const removeUsersList = document.getElementById('users-list-bar');
     document.body.removeChild(removeUsersList);
     usersListBtn = document.getElementById('users-list-button'); // Get rid of the shadow overlay effect.
     usersListBtn.classList.remove('users-l-add-shadow');
@@ -8,55 +8,14 @@ function removeUsersList(usersListBtn) {
 export function createUsersList() {
     let usersListBtn = null;
     // If function invoked while Users-List bar is already present in the DOM, it should be removed (so I don't double+ import it):
-    if(document.getElementById('users-list-container')) {
-        removeUsersList(usersListBtn);
+    if(document.getElementById('users-list-bar')) {
+        removeUsersListBar(usersListBtn);
         return;
     } else {
         // Otherwise, apply darkened shadow styling to the "className="users-list-button" User Icon <div> to imply Users List is active:
         usersListBtn = document.getElementById('users-list-button');
         usersListBtn.classList.add('users-l-add-shadow');
     }
-
-
-
-
-
-
-    // Creating Users-List Container that'll wrap the header (Users-List Bar) and collaspible body (the actual Users List):
-    const usersListContainer = document.createElement('div');
-    usersListContainer.id = 'users-list-container';
-    Object.assign(usersListContainer.style, {
-        width:'335px',
-        height:'50px',
-        top:'0%',
-        zIndex: 99999,
-        fontSize: '37px',
-        fontWeight: 'bold',
-        fontFamily: 'Arial, sans-serif',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#008F11',
-        borderColor: '#0D0208',
-        borderRadius: '7.5%',
-        borderStyle: 'solid',
-        borderWidth: '5px',
-        cursor:'grab',
-        display:'flex',
-        position:'fixed',
-    });
-
-    document.body.appendChild(usersListContainer);
-    addDragFunc(usersListContainer);  // Make it "draggable".
-
-    // Creating Users-List Container that'll wrap the header (Users-List Bar) and collaspible body (the User List):
-    /*const usersListContainer = document.createElement('div');
-    usersListContainer.id = 'users-list-container';
-    Object.assign(usersListContainer.style, {
-        width: '335px',
-        zIndex: 99999,
-        fontFamily: 'Arial, sans-serif',
-        position: 'fixed',
-    });
 
     // Creating the Users-List Bar:
     // 1. The main usersListBar (non-expanded):
@@ -79,7 +38,7 @@ export function createUsersList() {
         borderWidth: '5px',
         cursor:'grab',
         display:'flex',
-        position:'fixed', // Combination of a high zIndex and position:'fixed' will make sure this <div> won't interfere with existing webpage HTML. 
+        position:'fixed', /* Combination of a high zIndex and position:'fixed' will make sure this <div> won't interfere with existing webpage HTML. */
     });
     usersListBar.textContent = 'Users List';
 
@@ -141,32 +100,16 @@ export function createUsersList() {
     Object.assign(closeBtn.style, buttonStyling);
     closeBtn.textContent = 'X';
     closeBtn.addEventListener("click", function () {
-        removeUsersList(usersListBtn);
+        removeUsersListBar(usersListBtn);
     });
     usersListBar.appendChild(closeBtn);
 
-    // Collapsible Body:
-    const usersListBody = document.createElement('div');
-    usersListBody.id = 'users-list-body';
-    Object.assign(usersListBody, {
-        backgroundColor: '#002B0C',
-        padding: '10px',
-        display: 'none', // Collapsed by default
-        color: '#00FF41',
-        borderRadius: '0 0 10px 10px',
-        borderTop: '1px solid #00FF41',
-    });
-    usersListBody.innerHTML = 'DEBUG: USER ITEMS GO HERE!!!1';
+    /* 3. The "V" and "^" buttons are meant to expand a rectangular <div> element downwards or upwards,
+    and that rectangular <div> is where the Users List will be rendered. Section below will be for writing that <div>: */
     
-    // DEBUG: INSERT THE TOGGLE LOGIC HERE LATER!!!!    
-
-    // Assemble the thing:
-    usersListContainer.appendChild(usersListBar);
-    usersListContainer.appendChild(usersListBody);
-
     // Append Users List Bar to the webpage DOM:
-    document.body.appendChild(usersListContainer);*/
-    //addDragFunc(usersListContainer);  // Make it "draggable".
+    document.body.appendChild(usersListBar);
+    addDragFunc(usersListBar);  // Make it "draggable".
 }
 
 // NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):
@@ -212,9 +155,6 @@ function addDragFunc(element) {
     of said element, and so to correctly capture the user's viewport, it needs to be manually positioned at the right space.
     (Setting it at the top-right corner of the webpage, totally not because this is recycled code from a previous project and I'm lazy). */
     function positionToTheRight(element) {
-
-        console.log("DEBUG: Function positionToTheRight() has been entered...");
-
         let reposElement = document.getElementById(element.id);
         if(reposElement) {
             var viewportWidth = window.innerWidth; // I want to shift it to the top right corner so I need the width.
@@ -253,11 +193,6 @@ function addDragFunc(element) {
           dragObj.drag_active = false;
         }
     });
-
-
-
-    console.log("Function positionToTheRight(...) is about to be invoked...");
-
 
     // Custom positioning of the <div> element:
     positionToTheRight(element);
