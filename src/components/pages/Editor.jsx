@@ -6,12 +6,12 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useState, useRef } from 'react';
 import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection, $createTextNode, $createParagraphNode } from 'lexical';
-import { parseMarkdown } from "../editor-features/MDParser.jsx";
-import { findCursorPos } from '../helper/UtilityFuncs.js';
-import Toolbar from "../editor-features/Toolbar.jsx";
+import { parseMarkdown } from "../core-features/MDParser.jsx";
+import { findCursorPos } from '../helper/utilityFuncs.js';
+import Toolbar from "../core-features/Toolbar.jsx";
 
 // NOTE: Following lines are for Phase 3 (Introducing Real-Time Collaboration).
-import { RemoteCursorOverlay } from '../editor-features/RemoteCursorOverlay.jsx';
+import { RemoteCursorOverlay } from '../core-features/RemoteCursorOverlay.jsx';
 
 // PART-2-ADDITIONS:
 import * as Y from 'yjs';

@@ -6,7 +6,7 @@ import cloudinary from "cloudinary-core";
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $createRangeSelection, $getSelection, $isRangeSelection, $setSelection, $isTextNode, $createTextNode, $createLineBreakNode, $getRoot, COMMAND_PRIORITY_CRITICAL, $isParagraphNode } from "lexical";
 import {UNDO_COMMAND, REDO_COMMAND} from "lexical"; // For the "UNDO" and "REDO" functionality of the site.
-import { findCursorPos } from '../helper/UtilityFuncs.js';
+import { findCursorPos } from '../helper/utilityFuncs.js';
 
 // The following three consts are for the "Insert Image" functionality (using Cloudinary as a server to store uploads):
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
