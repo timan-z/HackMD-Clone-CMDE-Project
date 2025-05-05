@@ -6,12 +6,12 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { useEffect, useState, useRef } from 'react';
 import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection, $createTextNode, $createParagraphNode } from 'lexical';
-import { parseMarkdown } from "./MDParser.jsx";
-import { findCursorPos } from './UtilityFuncs.js';
-import Toolbar from "./Toolbar.jsx";
+import { parseMarkdown } from "../editor-features/MDParser.jsx";
+import { findCursorPos } from '../helper/UtilityFuncs.js';
+import Toolbar from "../editor-features/Toolbar.jsx";
 
 // NOTE: Following lines are for Phase 3 (Introducing Real-Time Collaboration).
-import { RemoteCursorOverlay } from './RemoteCursorOverlay.jsx';
+import { RemoteCursorOverlay } from '../editor-features/RemoteCursorOverlay.jsx';
 
 // PART-2-ADDITIONS:
 import * as Y from 'yjs';
@@ -23,7 +23,7 @@ import { io } from "socket.io-client"; // <-- Bringing this one back.
 import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
-import { createUsersList } from './supplementary/usersListBar.js';
+import { createUsersList } from '../misc-features/usersListBar.js';
 
 
 /* NOTE-TO-SELF:

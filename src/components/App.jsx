@@ -1,5 +1,5 @@
 import React from "react";
-import Editor from "./Editor.jsx";
+import Editor from "./pages/Editor.jsx";
 
 // NOTE-TO-SELF: This "App" function serves as our root.
 function App() {
