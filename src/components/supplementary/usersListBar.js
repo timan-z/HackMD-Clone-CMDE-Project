@@ -47,6 +47,7 @@ export function createUsersList() {
         display: 'flex',
         cursor: 'grab',
         userSelect: 'none',
+        borderRadius: '25.5%',
     });
     usersListBar.textContent = 'Users List';
 
@@ -113,23 +114,40 @@ export function createUsersList() {
 
 
 
+
+
     // DEBUG: BELOW = WORKING ON THE BODY!!!
+    // need to figure out how i'll be loading in the user information
 
+    /* NOTE: Remember there's an "Active Users" section first, then an "Offline Users" section (maybe differentiate with colour).
+    Also, I guess I can sort the users alphabetically by username and then if there's a match or something, sort by Socket.ID... */
 
-
-
-
-    // Creating the collapsible body for the Users List Container (DEBUG: Come back and flesh this out when I've got the time).
+    /* Creating the collapsible body for the Users List Container. It's here that the Users List will appear...
+    (In each User Row of the list, there will be Username, Socket.IO ID (unique identifier), and a Chat Msg icon to open live chat). */
+    // DEBUG:+NOTE: ^ Potentially also have a profile picture section added as well (but this is fairly ancillary).
     const usersListBody = document.createElement('div');
     usersListBody.id = 'users-list-body';
     Object.assign(usersListBody.style, {
         backgroundColor: '#001F10',
-        color: '#BLUE',
-        height: '10px',
+        borderRadius: '5%',
+        color: 'white',
+        height: '300px',
+        /*maxHeight: '500px',*/ // <---DEBUG:+NOTE: I want to make this Users List <div> EXPANDABLE VERTICALLY to a max height of 500px. I know how to do this. Come back and do it later!!!
         padding: '10px',
-        /*display: 'none',*/ // Initially collapsed (or maybe not??? DEBUG: Maybe make it initially open???)
     });
     usersListBody.textContent = 'THIS IS WHERE I WOULD LOAD IN THE USER INFORMATION...';
+
+
+
+
+
+
+
+
+
+
+
+
 
 
     // DEBUG: ABOVE = WORKING ON THE BODY!!!
@@ -140,7 +158,6 @@ export function createUsersList() {
 
     
     
-
 
 
 

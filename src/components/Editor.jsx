@@ -150,13 +150,9 @@ function EditorContent() {
 
   // PART-2-ADDITIONS - TESTING IF THESE WORK:
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
-  
-
-
-  const [showUsersList, setShowUsersList] = useState(true); // NOTE: Want this state variable for the Users List bar I'm importing from usersListBar.js
    
 
-  
+
 
   // transform: 'rotate(180deg)',
 
@@ -339,16 +335,15 @@ function EditorContent() {
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
       console.log("DEBUG: debugFunction entered...");
+      console.log("DEBUG: ************************************************************");
+
+
+
       console.log("DEBUG:The value of otherCursors is => [", otherCursors, "]");
 
 
-      console.log("debugger... Let's call usersListBar!!!");
-      console.log("***************************************");
-      createUsersList();
-      console.log("***************************************");
 
-
-
+      console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction exited...");
     });
   }
