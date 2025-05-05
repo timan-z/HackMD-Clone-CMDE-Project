@@ -23,7 +23,7 @@ export function createUsersList() {
     Object.assign(usersListContainer.style, {
         top:'0%', // Important for positioning it at the top (the positionToTheRight() function I added *only* does that).
         width:'335px',
-        backgroundColor: '#008F11',
+        backgroundColor: '#008F11', // NOTE: This is the darker Matrix green.
         border: '5px solid #0D0208',
         borderRadius: '7.5%',
         fontFamily: 'Arial, sans-serif',
@@ -37,15 +37,87 @@ export function createUsersList() {
     Object.assign(usersListBar.style, {
         width:'335px',
         height:'50px',
-        fontSize: '24px',
+        fontSize: '37px',
         fontWeight: 'bold',
         fontFamily: 'Arial, sans-serif',
-        justifyContent: 'space-between',
         alignItems: 'center',
+        justifyContent: 'center',
+        gap: '10px',
         backgroundColor: '#008F11',
-        position:'relative',
-        cursor: 'grab'
+        display: 'flex',
+        cursor: 'grab',
+        userSelect: 'none',
     });
+    usersListBar.textContent = 'Users List';
+
+    /* Adding buttons for the Users-List Bar: 
+    1 - "^" (upside-down "V") collapse the Users List (button will transform to a regular "V" symbol after for re-expanding).
+    2 - "X" to close the Users-List Bar. */
+    let buttonStyling = {
+        width: '37px',
+        height: '37px',
+        backgroundColor: '#0D0208',
+        borderRadius: '50%',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        fontSize: '35px',
+        borderColor: '#00FF41',
+        borderStyle: 'solid',
+        borderWidth: '3px',
+        color: '#00FF41',
+        cursor: 'pointer',
+        fontWeight: 'bold',
+        fontFamily: 'Arial, sans-serif',
+        userSelect: 'none',
+    };
+
+    // 1 - Making the ("^"/"V") button:
+    const expBtn = document.createElement('div');
+    expBtn.id = 'ulb-exp-btn';
+    Object.assign(expBtn.style, buttonStyling);
+    expBtn.textContent = 'V';
+    // Line below is for rotating the V so it looks like "^" (default state, pointing upwards as if to retract the Users List, which expands down).
+    expBtn.style.transform = 'rotate(180deg)';
+    usersListBar.appendChild(expBtn);
+
+    // Adding functionality for the ("^"/"V") button - expanding and collapsing the Users List Body (which will be defined later on).
+    usersListBar.addEventListener("click", function () {
+        const getExpBtn = document.getElementById('ulb-exp-btn');
+        const getUserListBody = document.getElementById('users-list-body');
+        if(!getExpBtn || !getUserListBody) return;
+
+        if(getExpBtn.style.transform === 'rotate(0deg)') {
+            // [1/2] The Users List Body <div> wants to be visible (so the "V" button should be rotated while the display is enabled):
+            getExpBtn.style.transform = 'rotate(180deg)';
+            getUserListBody.style.display = 'flex';
+            return;
+        }
+        getExpBtn.style.transform = 'rotate(0deg)'; // [2/2] vice-versa.
+        getUserListBody.style.display = 'none';
+    });
+
+    // 2 - Making the "X" button:
+    const closeBtn = document.createElement('div');
+    closeBtn.id = 'ulb-close-btn';
+    Object.assign(closeBtn.style, buttonStyling);
+    closeBtn.textContent = 'X';
+    closeBtn.addEventListener("click", function () {
+        removeUsersList(usersListBtn);
+    });
+    usersListBar.appendChild(closeBtn);    
+
+
+
+
+
+
+
+    // DEBUG: BELOW = WORKING ON THE BODY!!!
+
+
+
+
 
     // Creating the collapsible body for the Users List Container (DEBUG: Come back and flesh this out when I've got the time).
     const usersListBody = document.createElement('div');
@@ -60,50 +132,23 @@ export function createUsersList() {
     usersListBody.textContent = 'THIS IS WHERE I WOULD LOAD IN THE USER INFORMATION...';
 
 
+    // DEBUG: ABOVE = WORKING ON THE BODY!!!
 
 
-    // BELOW-DEBUG: JUST GOING TO ADD THE "X" BUTTON FOR NOW -- DON'T FORGET TO ADD THE OTHERS BACK LATER...
 
-    // 2. The buttons within the usersListBar ([2.1]:"V" = expand downwards, [2.2]:"^" = expand upwards, [2.3]:"X" = close):
-    let buttonStyling = {
-        width: '37px',
-        height: '37px',
-        backgroundColor: '#0D0208',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '35px',
-        borderColor: '#00FF41',
-        borderStyle: 'solid',
-        borderWidth: '3px',
-        color: '#00FF41',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        fontFamily: 'Arial, sans-serif',
-        userSelect: 'none',
-    }; // All three buttons will use the same styling, including "^" but it has transform(180deg) because it's just flipping a "V".
-    
-    // [2.1] - Making the "V" button:
-    const expDownBtn = document.createElement('div');
-    expDownBtn.id = 'ulb-expd-btn';
-    Object.assign(expDownBtn.style, buttonStyling);
-    expDownBtn.textContent = 'V';
-    usersListBar.appendChild(expDownBtn);
 
-    // [2.3] - Making the "X" button:
-    const closeBtn = document.createElement('div');
-    closeBtn.id = 'ulb-close-btn';
-    Object.assign(closeBtn.style, buttonStyling);
-    closeBtn.textContent = 'X';
-    closeBtn.addEventListener("click", function () {
-        removeUsersList(usersListBtn);
-    });
-    usersListBar.appendChild(closeBtn);
 
-    // ABOVE-DEBUG: JUST GOING TO ADD THE "X" BUTTON FOR NOW -- DON'T FORGET TO ADD THE OTHERS BACK LATER...
     
     
+
+
+
+
+
+
+
+
+
 
 
 
@@ -111,126 +156,10 @@ export function createUsersList() {
     usersListContainer.appendChild(usersListBody);
     document.body.appendChild(usersListContainer);
     addDragFunc(usersListContainer);  // Make it "draggable".
+    /* DEBUG: How will I make the other parts of this draggable? ^ Maybe I just move the positionToTheRight() function OUTSIDE
+    of the addDragFunc() function, and apply it to usersListContainer manually. (Then call addDragFunc() on all the individual parts
+    within usersListContainer to give it the "draggability" -- check to see if that works). */
 
-
-
-
-
-
-
-
-    // Creating Users-List Container that'll wrap the header (Users-List Bar) and collaspible body (the User List):
-    /*
-
-    // Creating the Users-List Bar:
-    // 1. The main usersListBar (non-expanded):
-    const usersListBar = document.createElement('div');
-    usersListBar.id = 'users-list-bar';
-    Object.assign(usersListBar.style, {
-        width:'335px',
-        height:'50px',
-        top:'0%',
-        zIndex: 99999,
-        fontSize: '37px',
-        fontWeight: 'bold',
-        fontFamily: 'Arial, sans-serif',
-        justifyContent: 'space-between',
-        alignItems: 'center',
-        backgroundColor: '#008F11',
-        borderColor: '#0D0208',
-        borderRadius: '7.5%',
-        borderStyle: 'solid',
-        borderWidth: '5px',
-        cursor:'grab',
-        display:'flex',
-        position:'fixed', // Combination of a high zIndex and position:'fixed' will make sure this <div> won't interfere with existing webpage HTML. 
-    });
-    usersListBar.textContent = 'Users List';
-
-    // 2. The buttons within the usersListBar ([2.1]:"V" = expand downwards, [2.2]:"^" = expand upwards, [2.3]:"X" = close):
-    let buttonStyling = {
-        width: '37px',
-        height: '37px',
-        backgroundColor: '#0D0208',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '35px',
-        borderColor: '#00FF41',
-        borderStyle: 'solid',
-        borderWidth: '3px',
-        color: '#00FF41',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        fontFamily: 'Arial, sans-serif',
-        userSelect: 'none',
-    }; // All three buttons will use the same styling, including "^" but it has transform(180deg) because it's just flipping a "V".
-
-    // [2.1] - Making the "V" button:
-    const expDownBtn = document.createElement('div');
-    expDownBtn.id = 'ulb-expd-btn';
-    Object.assign(expDownBtn.style, buttonStyling);
-    expDownBtn.textContent = 'V';
-    usersListBar.appendChild(expDownBtn);
-
-    // [2.2] - Making the "^" button:
-    const expUpBtn = document.createElement('div');
-    expUpBtn.id = 'ulb-expu-btn';
-    Object.assign(expUpBtn.style, {
-        width: '40px',
-        height: '40px',
-        backgroundColor: '#0D0208',
-        borderRadius: '50%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        fontSize: '35px',
-        borderColor: '#00FF41',
-        borderStyle: 'solid',
-        borderWidth: '3px',
-        color: '#00FF41',
-        cursor: 'pointer',
-        fontWeight: 'bold',
-        fontFamily: 'Arial, sans-serif',
-        userSelect: 'none',
-        transform: 'rotate(180deg)',
-    });
-    expUpBtn.textContent = 'V';
-    usersListBar.appendChild(expUpBtn);
-
-    // [2.3] - Making the "X" button:
-    const closeBtn = document.createElement('div');
-    closeBtn.id = 'ulb-close-btn';
-    Object.assign(closeBtn.style, buttonStyling);
-    closeBtn.textContent = 'X';
-    closeBtn.addEventListener("click", function () {
-        removeUsersList(usersListBtn);
-    });
-    usersListBar.appendChild(closeBtn);
-
-    // Collapsible Body:
-    const usersListBody = document.createElement('div');
-    usersListBody.id = 'users-list-body';
-    Object.assign(usersListBody, {
-        backgroundColor: '#002B0C',
-        padding: '10px',
-        display: 'none', // Collapsed by default
-        color: '#00FF41',
-        borderRadius: '0 0 10px 10px',
-        borderTop: '1px solid #00FF41',
-    });
-    usersListBody.innerHTML = 'DEBUG: USER ITEMS GO HERE!!!1';
-    
-    // DEBUG: INSERT THE TOGGLE LOGIC HERE LATER!!!!    
-
-    // Assemble the thing:
-    usersListContainer.appendChild(usersListBar);
-    usersListContainer.appendChild(usersListBody);
-
-    // Append Users List Bar to the webpage DOM:
-    document.body.appendChild(usersListContainer);*/
-    //addDragFunc(usersListContainer);  // Make it "draggable".
 }
 
 // NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):

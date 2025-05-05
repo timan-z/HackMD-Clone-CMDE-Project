@@ -153,6 +153,13 @@ function EditorContent() {
   
 
 
+  const [showUsersList, setShowUsersList] = useState(true); // NOTE: Want this state variable for the Users List bar I'm importing from usersListBar.js
+   
+
+  
+
+  // transform: 'rotate(180deg)',
+
 
 
 
