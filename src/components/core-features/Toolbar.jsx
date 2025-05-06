@@ -13,6 +13,11 @@ const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
 const cloudAPIKey = import.meta.env.VITE_CLOUDINARY_API_KEY;
 const cloudUploadPreset = import.meta.env.VITE_CLOUDINARY_UPLOAD_PRESET;
 
+
+console.log("DEBUG: The value of cloudName is => [", cloudName, "]");
+console.log("DEBUG: The value of cloudUploadPreset is => [", cloudUploadPreset, "]");
+
+
 function Toolbar() {
     // The line below is for applying the styling changes in the toolbar:
     const[editor] = useLexicalComposerContext();

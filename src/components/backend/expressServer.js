@@ -14,21 +14,40 @@ import dotenv from "dotenv";
 import pg from "pg";
 //import authRoutes from './routes/auth.js';
 
-dotenv.config();
+dotenv.config({ path:'./.env'});
 
 const app = express();
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 3333;
 
 app.use(cors());
 app.use(express.json()); // Parses incoming JSON requests. 
+
+
+
+
+
+
+console.log("1-DEBUG: The value of PORT is => [", PORT, "]");
+console.log("2-DEBUG: The value of process.env.DATABASE_URL is => [", process.env.DATABASE_URL, "]");
+console.log("3-DEBUG: The value of process.env.VITE_CLOUDINARY_CLOUD_NAME is => [", process.env.VITE_CLOUDINARY_CLOUD_NAME, "]");
+
+
+
+
 
 // Connect to PostgreSQL:
 const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
+/*const portVal = import.meta.env.PORT;
+const dbVal = import.meta.DATABASE_URL;
+console.log("3-DEBUG: The value of portVal => [", portVal, "]");
+console.log("4-DEBUG: The value of dbVal => [", dbVal, "]");*/
+
 // DEBUG: Test the DB connection.
-pool.connect((err, client, release) => {
+/*pool.connect((err, client, release) => {
+
     if(err) {
         console.error("Error acquiring client", err);
         return;
@@ -51,4 +70,4 @@ app.get("/", (req, res) => {
 
 app.listen(PORT, () => {
     console.log(`EXPRESS Server is running on port ${PORT}`);
-});
+});*/
