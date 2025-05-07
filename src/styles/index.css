@@ -251,3 +251,55 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 }
 
 
+
+
+/* Styling for the Login page (defined in Login.jsx): */
+#loginp-outermost-div {
+  display:flex;
+  justify-content:center;
+  align-items:center;
+}
+/* Styling for the main "Sign in to HackMD Clone" box in the Login.jsx page and everything inside it: */
+#login-outermost-box {
+  height:425px;
+  width:400px;
+  border-style:solid;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-evenly;
+  margin-top:100px;
+}
+#login-username-pword {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  margin-top:-20px;
+  height:50%;
+  width:90%;
+  border-style:solid;
+}
+
+
+
+#loginp-signin-btn {
+  font-size:18px;
+  font-weight:bold;
+  height:20%;
+  width:40%;
+  color:white;
+  border:none;
+  border-radius:8px;
+  background-color:green;
+  cursor:pointer;
+}
+
+
+
+
+#login-new-acc {
+  height:12.5%;
+  width:90%;
+  border-style:solid;
+}
+
