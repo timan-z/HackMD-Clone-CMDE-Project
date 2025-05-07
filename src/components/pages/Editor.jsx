@@ -7,7 +7,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { useEffect, useState, useRef } from 'react';
 import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection, $createTextNode, $createParagraphNode } from 'lexical';
 import { parseMarkdown } from "../core-features/MDParser.jsx";
-import { findCursorPos } from '../helper/utilityFuncs.js';
+import { findCursorPos } from '../utility/utilityFuncs.js';
 import Toolbar from "../core-features/Toolbar.jsx";
 
 // NOTE: Following lines are for Phase 3 (Introducing Real-Time Collaboration).
