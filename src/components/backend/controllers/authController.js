@@ -13,11 +13,15 @@ console.log("DEBUG: REFRESH STUFF!!! THE VALUE OF process.env.VITE_CLOUDINARY_CL
 
 
 // 1. Function for User Registration:
+// DEBUG: TESTED WITH POSTMAN -- THIS ONE WORKS!
 export const registerUser = async(req, res) => {
     const { username, email, password } = req.body;
+    console.log("DEBUG: Incoming registration => [", { username, email, password }, "]");
 
     try {
         const hashed = await bcrypt.hash(password, 10); // use bcrypt to hash the input password.
+        console.log("DEBUG: Hashed password => [", hashed, "]");
+
         // Registration attempt:
         const registerRes = await pool.query(
             "INSERT INTO users(username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
@@ -30,11 +34,13 @@ export const registerUser = async(req, res) => {
         res.json({ user, token });
     } catch (err) {
         // Upon failure, 400 response error is sent to the frontend.
+        console.error("DEBUG: Registration Error => [", err, "]");
         res.status(400).json({ error: "ERROR: User registration failed! Username or email either already exists or input was invalid." });
     }
 };
 
 // 2. Function for User Login:
+// DEBUG: TESTED WITH POSTMAN -- THIS ONE WORKS!
 export const loginUser = async(req, res) => {
     const { email, password } = req.body;
 
@@ -55,6 +61,7 @@ export const loginUser = async(req, res) => {
 };
 
 // Function for retrieving Current User:
+// DEBUG: TESTED WITH POSTMAN - THIS ONE WORKS! Make sure you don't have POST in the url though (in addition to selecting POST), this caused some problems for me.
 export const getCurrentUser = async(req, res) => {
     // Look for JWT memory token in the Authorization header:
     const token = req.headers.authorization?.split(" ")[1];

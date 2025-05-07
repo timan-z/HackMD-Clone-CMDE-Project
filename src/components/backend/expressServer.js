@@ -7,6 +7,8 @@
 5. Storing user credentials securely in PostgreSQL w/ Hashed Passwords.
 6. Enable protected frontend routes (login-page, dashboard, editor).
 */
+/* NOTE: Most of the issues I'm running into sending Postman requests to my routes are usually just permission issues
+that can be fixed with grants in psql (look them up, throw them into chatgpt or something to figure them out idc). */
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
