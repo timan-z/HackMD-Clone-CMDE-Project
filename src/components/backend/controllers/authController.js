@@ -6,5 +6,65 @@ import pg from "pg";
 dotenv.config({ path:'./.env'});
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const JWT_SECRET = process.env.JWT_SECRET;
 
-console.log("DEBUG: The value of process.env.DATABASE_URL => [", process.env.DATABASE_URL, "]");
+
+
+
+// 1. Function for User Registration:
+export const registerUser = async(req, res) => {
+    const { username, email, password } = req.body;
+
+    try {
+        const hashed = await bcrypt.hash(password, 10); // use bcrypt to hash the input password.
+        // Registration attempt:
+        const registerRes = await pool.query(
+            "INSERT INTO users(username, email, password) VALUES ($1, $2, $3) RETURNING id, username, email",
+            [username, email, hashed]
+        );
+        const user = registerRes.rows[0];
+        const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "10d" });  // Remembering users.
+
+        // Sends the user and memory token to the frontend.
+        registerRes.json({ user, token });
+    } catch (err) {
+        // Upon failure, 400 response error is sent to the frontend.
+        registerRes.status(400).json({ error: "ERROR: User registration failed! Username or email either already exists or input was invalid." });
+    }
+};
+
+// 2. Function for User Login:
+export const loginUser = async(req, res) => {
+    const { email, password } = req.body;
+
+    try {
+        const loginRes = await pool.query("SELECT * FROM users WHERE email = $1", [email]); // See if valid email.
+        const user = loginRes.rows[0];
+
+        if(!user) return res.status(401).json({ error: "Invalid login credentials - no account with that email exists!" });
+        const match = await bcrypt.compare(password, user.password);    // Password check.
+        if(!match) return res.status(401).json({ error: "Invalid login credentials - invalid password!" });
+
+        const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "10d" });
+        // Return user info to the front-end and the memory token:
+        res.json({ user: { id: user.id, username: user.username, email: user.email }, token });
+    } catch(err) {
+        res.status(500).json({ error: "Couldn't login - Internal server error, probably."});
+    }
+};
+
+// Function for retrieving Current User:
+export const getCurrentUser = async(req, res) => {
+    // Look for JWT memory token in the Authorization header:
+    const token = req.headers.authorization?.split(" ")[1];
+
+    if(!token) return res.status(401).json({ error: "Unauthorized" });
+
+    try {
+        const decoded = jwt.verify(token, JWT_SECRET);
+        const decodeRes = await pool.query("SELECT id, username, email FROM users WHERE id = $1", [decoded.id]);
+        res.json(decodeRes.rows[0]);
+    } catch (err) {
+        res.status(401).json({ error: "Invalid token. Current user could not be retrieved. Re-login buddy." });
+    }
+};

@@ -7,28 +7,26 @@
 5. Storing user credentials securely in PostgreSQL w/ Hashed Passwords.
 6. Enable protected frontend routes (login-page, dashboard, editor).
 */
-
 import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import pg from "pg";
-//import authRoutes from './routes/auth.js';
+import authRoutes from './routes/auth.js'; // authRoutes is just a variable name for the router being exported from auth.js
 
 dotenv.config({ path:'./.env'});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
 
-app.use(cors());
+app.use(cors({
+    origin: "http://localhost:5173", // My frontend port (from running "npm run dev")
+    credentials: true
+}));
+  
 app.use(express.json()); // Parses incoming JSON requests. 
-
-
 
 console.log("1-DEBUG: The value of PORT is => [", PORT, "]");
 console.log("2-DEBUG: The value of process.env.DATABASE_URL is => [", process.env.DATABASE_URL, "]");
-console.log("3-DEBUG: The value of process.env.VITE_CLOUDINARY_CLOUD_NAME is => [", process.env.VITE_CLOUDINARY_CLOUD_NAME, "]");
-
-
 
 // Connect to PostgreSQL:
 const pool = new pg.Pool({
@@ -56,7 +54,7 @@ app.get("/", (req, res) => {
 });
 
 // Routes:
-//app.use("/api/auth", authRoutes);
+app.use("/api/auth", authRoutes);
 
 app.listen(PORT, () => {
     console.log(`EXPRESS Server is running on port ${PORT}`);
