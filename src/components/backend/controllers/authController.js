@@ -42,15 +42,21 @@ export const registerUser = async(req, res) => {
 // 2. Function for User Login:
 // DEBUG: TESTED WITH POSTMAN -- THIS ONE WORKS!
 export const loginUser = async(req, res) => {
-    const { email, password } = req.body;
+    const { email, username, password } = req.body;
 
     try {
         const loginRes = await pool.query("SELECT * FROM users WHERE email = $1", [email]); // See if valid email.
         const user = loginRes.rows[0];
 
-        if(!user) return res.status(401).json({ error: "Invalid login credentials - no account with that email exists!" });
+        const loginResAlt = await pool.query("SELECT * FROM users WHERE username = $1", [username]); // See if valid username.
+        const userAlt = loginResAlt.rows[0];
+
+        if(!user || !userAlt) return res.status(401).json({ error: "Invalid login credentials - no account with that email or username exists!" });
+
         const match = await bcrypt.compare(password, user.password);    // Password check.
-        if(!match) return res.status(401).json({ error: "Invalid login credentials - invalid password!" });
+        const matchAlt = await bcrypt.compare(password, userAlt.password);
+
+        if(!match || !matchAlt) return res.status(401).json({ error: "Invalid login credentials - invalid password!" });
 
         const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "10d" });
         // Return user info to the front-end and the memory token:

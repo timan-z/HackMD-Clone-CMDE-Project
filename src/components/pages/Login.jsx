@@ -47,7 +47,6 @@ function Login() {
         };
     }, []);
 
-
     return(
         <div id="loginp-outermost-div">
             {/* [1/3] - Outer-most <div> element containing the "Sign in to HackMD Clone" box. Should be centered in the middle of the screen. */} 
