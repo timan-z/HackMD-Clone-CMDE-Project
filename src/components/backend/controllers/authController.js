@@ -9,6 +9,7 @@ const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const JWT_SECRET = process.env.JWT_SECRET;
 
 
+console.log("DEBUG: REFRESH STUFF!!! THE VALUE OF process.env.VITE_CLOUDINARY_CLOUD_NAME => [", process.env.VITE_CLOUDINARY_CLOUD_NAME, "]");
 
 
 // 1. Function for User Registration:
@@ -26,10 +27,10 @@ export const registerUser = async(req, res) => {
         const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "10d" });  // Remembering users.
 
         // Sends the user and memory token to the frontend.
-        registerRes.json({ user, token });
+        res.json({ user, token });
     } catch (err) {
         // Upon failure, 400 response error is sent to the frontend.
-        registerRes.status(400).json({ error: "ERROR: User registration failed! Username or email either already exists or input was invalid." });
+        res.status(400).json({ error: "ERROR: User registration failed! Username or email either already exists or input was invalid." });
     }
 };
 
