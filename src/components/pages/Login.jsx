@@ -67,7 +67,7 @@ function Login() {
                         {/*<p>Password  Forget Password?</p>*/}
                         <div style={{display:"flex", flexDirection:"row", justifyContent:"space-between"}}>
                             <div style={{fontSize:"18px"}}>Password</div>
-                            <a href="INSERT LINK TO RESET PASSWORD" style={{fontSize:"18px"}}>Forgot Password?</a>
+                            <a href="INSERT LINK TO RESET PASSWORD" style={{fontSize:"18px", textDecoration:"none"}}>Forgot Password?</a>
                         </div>
 
                         <input id="loginp-pword-input" style={{width:"97.25%"}} type="password" ref={pwordInputRef}/>
@@ -82,7 +82,7 @@ function Login() {
                 </div>
                 {/* [3/3] - The box beneath the Username/Email and Password login box for switching to the Registration page: */}
                 <div id="login-new-acc" style={{fontSize:"17px", display:"flex", justifyContent:"center", alignItems:"center"}}>
-                    <div style={{marginRight:"10px"}}>New to HackMD Clone?</div><a href="INSERT LINK TO REGISTRATION PAGE">Create an account.</a>
+                    <div style={{marginRight:"10px"}}>New to HackMD Clone?</div><a href="Register" style={{textDecoration:"none"}}>Create an account.</a>
                 </div>
             </div>
         </div>

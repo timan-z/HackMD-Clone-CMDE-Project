@@ -2,6 +2,7 @@ import React from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 // The three main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
+import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Editor from "./pages/Editor.jsx";
 
@@ -16,10 +17,13 @@ function App() {
         {/* 1. Login and Authenticate Page. (Homepage if **not** logged in): */}
         <Route path="/login" element={<Login />} />
         
-        {/* 2. Editing Session Dashboard Page. (Homepage **if** logged in): */}
+        {/* 2. Registration Page. */}
+        <Route path="/register" element={<Register />} />
+
+        {/* 3. Editing Session Dashboard Page. (Homepage **if** logged in): */}
         <Route path="/dashboard" element={<Dashboard />} />
 
-        {/* 3. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
+        {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<Editor />}/> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
       </Routes>

@@ -301,3 +301,28 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   border-style:solid;
 }
 
+/* Styling for the Register page (defined in Register.jsx): */
+#registerp-outermost-div {
+  display:flex;
+}
+#registerp-lhs {
+  height:100%;
+  border-style:bold;
+}
+#registerp-rhs {
+  height:100%;
+  border-style:bold;
+}
+
+
+
+#register-outermost-box {
+  height:500px;
+  width:400px;
+  border-style:solid;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:space-evenly;
+  margin-top:100px;
+}

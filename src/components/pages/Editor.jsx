@@ -25,7 +25,6 @@ const socket = io("http://localhost:4000"); // <-- bringing this back for tying 
 
 import { createUsersList } from '../misc-features/usersListBar.js';
 
-
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
   - ContentEditable is the area where the user types.
