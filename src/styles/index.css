@@ -230,9 +230,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   background: #888; /* debug: Darker gray when hovered */
 }
 
-
-
-
 /* Styling for the "Users-List" button on the top-right of the T.E. room webpage: */
 #users-list-button {
   background: #008F11;
@@ -249,9 +246,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   max-width:50px;
   height:auto;
 }
-
-
-
 
 /* Styling for the Login page (defined in Login.jsx): */
 #loginp-outermost-div {
@@ -301,17 +295,54 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   border-style:solid;
 }
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 /* Styling for the Register page (defined in Register.jsx): */
 #registerp-outermost-div {
   display:flex;
+  height:100%;
+  width:100%;
+  position:absolute;
+  /* DEBUG: Two stylings below are obviously for debugging purposes...  */
+  /*border-style:solid;
+  border-color:red;*/
 }
 #registerp-lhs {
-  height:100%;
+  max-height:100%;
+  width:50%;
+  /* DEBUG: Two stylings below are obviously for debugging purposes...  */
   border-style:bold;
+  border-color:orange;
 }
 #registerp-rhs {
-  height:100%;
+  max-height:100%;
+  width:50%;
   border-style:bold;
+  /*display:flex;
+  flex-direction:column;*/ /* <--DEBUG: REMEMBER COLUMN MEANS YOU'RE PLACING THINGS ONE UNDER THE OTHER (I KNOW "ROW" SOUNDS MORE APT BUT THIS IS THIS). */
 }
 
 
