@@ -33,16 +33,12 @@ function Login() {
         ^ I'm not going to worry about doing any of that fancy stuff for now. */
         const handleEnterKey = (e) => {
             if(e.key === 'Enter') {
-                console.log("DEBUG: ENTER key was pressed!!!");
+                /*console.log("DEBUG: ENTER key was pressed!!!");
                 console.log("DEBUG: The value of unEmailInputRef.current => [", unEmailInputRef.current, "]");
                 console.log("DEBUG: The value of pwordInputRef.current => [", pwordInputRef.current, "]");
                 console.log("DEBUG: =>", unEmailInputRef.current.value);
-                console.log("DEBUG: =>", pwordInputRef.current.value);
-
-                const signInRes = checkFormsFilled();
-                if(signInRes === true) {
-                    signInBtnRef.current.click();
-                }
+                console.log("DEBUG: =>", pwordInputRef.current.value);*/
+                signInBtnRef.current.click();
             }
         };
 
@@ -65,37 +61,40 @@ function Login() {
                 {/* [2/3] - The box for entering the Username/Email and Password login (and resetting password with "Forget Password"). Also login button: */} 
                 <div id="login-username-pword">
 
+                    <form style={{width:"100%",height:"100%", display:"flex", flexDirection:"column", alignItems:"center",}} onSubmit={(e) => {
+                        e.preventDefault(); // The sign-in logic only occurs if all login forms are completed (none empty).
 
-
-
-                    {/* 2.1 - Section for inputting the username or email address for login: */}
-                    <div id="login-username-div" style={{width:"90%", padding:"3.75%", marginTop:"2.5%"}}>
-                        <div style={{fontSize:"18px"}}>Username or email address</div>
-                        <input id="loginp-unemail-input" style={{width:"97.25%"}} type="text" ref={unEmailInputRef}/>
-                    </div>
-
-                    {/* 2.2 - Section for inputting th epassword for login (or for resetting password if needed): */}
-                    <div id="login-pword-div" style={{width:"90%", padding:"3.75%"}}>
-                        
-                        {/*<p>Password  Forget Password?</p>*/}
-                        <div style={{display:"flex", flexDirection:"row", justifyContent:"space-between"}}>
-                            <div style={{fontSize:"18px"}}>Password</div>
-                            <a href="INSERT LINK TO RESET PASSWORD" style={{fontSize:"18px", textDecoration:"none"}}>Forgot Password?</a>
-                        </div>
-
-                        <input id="loginp-pword-input" style={{width:"97.25%"}} type="password" ref={pwordInputRef}/>
-                    </div>
-
-                    {/* 2.3 - Sign-in Button: */}
-                    <button id="loginp-signin-btn" style={{marginTop:"2.25%"}} ref={signInBtnRef} onClick={()=>{
                         const formsFilled = checkFormsFilled(); // Ensure all the login forms are filled (nothing empty).
                         if(formsFilled) {
-                            console.log("DEBUG: COME BACK AND INSERT SIGN-IN BUTTON CLICK LOGIC HERE!!!");
+                            console.log("DEBUG: HANDLE LOGIC!!!");
+                        } else {
+                            console.log("DEBUG: [DO NOT] HANDLE LOGIC!!!");
                         }
-                    }} >SIGN IN</button>
+                    }}>
 
+                        {/* 2.1 - Section for inputting the username or email address for login: */}
+                        <div id="login-username-div" style={{width:"90%", padding:"3.75%", marginTop:"2.5%"}}>
+                            <div style={{fontSize:"18px"}}>Username or email address</div>
+                            <input id="loginp-unemail-input" style={{width:"97.25%"}} type="text" ref={unEmailInputRef}/>
+                        </div>
 
+                        {/* 2.2 - Section for inputting th epassword for login (or for resetting password if needed): */}
+                        <div id="login-pword-div" style={{width:"90%", padding:"3.75%"}}>
+                            
+                            {/*<p>Password  Forget Password?</p>*/}
+                            <div style={{display:"flex", flexDirection:"row", justifyContent:"space-between"}}>
+                                <div style={{fontSize:"18px"}}>Password</div>
+                                <a href="INSERT LINK TO RESET PASSWORD" style={{fontSize:"18px", textDecoration:"none"}}>Forgot Password?</a>
+                            </div>
 
+                            <input id="loginp-pword-input" style={{width:"97.25%"}} type="password" ref={pwordInputRef}/>
+                        </div>
+
+                        {/* 2.3 - Sign-in Button: */}
+                        <button id="loginp-signin-btn" style={{marginTop:"2.25%"}} ref={signInBtnRef} type="submit">SIGN IN</button>
+
+                    </form>
+                
 
 
                 </div>
