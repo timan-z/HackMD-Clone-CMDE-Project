@@ -9,6 +9,20 @@ function Login() {
     const pwordInputRef = useRef(null);
     const signInBtnRef = useRef(null);
 
+
+    const checkFormsFilled = () => {
+        if(unEmailInputRef.current.value === "") {
+            console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN USERNAME/EMAIL FORM FIRST\"]");
+            return false;
+        } else if(pwordInputRef.current.value === "") {
+            console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN PASSWORD FORM FIRST\"]");
+            return false;
+        } else {
+            // Allow sign-in attempt:
+            return true;
+        }
+    };
+
     useEffect(()=> {
         /* My log-in homepage is (pretty much exactly) moddled after the Github "Sign In" webpage, and so I want
         to make it so that -- as a shortcut -- you can click "Enter" on your keyboard as an alternative to clicking the big
@@ -25,12 +39,8 @@ function Login() {
                 console.log("DEBUG: =>", unEmailInputRef.current.value);
                 console.log("DEBUG: =>", pwordInputRef.current.value);
 
-                if(unEmailInputRef.current.value === "") {
-                    console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN FORM FIRST\"]");
-                } else if(pwordInputRef.current.value === "") {
-                    console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN FORM FIRST\"]");
-                } else {
-                    // Attempt sign-in:
+                const signInRes = checkFormsFilled();
+                if(signInRes === true) {
                     signInBtnRef.current.click();
                 }
             }
@@ -55,6 +65,9 @@ function Login() {
                 {/* [2/3] - The box for entering the Username/Email and Password login (and resetting password with "Forget Password"). Also login button: */} 
                 <div id="login-username-pword">
 
+
+
+
                     {/* 2.1 - Section for inputting the username or email address for login: */}
                     <div id="login-username-div" style={{width:"90%", padding:"3.75%", marginTop:"2.5%"}}>
                         <div style={{fontSize:"18px"}}>Username or email address</div>
@@ -75,9 +88,15 @@ function Login() {
 
                     {/* 2.3 - Sign-in Button: */}
                     <button id="loginp-signin-btn" style={{marginTop:"2.25%"}} ref={signInBtnRef} onClick={()=>{
-                        // DEBUG: COME BACK AND INSERT SIGN-IN BUTTON CLICK LOGIC HERE!!!
-                        console.log("DEBUG: COME BACK AND INSERT SIGN-IN BUTTON CLICK LOGIC HERE!!!");
+                        const formsFilled = checkFormsFilled(); // Ensure all the login forms are filled (nothing empty).
+                        if(formsFilled) {
+                            console.log("DEBUG: COME BACK AND INSERT SIGN-IN BUTTON CLICK LOGIC HERE!!!");
+                        }
                     }} >SIGN IN</button>
+
+
+
+
 
                 </div>
                 {/* [3/3] - The box beneath the Username/Email and Password login box for switching to the Registration page: */}

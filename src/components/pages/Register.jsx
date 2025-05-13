@@ -62,14 +62,8 @@ function Register() {
                     onClick={()=>{
                         console.log("DEBUG: COME BACK AND INSERT REGISTER BUTTON CLICK LOGIC HERE!!!");
                     }}>REGISTER</button>
-
-
-                  
-
-
                 </div>
             </div>
-
 
         </div>
     );
