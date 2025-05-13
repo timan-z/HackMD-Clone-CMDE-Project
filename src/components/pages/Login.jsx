@@ -9,7 +9,7 @@ function Login() {
     const pwordInputRef = useRef(null);
     const signInBtnRef = useRef(null);
 
-
+    // Pre-login function that just ensures all forms are filled:
     const checkFormsFilled = () => {
         if(unEmailInputRef.current.value === "") {
             console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN USERNAME/EMAIL FORM FIRST\"]");
@@ -23,6 +23,7 @@ function Login() {
         }
     };
 
+    // This useEffect hook is just for when you click "enter" to do the Sign In instead of clicking the actual Sign In button:
     useEffect(()=> {
         /* My log-in homepage is (pretty much exactly) moddled after the Github "Sign In" webpage, and so I want
         to make it so that -- as a shortcut -- you can click "Enter" on your keyboard as an alternative to clicking the big
@@ -52,6 +53,12 @@ function Login() {
             pwordInput.removeEventListener('keydown', handleEnterKey);
         };
     }, []);
+
+
+
+
+
+
 
     return(
         <div id="loginp-outermost-div">
@@ -91,11 +98,9 @@ function Login() {
                         </div>
 
                         {/* 2.3 - Sign-in Button: */}
-                        <button id="loginp-signin-btn" style={{marginTop:"2.25%"}} ref={signInBtnRef} type="submit">SIGN IN</button>
+                        <button id="loginp-signin-btn" type="submit" style={{marginTop:"2.25%"}} ref={signInBtnRef} >SIGN IN</button>
 
                     </form>
-                
-
 
                 </div>
                 {/* [3/3] - The box beneath the Username/Email and Password login box for switching to the Registration page: */}
