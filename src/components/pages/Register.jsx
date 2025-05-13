@@ -13,45 +13,62 @@ function Register() {
         to the left and right (just like the GitHub Registration webpage as of 5/7/25). In the <div> below, there will
         be some sort of design and interactive Text advertising the site -- while, the actual Registration form will be to its right. */
 
-        <div id="registerp-outermost-div" style={{display:"flex",height:"98vh",width:"99vw",position:"absolute", overflow:"hidden", borderStyle:"bold", borderColor:"red"}}> {/* <-- DEBUG: Don't forget to remove borderStyle:"bold" onwards later. */}
+        <div id="registerp-outermost-div" style={{display:"flex",height:"98vh",width:"99vw",position:"absolute", overflow:"hidden", borderStyle:"solid", borderColor:"red"}}> {/* <-- DEBUG: Don't forget to remove borderStyle:"solid" onwards later. */}
             {/* 1. LHS: */}
-            <div id="registerp-lhs" style={{height:"100%",width:"50%", borderStyle:"bold", borderColor:"orange"}}> {/* <-- DEBUG: Don't forget to remove borderStyle:"bold" onwards later. */}
+            <div id="registerp-lhs" style={{height:"100%",width:"50%", borderStyle:"solid", borderColor:"orange"}}> {/* <-- DEBUG: Don't forget to remove borderStyle:"solid" onwards later. */}
                 SOMETHING GOES HERE!!! (PROBABLY JUST HAVE SOME FANCY VISUAL DESIGN HERE).
             </div>
 
             {/* 2. RHS: */}
-            <div id="registerp-rhs" style={{height:"100%", width:"50%", borderStyle:"bold", borderColor:"blue"}}> {/* <-- DEBUG: Don't forget to remove borderStyle:"bold" onwards later. */}
+            <div id="registerp-rhs" style={{height:"100%", width:"50%", display:"flex", flexDirection:"column", alignItems:"center", borderStyle:"solid", borderColor:"blue"}}> {/* <-- DEBUG: Don't forget to remove borderStyle:"solid" onwards later. */}
                 {/* At the top row of the page's RHS will be a comment re-directing to the Login page. */}
-                <div style={{textAlign:"right", borderStyle:"solid"}}>
+                <div style={{width:"100%", textAlign:"right", fontSize:"18px", borderStyle:"solid"}}>
                     Already have an account? <a href="Login">Sign in →</a>
                 </div>
 
+                {/* Beneath that is the much larger <div> element where the actual Registration form is: */}
+                <div id="register-outermost-box" 
+                style={{height:"75%", width:"65%", display:"flex", flexDirection:"column", alignItems:"center", marginTop:"90px", 
+                borderStyle:"solid" }} >
+                    <h1>Sign up to HackMD Clone</h1>
+
+                    {/* The header above and the "Finalize Register" button should be centered in the middle of the parent <div>, but
+                    everything in-between (the actual Registration form values) should be aligned to the left: */}
+                    <div style={{width:"100%", height:"50%", marginLeft:"5%", marginTop:"25px"}}>
+                        {/* 1. Email input: */}
+                        <div style={{paddingBottom:"17.25px"}}>
+                            <div style={{fontWeight:"bold", fontSize:"20px"}}>Email*</div>
+                            <input id="registerp-email-input" type="text" placeholder="Email" style={{width:"93%", height:"27px", fontSize:"17px"}}/>
+                        </div>
+
+                        {/* 2. Password input: */}
+                        <div style={{paddingBottom:"17.25px"}}>
+                            <div style={{fontWeight:"bold", fontSize:"20px"}}>Password*</div>
+                            <input id="registerp-pword-input" type="text" placeholder="Password" style={{width:"93%", height:"27px", fontSize:"17px"}}/>
+                            Password must be at least 8 characters. That's the only limitation ¯\_(ツ)_/¯
+                        </div>
+
+                        {/* 3. Username input: */}
+                        <div style={{paddingBottom:"17.25px"}}>
+                            <div style={{fontWeight:"bold", fontSize:"20px"}}>Username*</div>
+                            <input id="registerp-uname-input" type="text" placeholder="Username" style={{width:"93%", height:"27px", fontSize:"17px"}}/>
+                            Same rules as the password.
+                        </div>
+                    </div>
+
+                    {/* The "Finalize Register" button: */}
+                    <button id="registerp-register-btn" 
+                    style={{fontSize:"20px", fontWeight:"bold", height:"60px", width:"40%", color:"white", border:"none", borderRadius:"8px", backgroundColor:"green", cursor:"pointer"}} 
+                    onClick={()=>{
+                        console.log("DEBUG: COME BACK AND INSERT REGISTER BUTTON CLICK LOGIC HERE!!!");
+                    }}>REGISTER</button>
 
 
-                <div id="register-outermost-box">
-                
+                  
+
+
                 </div>
             </div>
-
-
-
-            {/* 1. LHS:
-            <div id="registerp-lhs" style={{borderStyle:"solid"}}> * <--DEBUG: solid borderStyle is *
-                SOMETHING GOES HERE!!! (PROBABLY JUST HAVE SOME FANCY VISUAL DESIGN HERE).
-            </div>*/}
-            {/* 2. RHS: *
-            <div id="registerp-rhs" style={{borderStyle:"solid"}} >
-                * At the top row of the page's RHS will be a comment re-directing to the Login page. *
-                <div style={{textAlign:"right", borderStyle:"solid"}}>
-                    Already have an account? <a href="Login">Sign in →</a>
-                </div>
-                
-                * Beneath that is  *
-                <div id="register-outermost-box">
-                
-                </div>
-            </div> */}
-
 
 
         </div>
