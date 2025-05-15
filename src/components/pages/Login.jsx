@@ -1,13 +1,10 @@
 // Login page goes here (default page if not logged in).
 //<h1>LOGIN GOES HERE!!!</h1>
 
-
-
 import React, {useState, useEffect, useRef} from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {login, getCurrentUser} from "../utility/api.js";
-
 
 /* 
 
@@ -17,15 +14,12 @@ DON'T FORGET: Solve this stupid problem:
 
 */
 
-
 function Login({ setUser, setToken }) {
     const unEmailInputRef = useRef(null);
     const pwordInputRef = useRef(null);
     const signInBtnRef = useRef(null);
 
-
     const navigate = useNavigate(); // For re-directing to Dashboard page on successful login. 
-
 
     // Pre-login function that just ensures all forms are filled:
     const checkFormsFilled = () => {
@@ -72,12 +66,6 @@ function Login({ setUser, setToken }) {
         };
     }, []);
 
-
-
-
-
-
-
     return(
         <div id="loginp-outermost-div">
             {/* [1/3] - Outer-most <div> element containing the "Sign in to HackMD Clone" box. Should be centered in the middle of the screen. */} 
@@ -91,7 +79,6 @@ function Login({ setUser, setToken }) {
 
                         const formsFilled = checkFormsFilled(); // Ensure all the login forms are filled (nothing empty).
 
-
                         if(formsFilled) {
                             const email = unEmailInputRef.current.value;
                             const password = pwordInputRef.current.value;
@@ -103,10 +90,6 @@ function Login({ setUser, setToken }) {
 
                                 const result = await login({email, password});
                                 
-
-                                
-
-
                                 if(result.token) {
                                     localStorage.setItem("token", result.token);
                                     setToken(result.token);
@@ -126,10 +109,7 @@ function Login({ setUser, setToken }) {
                                 alert("DEBUG: ERROR OCCURRED DURING LOGIN!");
                             }
                         }
-
                     }}>
-
-
 
                         {/* 2.1 - Section for inputting the username or email address for login: */}
                         <div id="login-username-div" style={{width:"90%", padding:"3.75%", marginTop:"2.5%"}}>
