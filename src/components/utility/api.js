@@ -19,7 +19,7 @@ export const login = async (credentials) => {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(credentials),
     });
-  return await result.json();
+    return await result.json();
 };
 
 // 3. Get Current User.

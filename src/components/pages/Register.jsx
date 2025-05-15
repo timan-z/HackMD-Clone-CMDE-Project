@@ -69,7 +69,7 @@ function Register() {
                     </div>
 
                     {/* The "Finalize Register" button: */}
-                    <button id="registerp-register-btn" 
+                    <button id="registerp-register-btn"
                     style={{fontSize:"20px", fontWeight:"bold", height:"60px", width:"40%", color:"white", border:"none", borderRadius:"8px", backgroundColor:"green", cursor:"pointer"}} 
                     onClick={()=>{
                         console.log("DEBUG: COME BACK AND INSERT REGISTER BUTTON CLICK LOGIC HERE!!!");

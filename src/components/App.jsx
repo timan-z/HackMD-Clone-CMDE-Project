@@ -1,5 +1,6 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { getCurrentUser } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
 // The three main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -8,6 +9,32 @@ import Editor from "./pages/Editor.jsx";
 
 // NOTE-TO-SELF: This "App" function serves as our root.
 function App() {
+
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
+
+
+
+  // DEBUG: SHOULD THIS BELOW BE HERE?????
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    setToken(null);
+    setUser(null);
+  };
+  // DEBUG: ^ SHOULD THIS ABOVE BE HERE????
+
+
+  useEffect(() => {
+    const loadUser = async () => {
+
+      if(token) {
+        const userData = await getCurrentUser(token);
+        setUser(userData);
+      }
+    };
+    loadUser();
+  }, [token]);
+
   return (
     <Router>
       <Routes>

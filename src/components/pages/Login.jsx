@@ -4,7 +4,7 @@
 
 
 import React, {useState, useEffect, useRef} from "react";
-import {login} from "../utility/api.js";
+import {login, getCurrentUser} from "../utility/api.js";
 
 
 /* 
@@ -16,7 +16,7 @@ DON'T FORGET: Solve this stupid problem:
 */
 
 
-function Login() {
+function Login({ setUser, setToken }) {
     const unEmailInputRef = useRef(null);
     const pwordInputRef = useRef(null);
     const signInBtnRef = useRef(null);
@@ -80,16 +80,49 @@ function Login() {
                 {/* [2/3] - The box for entering the Username/Email and Password login (and resetting password with "Forget Password"). Also login button: */} 
                 <div id="login-username-pword">
 
-                    <form style={{width:"100%",height:"100%", display:"flex", flexDirection:"column", alignItems:"center",}} onSubmit={(e) => {
+                    <form style={{width:"100%",height:"100%", display:"flex", flexDirection:"column", alignItems:"center",}} onSubmit={ async (e) => {
                         e.preventDefault(); // The sign-in logic only occurs if all login forms are completed (none empty).
 
                         const formsFilled = checkFormsFilled(); // Ensure all the login forms are filled (nothing empty).
+
+
                         if(formsFilled) {
-                            console.log("DEBUG: HANDLE LOGIC!!!");
-                        } else {
-                            console.log("DEBUG: [DO NOT] HANDLE LOGIC!!!");
+                            const email = unEmailInputRef.current.value;
+                            const password = pwordInputRef.current.value;
+
+                            try {
+                                console.log("DEBUG: ATTEMPTING LOGIN POST-if(formsFilled){...} STATEMENT.");
+                                console.log("debug: The value of email is => [", email, "]");
+                                console.log("debug: The value of password is => [", password, "]");
+
+                                const result = await login({email, password});
+                                
+
+                                
+
+
+                                if(result.token) {
+                                    localStorage.setItem("token", result.token);
+                                    setToken(result.token);
+
+                                    const userData = await getCurrentUser(result.token);
+                                    setUser(userData);
+
+                                    console.log("DEBUG: LOGIN SUCCESSFUL!!!: ", userData);
+                                    // NOTE:+DEBUG: After login success I'm supposed to re-direct the user to the dashboard. (DEBUG: COME BACK HERE).
+                                } else {
+                                    console.error("Login failed: ", result.message || result);
+                                    alert("DEBUG: LOGIN FAILED. PLEASE CHECK YOUR CREDENTIALS!");
+                                }
+                            } catch (err) {
+                                console.error("Login error: ", err);
+                                alert("DEBUG: ERROR OCCURRED DURING LOGIN!");
+                            }
                         }
+
                     }}>
+
+
 
                         {/* 2.1 - Section for inputting the username or email address for login: */}
                         <div id="login-username-div" style={{width:"90%", padding:"3.75%", marginTop:"2.5%"}}>
