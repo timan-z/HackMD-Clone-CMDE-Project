@@ -4,6 +4,8 @@
 
 
 import React, {useState, useEffect, useRef} from "react";
+import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {login, getCurrentUser} from "../utility/api.js";
 
 
@@ -20,6 +22,10 @@ function Login({ setUser, setToken }) {
     const unEmailInputRef = useRef(null);
     const pwordInputRef = useRef(null);
     const signInBtnRef = useRef(null);
+
+
+    const navigate = useNavigate(); // For re-directing to Dashboard page on successful login. 
+
 
     // Pre-login function that just ensures all forms are filled:
     const checkFormsFilled = () => {
@@ -109,7 +115,8 @@ function Login({ setUser, setToken }) {
                                     setUser(userData);
 
                                     console.log("DEBUG: LOGIN SUCCESSFUL!!!: ", userData);
-                                    // NOTE:+DEBUG: After login success I'm supposed to re-direct the user to the dashboard. (DEBUG: COME BACK HERE).
+                                    // NOTE:+DEBUG: After login success I'm supposed to re-direct the user to the dashboard. (DEBUG: COME BACK HERE):
+                                    navigate('/dashboard');
                                 } else {
                                     console.error("Login failed: ", result.message || result);
                                     alert("DEBUG: LOGIN FAILED. PLEASE CHECK YOUR CREDENTIALS!");

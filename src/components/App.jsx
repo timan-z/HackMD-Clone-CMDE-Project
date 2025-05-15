@@ -42,7 +42,7 @@ function App() {
         <Route path="/" element={<Navigate to="/Login" replace/>} />
 
         {/* 1. Login and Authenticate Page. (Homepage if **not** logged in): */}
-        <Route path="/login" element={<Login />} />
+        <Route path="/login" element={<Login setUser={setUser} setToken={setToken} />} /> {/* Need setUser={...} etc so I can set the App.jsx state variables from within Login.jsx. */}
         
         {/* 2. Registration Page. */}
         <Route path="/register" element={<Register />} />
