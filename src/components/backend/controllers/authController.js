@@ -45,18 +45,23 @@ export const loginUser = async(req, res) => {
     const { email, username, password } = req.body;
 
     try {
-        const loginRes = await pool.query("SELECT * FROM users WHERE email = $1", [email]); // See if valid email.
+        // You can login with email OR username, which of which will be discerned below (with email being prioritized):
+        const loginRes = email ? await pool.query("SELECT * FROM users WHERE email = $1", [email]) // see if valid email.
+            : await pool.query("SELECT * FROM users WHERE username = $1", [username]); // see if valid username.
+
         const user = loginRes.rows[0];
+        
+        console.log("DEBUG: SOMETHING NEW HERE!!!");
 
-        const loginResAlt = await pool.query("SELECT * FROM users WHERE username = $1", [username]); // See if valid username.
-        const userAlt = loginResAlt.rows[0];
+        if(!user) {
+            return res.status(401).json({error: "Invalid login credentials - no account with that email or username exists! AHHHHHHH"});
+        }
 
-        if(!user || !userAlt) return res.status(401).json({ error: "Invalid login credentials - no account with that email or username exists!" });
+        const match = await bcrypt.compare(password, user.password);
 
-        const match = await bcrypt.compare(password, user.password);    // Password check.
-        const matchAlt = await bcrypt.compare(password, userAlt.password);
-
-        if(!match || !matchAlt) return res.status(401).json({ error: "Invalid login credentials - invalid password!" });
+        if(!match) {
+            return res.status(401).json({ error: "Invalid login credentials - incorrect password!" });
+        }
 
         const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "10d" });
         // Return user info to the front-end and the memory token:
