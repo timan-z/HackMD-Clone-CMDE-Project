@@ -58,6 +58,7 @@ function Register() {
             {/* 1. LHS: */}
             <div id="registerp-lhs" style={{height:"100%",width:"50%", borderStyle:"solid", borderColor:"orange"}}> {/* <-- DEBUG: Don't forget to remove borderStyle:"solid" onwards later. */}
                 SOMETHING GOES HERE!!! (PROBABLY JUST HAVE SOME FANCY VISUAL DESIGN HERE).
+                UPDATE: Want a looping GIF of myself typing in the actual Editor.jsx (just have it type some copypaste nonsense). 
             </div>
 
             {/* 2. RHS: */}
