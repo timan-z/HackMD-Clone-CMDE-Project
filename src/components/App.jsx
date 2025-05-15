@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
 // The three main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
@@ -15,11 +16,18 @@ function App() {
 
 
 
+  //const navigate = useNavigate(); // For "handleLogout" function (re-directing logout to the Login page).
+  // DEBUG: ^ Should also make sure that after logging out, I can't just "go back" to the previous page (so dashboard + editor pages need auth verification).
+  // DEBUG: ^ At the moment I don't have this, but later on I definitely need it!!!
+
+
   // DEBUG: SHOULD THIS BELOW BE HERE?????
   const handleLogout = () => {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
+    //navigate('/login');
+
   };
   // DEBUG: ^ SHOULD THIS ABOVE BE HERE????
 
@@ -48,7 +56,7 @@ function App() {
         <Route path="/register" element={<Register />} />
 
         {/* 3. Editing Session Dashboard Page. (Homepage **if** logged in): */}
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/dashboard" element={<Dashboard logout={handleLogout} />} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<Editor />}/> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}

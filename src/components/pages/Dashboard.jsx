@@ -2,7 +2,7 @@
 //<h1>DASHBOARD GOES HERE!!!</h1>
 
 import React from "react";
-
+import { useNavigate } from "react-router-dom";
 
 /* 
 
@@ -14,9 +14,21 @@ DON'T FORGET: Solve this stupid problem:
 
 
 
-function Dashboard() {
+function Dashboard({ logout }) {
+
+    const navigate = useNavigate();
+
+    const handleLogout = () => {
+        logout();
+        navigate("/login");
+    };
+
     return(
-        <h1>DASHBOARD GOES HERE!!!</h1>
+        <div>
+            <h1>DASHBOARD GOES HERE!!!</h1>
+
+            <button onClick={handleLogout} >LOG OUT</button>
+        </div>
     );
 }
 
