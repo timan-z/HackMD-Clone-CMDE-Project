@@ -11,9 +11,8 @@ const JWT_SECRET = process.env.JWT_SECRET;
 
 console.log("DEBUG: REFRESH STUFF!!! THE VALUE OF process.env.VITE_CLOUDINARY_CLOUD_NAME => [", process.env.VITE_CLOUDINARY_CLOUD_NAME, "]");
 
-
-// 1. Function for User Registration:
-// DEBUG: TESTED WITH POSTMAN -- THIS ONE WORKS!
+// 1. USER-RELATED:
+// 1.1. Function for User Registration:
 export const registerUser = async(req, res) => {
     const { username, email, password } = req.body;
     console.log("DEBUG: Incoming registration => [", { username, email, password }, "]");
@@ -39,8 +38,7 @@ export const registerUser = async(req, res) => {
     }
 };
 
-// 2. Function for User Login:
-// DEBUG: TESTED WITH POSTMAN -- THIS ONE WORKS!
+// 1.2. Function for User Login:
 export const loginUser = async(req, res) => {
     const { email, username, password } = req.body;
 
@@ -71,8 +69,7 @@ export const loginUser = async(req, res) => {
     }
 };
 
-// Function for retrieving Current User:
-// DEBUG: TESTED WITH POSTMAN - THIS ONE WORKS! Make sure you don't have POST in the url though (in addition to selecting POST), this caused some problems for me.
+// 1.3. Function for retrieving Current User:
 export const getCurrentUser = async(req, res) => {
     // Look for JWT memory token in the Authorization header:
     const token = req.headers.authorization?.split(" ")[1];
@@ -86,4 +83,18 @@ export const getCurrentUser = async(req, res) => {
     } catch (err) {
         res.status(401).json({ error: "Invalid token. Current user could not be retrieved. Re-login buddy." });
     }
+};
+
+// 2. MULTI-USER SESSION MANAGEMENT-RELATED:
+// 2.1. Function for creating new user 
+export const createNewEdRoom = async(req, res) => {
+    const { edRoomName } = req.body;
+    const userId = req.user.id;
+
+
+    console.log("DEBUG: The value of userId => [", userId, "]");
+
+
+
+
 };

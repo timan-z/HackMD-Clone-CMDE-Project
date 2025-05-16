@@ -8,7 +8,6 @@ import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import {register} from "../utility/api.js";
 
-
 /* 
 
 DON'T FORGET: Solve this stupid problem: 

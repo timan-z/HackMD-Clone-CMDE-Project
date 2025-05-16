@@ -2,7 +2,8 @@
 
 const API_BASE = "http://localhost:5000/api"; // Backend express server.
 
-// 1. Register:
+// 1. USER-RELATED UTILITIES:
+// 1.1. Register:
 export const register = async (userData) => {
     const result = await fetch(`${API_BASE}/auth/register`, {
         method: "POST",
@@ -12,7 +13,7 @@ export const register = async (userData) => {
     return await result.json();
 };
 
-// 2. Login:
+// 1.2. Login:
 export const login = async (credentials) => {
     const result = await fetch(`${API_BASE}/auth/login`, {
         method: "POST",
@@ -22,7 +23,7 @@ export const login = async (credentials) => {
     return await result.json();
 };
 
-// 3. Get Current User.
+// 1.3. Get Current User.
 export const getCurrentUser = async (token) => {
     const result = await fetch(`${API_BASE}/auth/me`, {
         method: "POST",
@@ -32,3 +33,10 @@ export const getCurrentUser = async (token) => {
     });
     return await result.json();
 };
+
+// 2. MULTI-USER SESSION MANAGEMENT:
+// 2.1. Create new Collaborative Editor Session.
+export const createNewEdRoom = async () => {
+
+};
+
