@@ -19,3 +19,23 @@ CREATE TABLE users (
     password TEXT NOT NULL,
     created_at TIMESTAMPTZ DEFAULT NOW()
 )
+
+/* The table I make for Editor Sessions (aka Rooms):
+CREATE TABLE rooms(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    name TEXT,
+    created_by INTEGER REFERENCES users(id),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+*/
+
+/* The middle-man table I make connecting Table "users" and Table "rooms" (I forgot everything about SQL, sorry Prof Ritu and Fangju...):
+CREATE TABLE user_rooms(
+    id SERIAL PRIMARY KEY,
+    user_id INTEGER REFERENCES users(id),
+    room_id UUID REFERENCES rooms(id),
+    role TEXT DEFAULT 'member' // <-- and if you are the creator of a room, this is changed to King/Owner (later on I'll implement ability to pass of "King" status).
+);
+
+*/
+

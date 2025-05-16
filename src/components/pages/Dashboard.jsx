@@ -28,6 +28,35 @@ function Dashboard({ logout }) {
             <h1>DASHBOARD GOES HERE!!!</h1>
 
             <button onClick={handleLogout} >LOG OUT</button>
+
+
+            {/* Want a button that goes here for creating a new room... */}
+            
+            
+            <div style={{borderStyle:"solid", borderColor:"red", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
+                <h4>DEBUG: CREATE ROOM BUTTON</h4>    
+
+
+
+
+
+                {/* This form will connect t othe authController.js or whatever and invoke the Create Table command (more or less): */}
+                <form onSubmit={ async (e) => {
+                    
+
+                }}>
+
+                    <div style={{width:"100%"}}>
+                        Give room a name (optional).
+                        <input type="text" style={{width:"100%"}}></input>
+                    </div>
+                    <button>CLICK TO CREATE ROOM</button>
+                </form>
+
+
+
+            </div>
+
         </div>
     );
 }

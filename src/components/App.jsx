@@ -15,21 +15,12 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
 
 
-
-  //const navigate = useNavigate(); // For "handleLogout" function (re-directing logout to the Login page).
-  // DEBUG: ^ Should also make sure that after logging out, I can't just "go back" to the previous page (so dashboard + editor pages need auth verification).
-  // DEBUG: ^ At the moment I don't have this, but later on I definitely need it!!!
-
-
-  // DEBUG: SHOULD THIS BELOW BE HERE?????
+  // Function for handling logging-out (will be passed to routes):
   const handleLogout = () => {
     localStorage.removeItem("token");
     setToken(null);
     setUser(null);
-    //navigate('/login');
-
   };
-  // DEBUG: ^ SHOULD THIS ABOVE BE HERE????
 
 
   useEffect(() => {
@@ -41,8 +32,10 @@ function App() {
       }
     };
     loadUser();
+
   }, [token]);
 
+  
   return (
     <Router>
       <Routes>
