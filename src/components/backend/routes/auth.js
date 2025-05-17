@@ -1,6 +1,6 @@
 import express from "express";
 import { registerUser, loginUser, getCurrentUser, createNewEdRoom } from '../controllers/authController.js';
-import { verifyToken } from '../../utility/utilityFuncs.js';
+import { verifyToken } from '../../utility/utilityFuncsBE.js';
 
 const router = express.Router();
 
