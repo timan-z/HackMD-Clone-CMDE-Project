@@ -3,6 +3,7 @@
 
 import React, {useRef} from "react";
 import { useNavigate } from "react-router-dom";
+import { createNewEdRoom } from "../utility/api.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 /* NOTE:
@@ -67,6 +68,8 @@ function Dashboard({ logout }) {
                     const token = localStorage.getItem("token");
                     console.log("DEBUG: THE VALUE OF token => [", token, "]");
 
+                    const data = await createNewEdRoom(edRoomName, token);
+                    console.log("debug: dah value of data => [", data, "]");
 
                     /*const result = await createNewEdRoom({ edRoomName })
                     if(result.error) {

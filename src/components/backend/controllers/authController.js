@@ -99,14 +99,27 @@ export const getCurrentUser = async(req, res) => {
 // 2. MULTI-USER SESSION MANAGEMENT-RELATED:
 // 2.1. Function for creating new user 
 export const createNewEdRoom = async(req, res) => {
+
+    console.log("AUTH-DEBUG: Is the AUTH-DEBUG function createNewEdRoom even entered at all???");
+
     let { edRoomName } = req.body;
     if(!edRoomName) {
         edRoomName = ""; // can be empty idc.
     }
     const userID = req.user.id; // See function verifyToken (look in auth.js first, where it is imported).
 
+
+    console.log("auth-DEBUG: The value of edRoomName => [", edRoomName, "]");
+    console.log("auth-DEBUG: The value of userID => [", userID, "]");
+
+
+
     try {
         const edRoomID = uuidv4();
+
+
+        console.log("auth-DEBUG: The value of userID => [", edRoomID, "]");
+
 
         // Insert into rooms table:
         await pool.query("INSERT INTO rooms (id, name, created_by) VALUES ($1, $2, $3)", [edRoomID, edRoomName, userID]);

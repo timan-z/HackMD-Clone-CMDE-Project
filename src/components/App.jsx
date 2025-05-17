@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { useNavigate } from "react-router-dom";
 import { getCurrentUser } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
 // The three main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
