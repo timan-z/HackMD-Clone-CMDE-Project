@@ -6,6 +6,7 @@ import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Editor from "./pages/Editor.jsx";
+import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing unauthorized access to certain pages...
 
 // NOTE-TO-SELF: This "App" function serves as our root.
 function App() {
@@ -38,20 +39,28 @@ function App() {
   return (
     <Router>
       <Routes>
+
+        {/* BELOW ARE THE PUBLIC ROUTES (PAGES) -- THOSE THAT DO NOT NEED AUTHROIZATION TO ACCESS: */}
+
         {/* Default home-page (DEBUG:+NOTE: will switch between /Login and /Dashboard depending on if the user is logged in or not). */}
         <Route path="/" element={<Navigate to="/Login" replace/>} />
-
         {/* 1. Login and Authenticate Page. (Homepage if **not** logged in): */}
         <Route path="/login" element={<Login setUser={setUser} setToken={setToken} />} /> {/* Need setUser={...} etc so I can set the App.jsx state variables from within Login.jsx. */}
-        
         {/* 2. Registration Page. */}
         <Route path="/register" element={<Register />} />
 
+        {/* BELOW ARE THE PROTECTED ROUTES (PAGES) -- NEED AUTHORIZATION TO ACCESS THEM!: */}
+        
         {/* 3. Editing Session Dashboard Page. (Homepage **if** logged in): */}
-        <Route path="/dashboard" element={<Dashboard logout={handleLogout} />} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<Editor />}/> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRoute><Editor /></PrivateRoute>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+
+        {/* TO-DO: Want to make it so that if the user is logged in, 
+        - any un-defined URL routes just re-map to the Dashboard page.
+        If they are NOT logged in,
+        - any un-defined URL routes just re-map to the Login page. */}
 
       </Routes>
     </Router>
