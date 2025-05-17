@@ -38,12 +38,28 @@ function Dashboard({ logout }) {
     };
 
     useEffect(() => {
+
+        console.log("ROOMS-DEBUG: UseEffect HOOK ENTERED!!!");
+
         const fetchRooms = async() => {
+
+            console.log("ROOMS-DEBUG: fetchRooms IS ENTERED!!!");
+
             const token = localStorage.getItem("token");
+            
+            console.log("ROOMS-DEBUG: token RETURNS => [", token, "]");
+            
             if(!token) return;
 
             try {
+
+                console.log("Rooms-Debug: Trying getAllRooms!!!");
+
+
                 const data = await getAllRooms(token);
+
+                console.log("Rooms-Debug RAN and the value of data => [", data, "]");
+
                 setRooms(data);
             } catch (err) {
                 console.error("DEBUG: was not able to fetch rooms oh no!: ", err);
@@ -88,23 +104,29 @@ function Dashboard({ logout }) {
             
 
             <h4>LOAD ROOMS HERE:</h4>
+
+
             <div style={{borderStyle:"solid", borderColor:"purple"}}>
                 {rooms.map((room) => {
-                    <div
-                        key={room.user_room_id}
-                        style={{borderStyle:"solid"}}
-                    >
-                        <div>
-                            <p>{room.room_name}</p>
-                            <p>ID: {room.room_id} </p>
-                            <p>Role: {room.role}</p>
-                        </div>
-                        <button
-                            onClick={()=> handleJoin(room.room_id)}
+
+                    console.log("AHHHHHHHHHHHHHHHHHHH");
+                    return(
+                        <div
+                            key={room.user_room_id}
+                            style={{borderStyle:"solid"}}
                         >
-                            JOIN ROOM
-                        </button>
-                    </div>
+                            <div>
+                                <p>{room.room_name}</p>
+                                <p>ID: {room.room_id} </p>
+                                <p>Role: {room.role}</p>
+                            </div>
+                            <button
+                                onClick={()=> handleJoin(room.room_id)}
+                            >
+                                JOIN ROOM
+                            </button>
+                        </div>
+                    )
                 })}
             </div>
         </div>

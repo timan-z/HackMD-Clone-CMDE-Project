@@ -128,15 +128,20 @@ export const getAllEdRooms = async (req, res) => {
 
     const userID = req.user.id; // Will get obtained by func verifyToken...
     try {
+
+        console.log("DEBUG: POOL.QUERY IS ABOUT TO HAPPEN!!!");
+
         const roomsRes = await pool.query(`
             SELECT
                 ur.id AS user_room_id,
                 ur.role,
                 r.id AS room_id,
                 r.name AS room_name,
-                r.created_at
+                r.created_at,
+                u.username AS creator_name
             FROM user_rooms ur
             JOIN rooms r ON ur.room_id = r.id
+            JOIN users u ON r.created_by = u.id
             WHERE ur.user_id = $1
             ORDER BY r.created_at DESC
         `, [userID]);
