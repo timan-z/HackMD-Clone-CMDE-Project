@@ -1,7 +1,7 @@
 // Dashboard for the Editing Sessions goes here (+ other customization like "Join Room") -- home page if logged in.
 //<h1>DASHBOARD GOES HERE!!!</h1>
 
-import React, {useRef} from "react";
+import React, {useState, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import { createNewEdRoom } from "../utility/api.js";
 
@@ -25,11 +25,10 @@ DON'T FORGET: Solve this stupid problem:
 
 
 function Dashboard({ logout }) {
+
     const newEdRoomNameRef = useRef(null);
-
-
-
-
+    const [rooms, setRooms] = useState([]);
+    
     const navigate = useNavigate();
 
     const handleLogout = () => {
@@ -37,48 +36,46 @@ function Dashboard({ logout }) {
         navigate("/login");
     };
 
+    useEffect(() => {
+        const fetchRooms = async() => {
+            const token = localStorage.getItem("token");
+            if(!token) return;
+
+            try {
+                const data = await getAllRooms(token);
+                setRooms(data);
+            } catch (err) {
+                console.error("DEBUG: was not able to fetch rooms oh no!: ", err);
+            }
+        };
+
+        fetchRooms();
+    }, []);
+
+    // To join a new room from the area I'll be loading them:
+    const handleJoin = (roomID) => {
+        navigate(`/editor/${roomID}`);
+    }
+
     return(
         <div>
             <h1>DASHBOARD GOES HERE!!!</h1>
 
             <button onClick={handleLogout} >LOG OUT</button>
 
-
             {/* Want a button that goes here for creating a new room... */}
-            
-            
             <div style={{borderStyle:"solid", borderColor:"red", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
                 <h4>DEBUG: CREATE ROOM BUTTON</h4>    
-
-
-
-
 
                 {/* This form will connect t othe authController.js or whatever and invoke the Create Table command (more or less): */}
                 {/* DEBUG: For now, I am doing extremely minimal styling <here styleName={}></here> */}
                 <form onSubmit={ async (e) => {
                     e.preventDefault();
-
-                    console.log("1.DEBUG: The value of uuidv4() => [", uuidv4(), "]");
-                    console.log("2.DEBUG: The value of uuidv4() => [", uuidv4(), "]");
-                    console.log("3.DEBUG: The value of uuidv4() => [", uuidv4(), "]");
-                    console.log("4.debug: The value of newEdRoomNameRef.current.value => [", newEdRoomNameRef.current.value, "]");
                     const edRoomName = newEdRoomNameRef.current.value;
-
                     const token = localStorage.getItem("token");
                     console.log("DEBUG: THE VALUE OF token => [", token, "]");
-
                     const data = await createNewEdRoom(edRoomName, token);
                     console.log("debug: dah value of data => [", data, "]");
-
-                    /*const result = await createNewEdRoom({ edRoomName })
-                    if(result.error) {
-                        console.error("DEBUG: CREATE NEW EDITOR ROOM FAILED! => ", result.error);
-                    } else {
-                        console.log("DEBUG: CREATE NEW EDITOR ROOM SUCCESSFUL!");
-                        alert("DEBUG: NEW ROOM CREATED -- CHECK IN POSTGRESQL TO MAKE SURE IT'S THERE!!!");
-                    }*/
-
                 }}>
                     <div style={{width:"100%"}}>
                         Give room a name (optional).
@@ -86,12 +83,28 @@ function Dashboard({ logout }) {
                     </div>
                     <button>CLICK TO CREATE ROOM</button>
                 </form>
-
-
-
             </div>
+            
 
-
+            <h4>LOAD ROOMS HERE:</h4>
+            <div style={{borderStyle:"solid", borderColor:"purple"}}>
+                {rooms.map((room) => {
+                    <div
+                        key={room.id}
+                        style={{borderStyle:"solid"}}
+                    >
+                        <div>
+                            <p>{room.room_name}</p>
+                            <p>ID: {room.id}</p>
+                        </div>
+                        <button
+                            onClick={()=> handleJoin(room.id)}
+                        >
+                            JOIN ROOM
+                        </button>
+                    </div>
+                })}
+            </div>
         </div>
     );
 }

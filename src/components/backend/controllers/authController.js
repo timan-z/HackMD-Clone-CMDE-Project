@@ -100,26 +100,14 @@ export const getCurrentUser = async(req, res) => {
 // 2.1. Function for creating new user 
 export const createNewEdRoom = async(req, res) => {
 
-    console.log("AUTH-DEBUG: Is the AUTH-DEBUG function createNewEdRoom even entered at all???");
-
     let { edRoomName } = req.body;
     if(!edRoomName) {
         edRoomName = ""; // can be empty idc.
     }
     const userID = req.user.id; // See function verifyToken (look in auth.js first, where it is imported).
 
-
-    console.log("auth-DEBUG: The value of edRoomName => [", edRoomName, "]");
-    console.log("auth-DEBUG: The value of userID => [", userID, "]");
-
-
-
     try {
         const edRoomID = uuidv4();
-
-
-        console.log("auth-DEBUG: The value of userID => [", edRoomID, "]");
-
 
         // Insert into rooms table:
         await pool.query("INSERT INTO rooms (id, name, created_by) VALUES ($1, $2, $3)", [edRoomID, edRoomName, userID]);
@@ -130,5 +118,29 @@ export const createNewEdRoom = async(req, res) => {
     } catch(err) {
         console.error("ERROR creating Editor Room: ", err);
         res.status(500).json({ error: "ERROR: Failed to create editor room."});
+    }
+};
+
+// 2.2. Function for retrieving all Editor Rooms associated with a certain user:
+export const getAllEdRooms = async (req, res) => {
+    const userID = req.user.id; // Will get obtained by func verifyToken...
+    try {
+        const roomsRes = await pool.query(`
+            SELECT
+                ur.id AS user_room_id,
+                ur.role,
+                r.id AS room_id,
+                r.name AS room_name,
+                r.created_at
+            FROM user_rooms ur
+            JOIN rooms r ON ur.room_id = r.id
+            WHERE ur.user_id = $1
+            ORDER BY r.created_at DESC
+        `, [userID]);
+
+        res.json(roomsRes.rows);
+    } catch (err) {
+        console.error("DEBUG: FAILED TO RETRIEVE ROOMS => [", err, "]");
+        res.status(500).json({error: "COULD NOT RETRIEVE EDITOR ROOMS."});
     }
 };

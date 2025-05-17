@@ -48,3 +48,14 @@ export const createNewEdRoom = async (edRoomName, token) => {
     return await result.json();
 };
 
+
+
+// 2.2. Retrieve Editor Rooms associated with Logged-In User (to load into Dashboard):
+export const getAllRooms = async(token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms`, {
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return await result.json();
+};
+
+
