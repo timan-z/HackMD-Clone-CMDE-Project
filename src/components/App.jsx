@@ -7,6 +7,8 @@ import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Editor from "./pages/Editor.jsx";
 import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing unauthorized access to certain pages...
+import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx"; // ^ More of the same but for more minor purposes.
+
 
 // NOTE-TO-SELF: This "App" function serves as our root.
 function App() {
@@ -45,7 +47,7 @@ function App() {
         {/* Default home-page (DEBUG:+NOTE: will switch between /Login and /Dashboard depending on if the user is logged in or not). */}
         <Route path="/" element={<Navigate to="/Login" replace/>} />
         {/* 1. Login and Authenticate Page. (Homepage if **not** logged in): */}
-        <Route path="/login" element={<Login setUser={setUser} setToken={setToken} />} /> {/* Need setUser={...} etc so I can set the App.jsx state variables from within Login.jsx. */}
+        <Route path="/login" element={localStorage.getItem("token") ? <Navigate to="/dashboard" replace/> : <Login setUser={setUser} setToken={setToken} />} /> {/* Need setUser={...} etc so I can set the App.jsx state variables from within Login.jsx. */}
         {/* 2. Registration Page. */}
         <Route path="/register" element={<Register />} />
 
@@ -61,6 +63,7 @@ function App() {
         - any un-defined URL routes just re-map to the Dashboard page.
         If they are NOT logged in,
         - any un-defined URL routes just re-map to the Login page. */}
+        <Route path="*" element={<PrivateRouteMisc><Login /></PrivateRouteMisc>} />
 
       </Routes>
     </Router>
