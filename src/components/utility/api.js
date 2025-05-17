@@ -36,7 +36,15 @@ export const getCurrentUser = async (token) => {
 
 // 2. MULTI-USER SESSION MANAGEMENT:
 // 2.1. Create new Collaborative Editor Session.
-export const createNewEdRoom = async () => {
-
+export const createNewEdRoom = async (edRoomName, token) => {
+    const res = await fetch(`${API_BASE}/auth/create-room`, {
+        method: "POST",
+        headers: { 
+            "Content-type": "application/json",
+            Authorization: `Bearer ${token}`,   // Need this to map user-to-room (creation).
+        },
+        body: JSON.stringify({ edRoomName }),
+    });
+    return await result.json();
 };
 

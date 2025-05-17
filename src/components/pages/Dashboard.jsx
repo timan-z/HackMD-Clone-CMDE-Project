@@ -7,7 +7,8 @@ import { useNavigate } from "react-router-dom";
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 /* NOTE:
 - I should be safe using uuidv4(); to generate Room IDs because the probability of duplication is astronomically low
-AND since it's my primary key in the database anyways, PostgreSQL will automatically reject duplicates for me. */
+AND since it's my primary key in the database anyways, PostgreSQL will automatically reject duplicates for me. 
+*/
 
 
 
@@ -63,13 +64,13 @@ function Dashboard({ logout }) {
                     console.log("4.debug: The value of newEdRoomNameRef.current.value => [", newEdRoomNameRef.current.value, "]");
                     const edRoomName = newEdRoomNameRef.current.value;
 
-                    const result = await createNewEdRoom({ edRoomName })
+                    /*const result = await createNewEdRoom({ edRoomName })
                     if(result.error) {
                         console.error("DEBUG: CREATE NEW EDITOR ROOM FAILED! => ", result.error);
                     } else {
                         console.log("DEBUG: CREATE NEW EDITOR ROOM SUCCESSFUL!");
                         alert("DEBUG: NEW ROOM CREATED -- CHECK IN POSTGRESQL TO MAKE SURE IT'S THERE!!!");
-                    }
+                    }*/
 
                 }}>
                     <div style={{width:"100%"}}>

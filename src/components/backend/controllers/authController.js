@@ -3,6 +3,17 @@ import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import pg from "pg";
 
+
+import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
+/* NOTE:
+- I should be safe using uuidv4(); to generate Room IDs because the probability of duplication is astronomically low
+AND since it's my primary key in the database anyways, PostgreSQL will automatically reject duplicates for me. 
+*/
+
+
+
+
+
 dotenv.config({ path:'./.env'});
 
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
@@ -88,13 +99,23 @@ export const getCurrentUser = async(req, res) => {
 // 2. MULTI-USER SESSION MANAGEMENT-RELATED:
 // 2.1. Function for creating new user 
 export const createNewEdRoom = async(req, res) => {
-    const { edRoomName } = req.body;
-    const userId = req.user.id;
+    let { edRoomName } = req.body;
+    if(!edRoomName) {
+        edRoomName = ""; // can be empty idc.
+    }
+    const userID = req.user.id; // See function verifyToken (look in auth.js first, where it is imported).
 
+    try {
+        const edRoomID = uuidv4();
 
-    console.log("DEBUG: The value of userId => [", userId, "]");
+        // Insert into rooms table:
+        await pool.query("INSERT INTO rooms (id, name, created_by) VALUES ($1, $2, $3)", [edRoomID, edRoomName, userID]);
+        // Now also make a value for the middleman table that connects Table users and Table rooms:
+        await pool.query("INSERT INTO user_rooms (user_id, room_id, role) VALUES ($1, $2, $3)", [userID, edRoomID, "king"]);
 
-
-
-
+        res.status(201).json({message: "ROOM HAS BEEN CREATED", roomID: edRoomID});
+    } catch(err) {
+        console.error("ERROR creating Editor Room: ", err);
+        res.status(500).json({ error: "ERROR: Failed to create editor room."});
+    }
 };
