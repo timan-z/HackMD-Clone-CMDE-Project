@@ -1,10 +1,9 @@
 import { $isParagraphNode, $isTextNode } from 'lexical';
 // [ACCOUNT MANAGEMENT-RELATED] The two imports below are for creating a middleware that authenticates and extracts user from Token:
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-
-dotenv.config();
-const JWT_SECRET = process.env.JWT_SECRET;
+//import jwt from 'jsonwebtoken';
+//import dotenv from 'dotenv';
+//dotenv.config();
+//const JWT_SECRET = process.env.JWT_SECRET;
 
 /* LEXICAL-RELATED:
 Functions I want to invoke across all my components (but mainly Editor.jsx and Toolbar.jsx).
@@ -102,7 +101,7 @@ export function findCursorPos(paraNodes, anchorNode, anchorOffset) {
 }
 
 // [ACCOUNT MANAGEMENT-RELATED] MIDDLEWARE THAT AUTHENTICATES AND EXTRACTS USER FROM TOKEN:
-export const verifyToken = (req, res, next) => {
+/*export const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
     // If authHeader doesn't begin with Bearer, there's no Token referring to current user saved (and so, no current user):
     if(!authHeader?.startsWith('Bearer ')) {
@@ -118,3 +117,4 @@ export const verifyToken = (req, res, next) => {
         return res.status(403).json({ error: 'Invalid or expired token'});
     }
 };
+*/

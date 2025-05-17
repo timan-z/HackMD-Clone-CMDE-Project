@@ -64,6 +64,10 @@ function Dashboard({ logout }) {
                     console.log("4.debug: The value of newEdRoomNameRef.current.value => [", newEdRoomNameRef.current.value, "]");
                     const edRoomName = newEdRoomNameRef.current.value;
 
+                    const token = localStorage.getItem("token");
+                    console.log("DEBUG: THE VALUE OF token => [", token, "]");
+
+
                     /*const result = await createNewEdRoom({ edRoomName })
                     if(result.error) {
                         console.error("DEBUG: CREATE NEW EDITOR ROOM FAILED! => ", result.error);
