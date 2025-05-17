@@ -1,9 +1,10 @@
 // Dashboard for the Editing Sessions goes here (+ other customization like "Join Room") -- home page if logged in.
 //<h1>DASHBOARD GOES HERE!!!</h1>
 
-import React, {useState, useRef} from "react";
+import React, {useEffect, useState, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import { createNewEdRoom } from "../utility/api.js";
+import { getAllRooms } from "../utility/api.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 /* NOTE:
@@ -90,15 +91,16 @@ function Dashboard({ logout }) {
             <div style={{borderStyle:"solid", borderColor:"purple"}}>
                 {rooms.map((room) => {
                     <div
-                        key={room.id}
+                        key={room.user_room_id}
                         style={{borderStyle:"solid"}}
                     >
                         <div>
                             <p>{room.room_name}</p>
-                            <p>ID: {room.id}</p>
+                            <p>ID: {room.room_id} </p>
+                            <p>Role: {room.role}</p>
                         </div>
                         <button
-                            onClick={()=> handleJoin(room.id)}
+                            onClick={()=> handleJoin(room.room_id)}
                         >
                             JOIN ROOM
                         </button>
