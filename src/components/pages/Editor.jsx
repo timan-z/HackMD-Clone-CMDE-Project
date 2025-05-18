@@ -25,6 +25,10 @@ const socket = io("http://localhost:4000"); // <-- bringing this back for tying 
 
 import { createUsersList } from '../misc-features/usersListBar.js';
 
+
+import { useNavigate } from "react-router-dom";
+
+
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
   - ContentEditable is the area where the user types.
@@ -143,17 +147,15 @@ function EditorContent({ roomID }) {
   //const [userID, setUserID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
-
-
-
-
   // PART-2-ADDITIONS - TESTING IF THESE WORK:
   const userID = useRef(useMemo(() => crypto.randomUUID(), []));
    
 
-
-
-  // transform: 'rotate(180deg)',
+  // For returning to the dashboard:
+  const navigate = useNavigate();
+  const goToDashboard = () => {
+    navigate("/dashboard");
+  };
 
 
 
@@ -529,10 +531,24 @@ function EditorContent({ roomID }) {
 
 
 
-        {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
-        <div id="users-list-button" onClick={()=> createUsersList()}>
-          <img id="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
+
+        {/* NOTE: Added this parent <div> for the stuff inbetween to add in-between spacing... */}
+        <div style={{display:"flex", flexDirection:"row", gap:"5px"}}>
+
+          {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
+          <div id="users-list-button" onClick={()=> createUsersList()}>
+            <img id="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
+          </div>
+
+          {/* This will be the "Home" (Return to Dashboard) button on the top-right of the T.E. room webpage: */}
+          <div id="to-dashboard-button" onClick={()=> goToDashboard()}>
+            <img id="go-to-dashb-icon" src="../../images/house-icon.png" alt="Stock Home Icon"></img>
+          </div>
+
         </div>
+
+
+
 
 
       </div>

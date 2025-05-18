@@ -232,7 +232,7 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 }
 
 /* Styling for the "Users-List" button on the top-right of the T.E. room webpage: */
-#users-list-button {
+#users-list-button, #to-dashboard-button {
   background: #008F11;
   border-style: solid;
   border-width: 5px;
@@ -242,7 +242,7 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 .users-l-add-shadow {
   box-shadow: 0px 0px 0px 4000px rgba(27, 61, 88, 0.5) inset;
 }
-#users-list-icon {
+#users-list-icon, #go-to-dashb-icon {
   width:100%;
   max-width:50px;
   height:auto;
