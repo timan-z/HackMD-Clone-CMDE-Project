@@ -114,7 +114,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent() {
+function EditorContent({ roomID }) {
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -730,11 +730,11 @@ function EditorContent() {
   );
 }
 
-function Editor() {
+function Editor({ roomID }) {
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent />
+      <EditorContent roomID={roomID} />
     </LexicalComposer>
   );
 }

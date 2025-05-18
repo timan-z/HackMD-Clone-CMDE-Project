@@ -25,7 +25,7 @@ DON'T FORGET: Solve this stupid problem:
 
 
 
-function Dashboard({ logout }) {
+function Dashboard({ logout, setRoomID }) {
 
     const newEdRoomNameRef = useRef(null);
     const [rooms, setRooms] = useState([]);
@@ -111,6 +111,8 @@ function Dashboard({ logout }) {
 
                     console.log("AHHHHHHHHHHHHHHHHHHH");
                     return(
+
+
                         <div
                             key={room.user_room_id}
                             style={{borderStyle:"solid"}}
@@ -126,6 +128,9 @@ function Dashboard({ logout }) {
                                 JOIN ROOM
                             </button>
                         </div>
+
+
+
                     )
                 })}
             </div>

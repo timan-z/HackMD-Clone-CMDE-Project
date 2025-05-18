@@ -15,6 +15,7 @@ function App() {
 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
+  const [roomID, setRoomID] = useState(null);
 
 
   // Function for handling logging-out (will be passed to routes):
@@ -54,10 +55,10 @@ function App() {
         {/* BELOW ARE THE PROTECTED ROUTES (PAGES) -- NEED AUTHORIZATION TO ACCESS THEM!: */}
         
         {/* 3. Editing Session Dashboard Page. (Homepage **if** logged in): */}
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} setRoomID={setRoomID} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRoute><Editor /></PrivateRoute>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRoute><Editor roomID={roomID} /></PrivateRoute>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.
