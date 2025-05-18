@@ -625,7 +625,7 @@ function EditorContent({ roomID }) {
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
                   <CollaborationPlugin
-                    id="room-1"
+                    id={roomID}
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);

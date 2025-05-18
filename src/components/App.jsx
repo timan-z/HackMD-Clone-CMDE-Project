@@ -26,6 +26,20 @@ function App() {
   };
 
 
+
+  // Function for handling joining a unique editor room (in the sense of passing its ID here so we can map it to the right Yjs document):
+  const handleRoomJoin = (roomID) => {
+
+
+    console.log("DEBUG: RAAAAAAAAAAAAAAAAAAAHHH!!!");
+    console.log("Debug: The value of roomID => [", roomID, "]");
+
+
+    setRoomID(roomID);
+  };
+
+
+
   useEffect(() => {
     const loadUser = async () => {
 
@@ -55,7 +69,7 @@ function App() {
         {/* BELOW ARE THE PROTECTED ROUTES (PAGES) -- NEED AUTHORIZATION TO ACCESS THEM!: */}
         
         {/* 3. Editing Session Dashboard Page. (Homepage **if** logged in): */}
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} setRoomID={setRoomID} /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} sendRoomID={handleRoomJoin} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<PrivateRoute><Editor roomID={roomID} /></PrivateRoute>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}

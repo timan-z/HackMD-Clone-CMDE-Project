@@ -7,6 +7,7 @@ import { createNewEdRoom } from "../utility/api.js";
 import { getAllRooms } from "../utility/api.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
+import { set } from "lodash";
 /* NOTE:
 - I should be safe using uuidv4(); to generate Room IDs because the probability of duplication is astronomically low
 AND since it's my primary key in the database anyways, PostgreSQL will automatically reject duplicates for me. 
@@ -25,7 +26,7 @@ DON'T FORGET: Solve this stupid problem:
 
 
 
-function Dashboard({ logout, setRoomID }) {
+function Dashboard({ logout, sendRoomID }) {
 
     const newEdRoomNameRef = useRef(null);
     const [rooms, setRooms] = useState([]);
@@ -70,7 +71,9 @@ function Dashboard({ logout, setRoomID }) {
     }, []);
 
     // To join a new room from the area I'll be loading them:
-    const handleJoin = (roomID) => {
+    const handleJoin = (roomID) => {    
+
+        sendRoomID(roomID);
         navigate(`/editor/${roomID}`);
     }
 
@@ -113,10 +116,7 @@ function Dashboard({ logout, setRoomID }) {
                     return(
 
 
-                        <div
-                            key={room.user_room_id}
-                            style={{borderStyle:"solid"}}
-                        >
+                        <div key={room.user_room_id} style={{borderStyle:"solid"}}>
                             <div>
                                 <p>{room.room_name}</p>
                                 <p>ID: {room.room_id} </p>
