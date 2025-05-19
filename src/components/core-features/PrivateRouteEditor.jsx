@@ -1,4 +1,5 @@
 // Adding this to make sure that a logged-in user can't access a /editor/:roomId
+// DEBUG:+NOTE: Nevermind, I think adding this route might've been completely redundant.
 
 import { Navigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";

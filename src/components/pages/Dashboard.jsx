@@ -2,9 +2,8 @@
 //<h1>DASHBOARD GOES HERE!!!</h1>
 
 import React, {useEffect, useState, useRef} from "react";
-import { useNavigate } from "react-router-dom";
-import { createNewEdRoom } from "../utility/api.js";
-import { getAllRooms } from "../utility/api.js";
+import { Navigate, useNavigate } from "react-router-dom";
+import { createNewEdRoom, getAllRooms, checkRoomAccess } from "../utility/api.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 import { set } from "lodash";
@@ -39,28 +38,12 @@ function Dashboard({ logout, sendRoomID }) {
     };
 
     useEffect(() => {
-
-        console.log("ROOMS-DEBUG: UseEffect HOOK ENTERED!!!");
-
         const fetchRooms = async() => {
-
-            console.log("ROOMS-DEBUG: fetchRooms IS ENTERED!!!");
-
-            const token = localStorage.getItem("token");
-            
-            console.log("ROOMS-DEBUG: token RETURNS => [", token, "]");
-            
+            const token = localStorage.getItem("token");            
             if(!token) return;
 
             try {
-
-                console.log("Rooms-Debug: Trying getAllRooms!!!");
-
-
                 const data = await getAllRooms(token);
-
-                console.log("Rooms-Debug RAN and the value of data => [", data, "]");
-
                 setRooms(data);
             } catch (err) {
                 console.error("DEBUG: was not able to fetch rooms oh no!: ", err);
@@ -71,17 +54,32 @@ function Dashboard({ logout, sendRoomID }) {
     }, []);
 
     // To join a new room from the area I'll be loading them:
-    const handleJoin = (roomID) => {    
+    const handleJoin = async(roomID) => {    
         sendRoomID(roomID);
-
+        const token = localStorage.getItem("token");
 
         // wrote a bunch of code for restricting Editor Room access making it only accessible if authroized.
+        // I think that I can have the Editor Room access restriction just over here???
+        /*try {
+            const data = await checkRoomAccess(roomID, token);
+
+            console.log("DEBUG: The value of data.access => [", data.access, "]");
 
 
-
+            // If access is not granted, re-direct to the Dashboard:
+            if(!data.access) navigate('/dashboard');
+            // If so, go to editor.
+            navigate(`/editor/${roomID}`);
+        } catch(err) {
+            console.error("Error: Attempt to check Editor Room access failed.");
+            navigate('/dashboard');
+        }*/
 
         navigate(`/editor/${roomID}`);
     }
+
+
+
 
     return(
         <div>
