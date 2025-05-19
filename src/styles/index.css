@@ -233,12 +233,20 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 
 /* Styling for the "Users-List" button on the top-right of the T.E. room webpage: */
 #users-list-button, #to-dashboard-button {
-  background: #008F11;
   border-style: solid;
   border-width: 5px;
   cursor:pointer;
   /*box-shadow: 0px 0px 0px 4000px rgba(27, 61, 88, 0.5) inset;*/ /* <-- NOTE: This line is for the shadow overlay to be cast over the button after clicking it! */
 }
+
+#users-list-button {
+  background: #00FF41;
+}
+
+#to-dashboard-button {
+  background: #008F11;
+}
+
 .users-l-add-shadow {
   box-shadow: 0px 0px 0px 4000px rgba(27, 61, 88, 0.5) inset;
 }

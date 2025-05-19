@@ -48,8 +48,6 @@ export const createNewEdRoom = async (edRoomName, token) => {
     return await result.json();
 };
 
-
-
 // 2.2. Retrieve Editor Rooms associated with Logged-In User (to load into Dashboard):
 export const getAllRooms = async(token) => {
     const result = await fetch(`${API_BASE}/auth/rooms`, {
@@ -58,4 +56,13 @@ export const getAllRooms = async(token) => {
     return await result.json();
 };
 
-
+// 2.3. Check to see if a Logged-In User has access to a particular Editor Room:
+export const checkRoomAccess = async(roomID, token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomID}/access`, {
+       headers: {
+        Authorization: `Bearer ${token}`,
+       }, 
+    });
+    if(!result.ok) throw new Error("Editor Room access check failed.");
+    return result.json();   // Returns { access: true/false }
+};

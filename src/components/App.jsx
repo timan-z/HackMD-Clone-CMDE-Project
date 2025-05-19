@@ -8,6 +8,7 @@ import Dashboard from "./pages/Dashboard.jsx";
 import Editor from "./pages/Editor.jsx";
 import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing unauthorized access to certain pages...
 import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx"; // ^ More of the same but for more minor purposes.
+import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
 
 
 // NOTE-TO-SELF: This "App" function serves as our root.
@@ -72,7 +73,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} sendRoomID={handleRoomJoin} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRoute><Editor roomID={roomID} /></PrivateRoute>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor><Editor roomID={roomID} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.

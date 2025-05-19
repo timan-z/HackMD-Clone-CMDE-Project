@@ -72,8 +72,14 @@ function Dashboard({ logout, sendRoomID }) {
 
     // To join a new room from the area I'll be loading them:
     const handleJoin = (roomID) => {    
-
         sendRoomID(roomID);
+
+
+        // wrote a bunch of code for restricting Editor Room access making it only accessible if authroized.
+
+
+
+
         navigate(`/editor/${roomID}`);
     }
 

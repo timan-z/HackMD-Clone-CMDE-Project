@@ -155,3 +155,23 @@ export const getAllEdRooms = async (req, res) => {
         res.status(500).json({error: "COULD NOT RETRIEVE EDITOR ROOMS."});
     }
 };
+
+// 2.3. Function for checking to see if logged-in user has access to a specific Editor Room:
+export const checkEditorAccess = async(req, res) => {
+    const userID = req.user.id;
+    const roomID = req.params.roomId;
+
+    try {
+        const accessRes = await pool.query(
+            `SELECT * FROM user_rooms WHERE user_id = $1 AND room_id = $2`, [userID, roomID]
+        );
+        if(accessRes.rows.length > 0) {
+            return res.json({ access: true});
+        } else {
+            return res.json({ access: false});
+        }
+    } catch (err) {
+        console.error("ERROR checking Editor Room Access: ", err);
+        res.status(500).json({ error: "Internal Server Error ", access: false});
+    }
+};
