@@ -16,7 +16,7 @@ function App() {
 
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
-  const [roomID, setRoomID] = useState(null);
+  const [roomId, setRoomID] = useState(null);
 
 
   // Function for handling logging-out (will be passed to routes):
@@ -29,14 +29,14 @@ function App() {
 
 
   // Function for handling joining a unique editor room (in the sense of passing its ID here so we can map it to the right Yjs document):
-  const handleRoomJoin = (roomID) => {
+  const handleRoomJoin = (roomId) => {
 
 
     console.log("DEBUG: RAAAAAAAAAAAAAAAAAAAHHH!!!");
-    console.log("Debug: The value of roomID => [", roomID, "]");
+    console.log("Debug: The value of roomId => [", roomId, "]");
 
 
-    setRoomID(roomID);
+    setRoomID(roomId);
   };
 
 
@@ -73,7 +73,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} sendRoomID={handleRoomJoin} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomID={roomID}><Editor roomID={roomID} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.

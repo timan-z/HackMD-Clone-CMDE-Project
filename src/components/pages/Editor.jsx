@@ -118,7 +118,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ roomID }) {
+function EditorContent({ roomId }) {
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -641,7 +641,7 @@ function EditorContent({ roomID }) {
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
                   <CollaborationPlugin
-                    id={roomID}
+                    id={roomId}
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
@@ -746,11 +746,11 @@ function EditorContent({ roomID }) {
   );
 }
 
-function Editor({ roomID }) {
+function Editor({ roomId }) {
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent roomID={roomID} />
+      <EditorContent roomId={roomId} />
     </LexicalComposer>
   );
 }

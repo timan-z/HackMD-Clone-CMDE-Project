@@ -57,8 +57,8 @@ export const getAllRooms = async(token) => {
 };
 
 // 2.3. Check to see if a Logged-In User has access to a particular Editor Room:
-export const checkRoomAccess = async(roomID, token) => {
-    const result = await fetch(`${API_BASE}/auth/rooms/${roomID}/access`, {
+export const checkRoomAccess = async(roomId, token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/access`, {
        headers: {
         Authorization: `Bearer ${token}`,
        }, 

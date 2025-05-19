@@ -10,15 +10,7 @@ const PrivateRouteEditor = ({ children }) => {
     const { roomId } = useParams();
     const [isAuthorized, setIsAuthorized] = useState(null);
 
-    
-
-
     useEffect(() => {
-
-        console.log("DEBUG: The useEffect(()=>{...}) inside PrivateRouteEditor.jsx was entered...");
-        console.log("1. Debug: The value of token is: [", token, "]");
-        console.log("2. Debug: The value of roomID is: [", roomId, "]");
-
         const verifyAccess = async () => {
             try {
                 const data = await checkRoomAccess(roomId, token);

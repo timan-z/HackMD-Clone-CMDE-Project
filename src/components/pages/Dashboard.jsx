@@ -54,31 +54,10 @@ function Dashboard({ logout, sendRoomID }) {
     }, []);
 
     // To join a new room from the area I'll be loading them:
-    const handleJoin = async(roomID) => {    
-        sendRoomID(roomID);
-
-
-        //const token = localStorage.getItem("token");
-        // wrote a bunch of code for restricting Editor Room access making it only accessible if authroized.
-        // I think that I can have the Editor Room access restriction just over here???
-        /*try {
-            const data = await checkRoomAccess(roomID, token);
-            console.log("DEBUG: The value of data.access => [", data.access, "]");
-            // If access is not granted, re-direct to the Dashboard:
-            if(!data.access) navigate('/dashboard');
-            // If so, go to editor.
-            navigate(`/editor/${roomID}`);
-        } catch(err) {
-            console.error("Error: Attempt to check Editor Room access failed.");
-            navigate('/dashboard');
-        }*/
-
-        
-        navigate(`/editor/${roomID}`);
+    const handleJoin = async(roomId) => {    
+        sendRoomID(roomId);        
+        navigate(`/editor/${roomId}`);
     }
-
-
-
 
     return(
         <div>

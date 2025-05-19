@@ -114,7 +114,7 @@ export const createNewEdRoom = async(req, res) => {
         // Now also make a value for the middleman table that connects Table users and Table rooms:
         await pool.query("INSERT INTO user_rooms (user_id, room_id, role) VALUES ($1, $2, $3)", [userID, edRoomID, "king"]);
 
-        res.status(201).json({message: "ROOM HAS BEEN CREATED", roomID: edRoomID});
+        res.status(201).json({message: "ROOM HAS BEEN CREATED", roomId: edRoomID});
     } catch(err) {
         console.error("ERROR creating Editor Room: ", err);
         res.status(500).json({ error: "ERROR: Failed to create editor room."});
@@ -159,11 +159,11 @@ export const getAllEdRooms = async (req, res) => {
 // 2.3. Function for checking to see if logged-in user has access to a specific Editor Room:
 export const checkEditorAccess = async(req, res) => {
     const userID = req.user.id;
-    const roomID = req.params.roomId;
+    const roomId = req.params.roomId;
 
     try {
         const accessRes = await pool.query(
-            `SELECT * FROM user_rooms WHERE user_id = $1 AND room_id = $2`, [userID, roomID]
+            `SELECT * FROM user_rooms WHERE user_id = $1 AND room_id = $2`, [userID, roomId]
         );
         if(accessRes.rows.length > 0) {
             return res.json({ access: true});
