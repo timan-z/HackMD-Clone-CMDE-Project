@@ -66,3 +66,14 @@ export const checkRoomAccess = async(roomId, token) => {
     if(!result.ok) throw new Error("Editor Room access check failed.");
     return result.json();   // Returns { access: true/false }
 };
+
+// 2.4. For generating invite links:
+export const generateInvLink = async(roomId, token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms/:roomId/invite`, {
+        headers: {
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return result.json(); // Returns { inviteURL: {the_url} }
+};
+

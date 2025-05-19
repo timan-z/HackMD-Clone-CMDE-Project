@@ -39,6 +39,19 @@ CREATE TABLE user_rooms(
 
 */
 
+/* This command for the table I'm using to store Shareable Invite links:
+CREATE TABLE invite_links (
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    room_id UUID REFERENCES rooms(id) ON DELETE CASCADE,
+    created_by INTEGER REFERENCES users(id),
+    expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+*/
+
+
+
 /* NOTE: DO NOT FORGET I NEED TO GRANT PERMISSION FOR EACH OF THE TABLES DIRECTLY BEFORE I CAN SEND THEM POOL.QUERY THINGS
 -- GRANTING ALL PERMISSIONS ON THE DATABASE ALONE DOESN'T HELP -- I NEED ALL OF THEM */
 

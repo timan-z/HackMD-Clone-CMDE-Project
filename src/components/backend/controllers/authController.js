@@ -175,3 +175,8 @@ export const checkEditorAccess = async(req, res) => {
         res.status(500).json({ error: "Internal Server Error ", access: false});
     }
 };
+
+// 2.4. Function for generating shareable invite links:
+/*export const generateInvLink = async (req, res) => {
+
+}*/
