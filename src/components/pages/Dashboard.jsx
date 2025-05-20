@@ -23,10 +23,7 @@ DON'T FORGET: Solve this stupid problem:
 
 */
 
-
-
 function Dashboard({ logout, sendRoomID }) {
-
     const joinEdRoomLink = useRef(null);
     const newEdRoomNameRef = useRef(null);
     const [invLink, setInvLink] = useState("");
@@ -61,43 +58,24 @@ function Dashboard({ logout, sendRoomID }) {
         navigate(`/editor/${roomId}`);
     }
 
-
-
     // Function for handling generate link invites:
     const generateInvite = async(roomId) => {
         const token = localStorage.getItem("token");
         if(!token) return;
         try {
-
-            console.log("DEBUG: ERROR I'M FACING HAPPENS INSIDE FUNCTION \"generateInvLink\"!!!!");
-
             const data = await generateInvLink(roomId, token);
-
-            console.log("DEBUG: ERROR I'M FACING -- Looks like I mispoke...");
-
-            console.log("generateInvite-DEBUG: The value of data => [", data, "]");
-
             setInvLink(data.inviteURL);
-
             // FOR NOW...
         } catch (err) {
             console.error("DEBUG: Error in attempting to generate invite links...");
         }
     };
 
-
-
-
     return(
         <div>
             <h1>DASHBOARD GOES HERE!!!</h1>
 
             <button onClick={handleLogout} >LOG OUT</button>
-
-
-
-
-
 
             <div style={{display:"flex", gap:"25px"}}>
 
@@ -198,6 +176,13 @@ function Dashboard({ logout, sendRoomID }) {
                                 When I polish the site a little more... I can have like the same thing, but when you close the pop-up,
                                 then the state variable will reset back to "" empty.*/}
                             </div>
+
+                            {/* Want a button here that lets you LEAVE the room. */}
+                            
+
+                            {/* Want a button here that lets you DELETE the room. */}
+
+                            {/* DEBUG:+NOTE: Maybe you only get the "leave" button if you're non-owner. Only get "delete" if you're the owner. */}
 
                         </div>
                     )

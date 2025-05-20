@@ -51,6 +51,7 @@ export const createNewEdRoom = async (edRoomName, token) => {
 // 2.2. Retrieve Editor Rooms associated with Logged-In User (to load into Dashboard):
 export const getAllRooms = async(token) => {
     const result = await fetch(`${API_BASE}/auth/rooms`, {
+        method: "GET",
         headers: { Authorization: `Bearer ${token}` },
     });
     return await result.json();
@@ -69,9 +70,6 @@ export const checkRoomAccess = async(roomId, token) => {
 
 // 2.4. For generating invite links:
 export const generateInvLink = async(roomId, token, expiresInMinutes = 60) => {
-
-    console.log("DEBUG: Function generateInvLink is entered at the very least...");
-
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/invite`, {
         method: "POST",
         headers: {
@@ -83,14 +81,8 @@ export const generateInvLink = async(roomId, token, expiresInMinutes = 60) => {
     return result.json(); // Returns { inviteURL: {the_url} }
 };
 
-
-
-
 // 2.5. For using invite links:
 export const joinRoomViaInv = async(token, inviteId) => {
-
-    console.log("DEBUG: I'm in side the joinRoomViaInv function...");
-
     const result = await fetch(`${API_BASE}/auth/invite/${inviteId}`, {
         method: "POST",
         headers: {
@@ -100,3 +92,15 @@ export const joinRoomViaInv = async(token, inviteId) => {
     });
     return result.json(); 
 };
+
+// 2.6. For LEAVING a room:
+export const leaveRoom = async(roomId, token) {
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/leave`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+    });
+    return result.json();
+};
+
