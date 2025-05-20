@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState, useRef} from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { createNewEdRoom, getAllRooms, checkRoomAccess } from "../utility/api.js";
+import { createNewEdRoom, getAllRooms, checkRoomAccess, generateInvLink, joinRoomViaInv } from "../utility/api.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 import { set } from "lodash";
@@ -27,7 +27,9 @@ DON'T FORGET: Solve this stupid problem:
 
 function Dashboard({ logout, sendRoomID }) {
 
+    const joinEdRoomLink = useRef(null);
     const newEdRoomNameRef = useRef(null);
+    const [invLink, setInvLink] = useState("");
     const [rooms, setRooms] = useState([]);
     
     const navigate = useNavigate();
@@ -39,7 +41,7 @@ function Dashboard({ logout, sendRoomID }) {
 
     useEffect(() => {
         const fetchRooms = async() => {
-            const token = localStorage.getItem("token");            
+            const token = localStorage.getItem("token");
             if(!token) return;
 
             try {
@@ -59,63 +61,150 @@ function Dashboard({ logout, sendRoomID }) {
         navigate(`/editor/${roomId}`);
     }
 
+
+
+    // Function for handling generate link invites:
+    const generateInvite = async(roomId) => {
+        const token = localStorage.getItem("token");
+        if(!token) return;
+        try {
+
+            console.log("DEBUG: ERROR I'M FACING HAPPENS INSIDE FUNCTION \"generateInvLink\"!!!!");
+
+            const data = await generateInvLink(roomId, token);
+
+            console.log("DEBUG: ERROR I'M FACING -- Looks like I mispoke...");
+
+            console.log("generateInvite-DEBUG: The value of data => [", data, "]");
+
+            setInvLink(data.inviteURL);
+
+            // FOR NOW...
+        } catch (err) {
+            console.error("DEBUG: Error in attempting to generate invite links...");
+        }
+    };
+
+
+
+
     return(
         <div>
             <h1>DASHBOARD GOES HERE!!!</h1>
 
             <button onClick={handleLogout} >LOG OUT</button>
 
-            {/* Want a button that goes here for creating a new room... */}
-            <div style={{borderStyle:"solid", borderColor:"red", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
-                <h4>DEBUG: CREATE ROOM BUTTON</h4>    
 
-                {/* This form will connect t othe authController.js or whatever and invoke the Create Table command (more or less): */}
-                {/* DEBUG: For now, I am doing extremely minimal styling <here styleName={}></here> */}
-                <form onSubmit={ async (e) => {
-                    e.preventDefault();
-                    const edRoomName = newEdRoomNameRef.current.value;
-                    const token = localStorage.getItem("token");
-                    console.log("DEBUG: THE VALUE OF token => [", token, "]");
-                    const data = await createNewEdRoom(edRoomName, token);
-                    console.log("debug: dah value of data => [", data, "]");
-                }}>
-                    <div style={{width:"100%"}}>
-                        Give room a name (optional).
-                        <input id="createEdRoomName" type="text" ref={newEdRoomNameRef} style={{width:"100%"}}></input>
-                    </div>
-                    <button>CLICK TO CREATE ROOM</button>
-                </form>
+
+
+
+
+            <div style={{display:"flex", gap:"25px"}}>
+
+                {/* Want a button that goes here for CREATING a new room... */}
+                <div style={{borderStyle:"solid", borderColor:"red", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
+                    <h4>DEBUG: CREATE ROOM BUTTON</h4>    
+
+                    {/* This form will connect t othe authController.js or whatever and invoke the Create Table command (more or less): */}
+                    {/* DEBUG: For now, I am doing extremely minimal styling <here styleName={}></here> */}
+                    <form onSubmit={ async (e) => {
+                        e.preventDefault();
+                        const edRoomName = newEdRoomNameRef.current.value;
+                        const token = localStorage.getItem("token");
+                        console.log("DEBUG: THE VALUE OF token => [", token, "]");
+                        const data = await createNewEdRoom(edRoomName, token);
+                        console.log("debug: dah value of data => [", data, "]");
+                    }}>
+                        <div style={{width:"100%"}}>
+                            Give room a name (optional).
+                            <input id="createEdRoomName" type="text" ref={newEdRoomNameRef} style={{width:"100%"}}></input>
+                        </div>
+                        <button>CLICK TO CREATE ROOM</button>
+                    </form>
+                </div>
+
+                {/* Want a button here and a form with it for JOINING a new room... */}
+                <div style={{borderStyle:"solid", borderColor:"blue", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
+                    Here's where I'll have the stuff for JOINING a new room.
+
+                    {/* The form for calling the right functions for joining a new room: */}
+                    <form onSubmit={ async(e) => {
+                        e.preventDefault();
+                        const token = localStorage.getItem("token");
+                        const edRoomLink = joinEdRoomLink.current.value;
+
+
+                        console.log("DEBUG: join join join join join join -- 1");
+
+
+                        const data = await joinRoomViaInv(token, edRoomLink);
+
+
+                        console.log("DEBUG: join join join join join join -- 2");
+
+
+                        console.log("DEBUG: The value of data => [", data, "]");
+
+                        if(data.success) {
+                            // refresh page? (May not be needed).
+                            navigate("/dashboard");
+                        } else {
+                            alert("Seems to be an expired link.");
+                        }
+                    }}>
+                        <button>JOIN NEW ROOM</button>
+                        <input id="join-room-link" ref={joinEdRoomLink} type="text"/>
+                    </form>
+
+                </div>
+
             </div>
-            
 
+
+
+
+
+
+
+
+
+
+            {/* EVERYTHING BELOW IS WHERE THE "ROOM LOADING" STATIC CODE IS -- REMEMBER THAT FOR LATER WHEN REORGANIZING!!! */}
             <h4>LOAD ROOMS HERE:</h4>
-
-
             <div style={{borderStyle:"solid", borderColor:"purple"}}>
                 {rooms.map((room) => {
-
                     console.log("AHHHHHHHHHHHHHHHHHHH");
                     return(
-
-
                         <div key={room.user_room_id} style={{borderStyle:"solid"}}>
                             <div>
                                 <p>{room.room_name}</p>
                                 <p>ID: {room.room_id} </p>
                                 <p>Role: {room.role}</p>
                             </div>
-                            <button
-                                onClick={()=> handleJoin(room.room_id)}
-                            >
+                            
+                            {/* JOIN ROOM BUTTON: */}
+                            <button onClick={()=> handleJoin(room.room_id)} >
                                 JOIN ROOM
                             </button>
+
+                            {/* GENERATE INVITE LINK BUTTON: */}
+                            <div style={{display:"flex", flexDirection:"row", alignItems:"center"}}>
+                                <button onClick={()=> generateInvite(room.room_id)}>GET INVITE</button>
+                                {/* DEBUG: I want some text that goes "Your Inv Link:"[ Rect where text is dynamically allocated ] */}
+                                Your Invite Link: <p style={{ borderStyle:"solid", height:"20px", width:"500px" }}>{invLink}</p>
+                                {/* NOTE:+DEBUG: ^ this is what I have **FOR NOW** Think it'd be better to have a pop-up afterwards... */}
+                                <button onClick={()=> navigator.clipboard.writeText(invLink) }>COPY LINK</button>
+                                {/* NOTE:+DEBUG: For now, let's just make this <button> copy the state variable value to the clipboard.
+                                When I polish the site a little more... I can have like the same thing, but when you close the pop-up,
+                                then the state variable will reset back to "" empty.*/}
+                            </div>
+
                         </div>
-
-
-
                     )
                 })}
             </div>
+            {/* EVERYTHING ABOVE IS WHERE THE "ROOM LOADING" STATIC CODE IS -- REMEMBER THAT FOR LATER WHEN REORGANIZING!!! */}
+
         </div>
     );
 }

@@ -61,19 +61,42 @@ export const checkRoomAccess = async(roomId, token) => {
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/access`, {
        headers: {
         Authorization: `Bearer ${token}`,
-       }, 
+       },
     });
     if(!result.ok) throw new Error("Editor Room access check failed.");
     return result.json();   // Returns { access: true/false }
 };
 
 // 2.4. For generating invite links:
-export const generateInvLink = async(roomId, token) => {
-    const result = await fetch(`${API_BASE}/auth/rooms/:roomId/invite`, {
+export const generateInvLink = async(roomId, token, expiresInMinutes = 60) => {
+
+    console.log("DEBUG: Function generateInvLink is entered at the very least...");
+
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/invite`, {
+        method: "POST",
         headers: {
+            "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
         },
+        body: JSON.stringify({ expiresInMinutes })
     });
     return result.json(); // Returns { inviteURL: {the_url} }
 };
 
+
+
+
+// 2.5. For using invite links:
+export const joinRoomViaInv = async(token, inviteId) => {
+
+    console.log("DEBUG: I'm in side the joinRoomViaInv function...");
+
+    const result = await fetch(`${API_BASE}/auth/invite/${inviteId}`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+        },
+    });
+    return result.json(); 
+};

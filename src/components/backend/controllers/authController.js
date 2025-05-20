@@ -177,6 +177,68 @@ export const checkEditorAccess = async(req, res) => {
 };
 
 // 2.4. Function for generating shareable invite links:
-/*export const generateInvLink = async (req, res) => {
+export const generateEdInvLink = async(req, res) => {
+    const {roomId} = req.params;
+    const {expiresInMinutes} = req.body;
+    const userId = req.user.id;
 
-}*/
+    // Ensure requester is the Editor Room owner:
+    // NOTE: ^ FOR NOW... **Maybe** later on, I can add permissions for users set by the Owner and toggle who can do what.
+    const ownerCheck = await pool.query(`
+        SELECT role FROM user_rooms WHERE room_id = $1 AND user_id = $2
+    `, [roomId, userId]);
+
+    if(ownerCheck.rows[0]?.role !== 'king') {
+        return res.status(403).json({ error: "Only the room owner (king) can generate Room invites."});
+    }
+
+    const expiresAt = new Date(Date.now() + expiresInMinutes * 60 * 1000); // NOTE: Going to make the invites last one hour.
+    const result = await pool.query(`
+        INSERT INTO invite_links (room_id, created_by, expires_at) VALUES ($1, $2, $3) RETURNING id
+    `, [roomId, userId, expiresAt]);
+
+    const inviteId = result.rows[0].id;
+    res.json({ inviteURL: `${inviteId}` });
+}
+
+
+
+
+
+
+
+
+// 2.5. Function for joining an Editor Room via Invite Link:
+export const joinEdRoomViaInv = async(req, res) => {
+
+
+    console.log("DEBUG: I am inside the joinEdRoomViaInv function...");
+
+
+    const {inviteId} = req.params;
+    const userId = req.user.id;
+
+    const result = await pool.query(`
+        SELECT room_id, expires_at FROM invite_links WHERE id = $1
+    `, [inviteId]);
+
+    const invite = result.rows[0];
+    if(!invite || new Date(invite.expires_at) < new Date()) {
+        return res.status(400).json({ error: "Looks like this Invite has is invalid! (Or has expired)."});
+    }
+    // Add user if not already in room:
+    const check = await pool.query(`
+        SELECT * FROM user_rooms WHERE user_id = $1 AND room_id = $2
+    `, [userId, invite.room_id]);
+    
+    // If the current user is not the Room, they will be granted access:
+    if(check.rowCount === 0) {
+        await pool.query(`
+            INSERT INTO user_rooms (user_id, room_id) VALUES ($1, $2)
+        `, [userId, invite.room_id]);
+
+        return res.json({ success: true, roomId: invite.room_id });
+    } 
+    // Some kind of notification that says you're already there:
+    res.json({ success: false, error: "ERROR: You're already in this room!"});
+};
