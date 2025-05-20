@@ -212,6 +212,7 @@ function Dashboard({ logout, sendRoomID }) {
                             </button>
 
                             {/* DEBUG:+NOTE: Maybe you only get the "leave" button if you're non-owner. Only get "delete" if you're the owner. */}
+                            {/* ^ I can have them still be there but grayed out when I attempt to click them! with hover text that says "You the owner!" */}
 
                         </div>
                     )
