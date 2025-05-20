@@ -201,20 +201,8 @@ export const generateEdInvLink = async(req, res) => {
     res.json({ inviteURL: `${inviteId}` });
 }
 
-
-
-
-
-
-
-
 // 2.5. Function for joining an Editor Room via Invite Link:
 export const joinEdRoomViaInv = async(req, res) => {
-
-
-    console.log("DEBUG: I am inside the joinEdRoomViaInv function...");
-
-
     const {inviteId} = req.params;
     const userId = req.user.id;
 
@@ -241,4 +229,26 @@ export const joinEdRoomViaInv = async(req, res) => {
     } 
     // Some kind of notification that says you're already there:
     res.json({ success: false, error: "ERROR: You're already in this room!"});
+};
+
+// 2.6. Function for LEAVING an Editor Room:
+export const leaveEdRoom = async(req, res) => {
+    const {roomId} = req.params;
+    const userId = req.user.id;
+
+    // Need to check to see if this user is the Owner of the Editor Room server (if they are, they cannot leave it):
+    const ownerCheck = await pool.query(`
+        SELECT role FROM user_rooms WHERE room_id = $1 AND user_id = $2
+    `, [roomId, userId]);
+
+    if(ownerCheck.rows[0]?.role === 'king') {
+        return res.status(403).json({ success: false, error: "The Editor owner (king) cannot leave the Room."});
+    }
+
+    // Otherwise, just leave it:
+    await pool.query(`
+        DELETE FROM user_rooms WHERE user_id = $1 AND room_id = $2;
+    `, [userId, roomId]);
+    
+    res.json({ success: true });
 };

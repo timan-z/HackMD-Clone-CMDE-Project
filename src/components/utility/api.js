@@ -51,7 +51,7 @@ export const createNewEdRoom = async (edRoomName, token) => {
 // 2.2. Retrieve Editor Rooms associated with Logged-In User (to load into Dashboard):
 export const getAllRooms = async(token) => {
     const result = await fetch(`${API_BASE}/auth/rooms`, {
-        method: "GET",
+        method:"GET",
         headers: { Authorization: `Bearer ${token}` },
     });
     return await result.json();
@@ -94,7 +94,7 @@ export const joinRoomViaInv = async(token, inviteId) => {
 };
 
 // 2.6. For LEAVING a room:
-export const leaveRoom = async(roomId, token) {
+export const leaveRoom = async(roomId, token) => {
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/leave`, {
         method: "POST",
         headers: {

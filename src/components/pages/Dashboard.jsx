@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState, useRef} from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { createNewEdRoom, getAllRooms, checkRoomAccess, generateInvLink, joinRoomViaInv } from "../utility/api.js";
+import { createNewEdRoom, getAllRooms, checkRoomAccess, generateInvLink, joinRoomViaInv, leaveRoom } from "../utility/api.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 import { set } from "lodash";
@@ -56,6 +56,18 @@ function Dashboard({ logout, sendRoomID }) {
     const handleJoin = async(roomId) => {    
         sendRoomID(roomId);        
         navigate(`/editor/${roomId}`);
+    }
+
+    // To leave a room:
+    const handleLeave = async(roomId) => {
+        const token = localStorage.getItem("token");
+        if(!token) return;
+        try {
+            const data = await leaveRoom(roomId, token);
+            navigate('/dashboard');
+        } catch (err) {
+            console.error("DEBUG: Error in attempting to leave the Editor Room ID: ", roomId);
+        }
     }
 
     // Function for handling generate link invites:
@@ -111,31 +123,23 @@ function Dashboard({ logout, sendRoomID }) {
                         const token = localStorage.getItem("token");
                         const edRoomLink = joinEdRoomLink.current.value;
 
-
-                        console.log("DEBUG: join join join join join join -- 1");
-
-
-                        const data = await joinRoomViaInv(token, edRoomLink);
-
-
-                        console.log("DEBUG: join join join join join join -- 2");
-
-
-                        console.log("DEBUG: The value of data => [", data, "]");
-
-                        if(data.success) {
-                            // refresh page? (May not be needed).
-                            navigate("/dashboard");
-                        } else {
-                            alert("Seems to be an expired link.");
+                        try {
+                            const data = await joinRoomViaInv(token, edRoomLink);
+                            console.log("DEBUG: The value of data => [", data, "]");
+                            if(data.success) {
+                                // refresh page? (May not be needed).
+                                navigate("/dashboard");
+                            } else {
+                                alert("Seems to be an expired link or you might already be in the room.");
+                            }
+                        } catch (err) {
+                            console.error("Failed to join Editor Room via invite -- probably invalid link or something.");
                         }
                     }}>
                         <button>JOIN NEW ROOM</button>
                         <input id="join-room-link" ref={joinEdRoomLink} type="text"/>
                     </form>
-
                 </div>
-
             </div>
 
 
@@ -181,6 +185,10 @@ function Dashboard({ logout, sendRoomID }) {
                             
 
                             {/* Want a button here that lets you DELETE the room. */}
+                            <button onClick={()=>handleLeave(room.room_id)}>
+                                LEAVE ROOM
+                            </button>
+
 
                             {/* DEBUG:+NOTE: Maybe you only get the "leave" button if you're non-owner. Only get "delete" if you're the owner. */}
 
