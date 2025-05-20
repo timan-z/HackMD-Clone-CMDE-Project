@@ -22,12 +22,13 @@ export function createUsersList() {
     usersListContainer.id = 'users-list-container';
     Object.assign(usersListContainer.style, {
         top:'0%', // Important for positioning it at the top (the positionToTheRight() function I added *only* does that).
-        width:'335px',
+        width:'375px',
         backgroundColor: '#008F11', // NOTE: This is the darker Matrix green.
         border: '5px solid #0D0208',
         borderRadius: '7.5%',
         fontFamily: 'Arial, sans-serif',
         position: 'fixed',
+        cursor: 'grab',
         zIndex: 99999,
     });
 
@@ -45,9 +46,8 @@ export function createUsersList() {
         gap: '10px',
         backgroundColor: '#008F11',
         display: 'flex',
-        cursor: 'grab',
         userSelect: 'none',
-        borderRadius: '25.5%',
+        borderRadius: '35%',
     });
     usersListBar.textContent = 'Users List';
 
@@ -83,7 +83,7 @@ export function createUsersList() {
     usersListBar.appendChild(expBtn);
 
     // Adding functionality for the ("^"/"V") button - expanding and collapsing the Users List Body (which will be defined later on).
-    usersListBar.addEventListener("click", function () {
+    expBtn.addEventListener("click", function () {
         const getExpBtn = document.getElementById('ulb-exp-btn');
         const getUserListBody = document.getElementById('users-list-body');
         if(!getExpBtn || !getUserListBody) return;
@@ -106,7 +106,11 @@ export function createUsersList() {
     closeBtn.addEventListener("click", function () {
         removeUsersList(usersListBtn);
     });
-    usersListBar.appendChild(closeBtn);    
+    usersListBar.appendChild(closeBtn);
+
+
+
+
 
 
 
@@ -117,6 +121,7 @@ export function createUsersList() {
 
 
     // DEBUG: BELOW = WORKING ON THE BODY!!!
+
     // need to figure out how i'll be loading in the user information
 
     /* NOTE: Remember there's an "Active Users" section first, then an "Offline Users" section (maybe differentiate with colour).
@@ -124,18 +129,35 @@ export function createUsersList() {
 
     /* Creating the collapsible body for the Users List Container. It's here that the Users List will appear...
     (In each User Row of the list, there will be Username, Socket.IO ID (unique identifier), and a Chat Msg icon to open live chat). */
-    // DEBUG:+NOTE: ^ Potentially also have a profile picture section added as well (but this is fairly ancillary).
     const usersListBody = document.createElement('div');
     usersListBody.id = 'users-list-body';
     Object.assign(usersListBody.style, {
         backgroundColor: '#001F10',
         borderRadius: '5%',
         color: 'white',
-        height: '300px',
-        /*maxHeight: '500px',*/ // <---DEBUG:+NOTE: I want to make this Users List <div> EXPANDABLE VERTICALLY to a max height of 500px. I know how to do this. Come back and do it later!!!
+        height: '400px',
+        //maxHeight: '500px', // <---DEBUG:+NOTE: I want to make this Users List <div> EXPANDABLE VERTICALLY to a max height of 500px. I know how to do this. Come back and do it later!!!
         padding: '10px',
+        overflowY: 'auto',
     });
-    usersListBody.textContent = 'THIS IS WHERE I WOULD LOAD IN THE USER INFORMATION...';
+
+    // Active Users Section:
+    const activeUsersSection = document.createElement('div');
+    activeUsersSection.id = 'active-users-section';
+    Object.assign(activeUsersSection.style, {
+        display:'flex',
+        flexDirection:'column',
+        gap:'5px'
+    });
+    // Active Users Header:
+    const activeUsersHeader = document.createElement('div');
+    activeUsersHeader.id = 'active-users-header';
+    Object.assign(activeUsersHeader.style, {
+        fontSize: '20px',
+        fontWeight: 'bold',
+    });
+    activeUsersHeader.textContent = 'Active Users';
+    activeUsersSection.append(activeUsersHeader);
 
 
 
@@ -146,18 +168,33 @@ export function createUsersList() {
 
 
 
+    // BELOW-DEBUG: TEST USERS FOR ACTIVE SECTION:
+    // NOTE: Need to make this more advanced -- username, underneath it is user.id, to the far right is the Text Msg icon w/ link to the user.
+    const activeUsers = ['Adam', 'Stavros', 'Nick', 'Neo', 'Trinity', 'Morpheus', 'Something new'];
 
-
-
-
-    // DEBUG: ABOVE = WORKING ON THE BODY!!!
-
-
-
-
-
+    //activeUsersSection.appendChild(document.createElement('hr'));
     
-    
+    activeUsers.forEach(user => {
+        // Horizontal line above each "User" entry row (just style formatting):
+        const horLineAUS = document.createElement('hr');
+        Object.assign(horLineAUS.style, {
+            width:"100%",
+        });
+        activeUsersSection.appendChild(horLineAUS);
+
+        // Actual "User" entry row:
+        const userItem = document.createElement('div');
+        userItem.textContent = '• ' + user;
+        activeUsersSection.appendChild(userItem);
+    });
+    // Last Horizontal line in the Active Users section -- or just the one separating the Active and Inactive section:
+    const lastHorLineAUS = document.createElement('hr');
+    Object.assign(lastHorLineAUS.style, {
+        width:"100%",
+    });
+    activeUsersSection.appendChild(lastHorLineAUS);
+
+    // ABOVE-DEBUG: TEST USERS FOR ACTIVE SECTION!
 
 
 
@@ -166,17 +203,47 @@ export function createUsersList() {
 
 
 
+    // Inactive Users Section:
+    /*const inactiveUsersSection = document.createElement('div');
+    inactiveUsersSection.id = 'inactive-users-section';
+    Object.assign(activeUsersSection.style, {
+        display: 'flex',
+        flexDirection:'column',
+        gap:'5px',
+    });
+    // Inactive Users Header:
+    const inactiveUsersHeader = document.createElement('div');
+    inactiveUsersHeader.id = 'inactive-users-header';
+    Object.assign(inactiveUsersHeader.style, {
+        fontSize: '20px',
+        fontWeight: 'bold',
+    });
+    inactiveUsersHeader.textContent = 'Inactive Users';
+    inactiveUsersSection.append(inactiveUsersHeader);
+
+    // BELOW-DEBUG: TEST USERS FOR INACTIVE SECTION:
+    activeUsers.forEach(user => {
+        const userItem = document.createElement('div');
+        userItem.textContent = '• ' + user;
+        inactiveUsersSection.appendChild(userItem);
+    });
+    // ABOVE-DEBUG: TEST USERS FOR INACTIVE SECTION.*/
 
 
 
+
+
+
+
+
+    usersListBody.append(activeUsersSection);
+    //usersListBody.append(inactiveUsersSection);
     usersListContainer.appendChild(usersListBar);
     usersListContainer.appendChild(usersListBody);
     document.body.appendChild(usersListContainer);
-    addDragFunc(usersListContainer);  // Make it "draggable".
-    /* DEBUG: How will I make the other parts of this draggable? ^ Maybe I just move the positionToTheRight() function OUTSIDE
-    of the addDragFunc() function, and apply it to usersListContainer manually. (Then call addDragFunc() on all the individual parts
-    within usersListContainer to give it the "draggability" -- check to see if that works). */
 
+    // Making this whole container "draggable":
+    addDragFunc(usersListContainer);  
 }
 
 // NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):
@@ -242,7 +309,8 @@ function addDragFunc(element) {
     // Adding the event listeners for the "draggability" feature to the <div> element and webpage document:
     // 1.
     element.addEventListener("mousedown", (e) => {
-        if(e.target === element && !dragObj.drag_active) {
+        // NOTE: MAYBE Tweak the if-condition below so that it excludes Text Message stuff (so the user can go and copy and paste stuff).
+        if(element.contains(e.target) && !dragObj.drag_active) {
             dragObj.drag_in_prog = element;
             setOriginalPosition(e, dragObj);
             dragObj.drag_active = true;
