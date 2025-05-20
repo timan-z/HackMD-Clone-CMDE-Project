@@ -252,3 +252,56 @@ export const leaveEdRoom = async(req, res) => {
     
     res.json({ success: true });
 };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+// 2.7. Function for DELETING an Editor Room:
+export const deleteEdRoom = async(req, res) => {
+
+
+    console.log("DEBUG: Inside of authController.js' deleteEdRoom function!!!");
+
+
+
+    const {roomId} = req.params;
+    const userId = req.user.id;
+    // Basically the reverse of 2.6. -- this user will only be able to delete the editor room if they are its owner:
+    const ownerCheck = await pool.query(`
+        SELECT role FROM user_rooms WHERE room_id = $1 AND user_id = $2
+    `, [roomId, userId]);
+    if(ownerCheck.rows[0]?.role !== 'king') {
+        return res.status(403).json({ success: false, error: "The Editor owner (king) is the ONLY one who can delete the Room."});
+    }
+
+
+    console.log("DEBUG: THE ISSUE IS ALMOST CERTAINLY WITH THE pool.query BELOW!");
+
+
+    // Delete:
+    // DEBUG: Maybe I can't do multiple queries here...
+    await pool.query(`
+        DELETE FROM user_rooms WHERE room_id = $1;
+        DELETE FROM rooms WHERE id = $1; 
+    `, [roomId, roomId]);   // NOTE: I should rework my user_rooms to have "room_id UUID REFERENCES rooms(id)" become "room_id UUID REFERENCES rooms(id) ON DELETE CASCADE"
+
+    res.json({ success: true});
+};

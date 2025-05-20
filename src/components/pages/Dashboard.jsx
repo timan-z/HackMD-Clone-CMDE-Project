@@ -3,7 +3,7 @@
 
 import React, {useEffect, useState, useRef} from "react";
 import { Navigate, useNavigate } from "react-router-dom";
-import { createNewEdRoom, getAllRooms, checkRoomAccess, generateInvLink, joinRoomViaInv, leaveRoom } from "../utility/api.js";
+import { createNewEdRoom, getAllRooms, checkRoomAccess, generateInvLink, joinRoomViaInv, leaveRoom, deleteRoom } from "../utility/api.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 import { set } from "lodash";
@@ -69,6 +69,26 @@ function Dashboard({ logout, sendRoomID }) {
             console.error("DEBUG: Error in attempting to leave the Editor Room ID: ", roomId);
         }
     }
+
+
+    // To delete a room:
+    const handleDelete = async(roomId) => {
+        const token = localStorage.getItem("token");
+        if(!token) return;
+
+        try {
+            const data = await deleteRoom(roomId, token);
+            if(data.success) {
+                console.log("DEBUG: ROOM SUCCESSFULLY DELETED! => ", data);
+            } else {
+                console.log("DEBUG: ROOM NOT DELETED! => ", data);
+            }
+            navigate('/dashboard');
+        } catch (err) {
+            console.error("DEBUG: Error in attempting to delete the Editor Room ID: ", roomId);
+        }
+    }
+
 
     // Function for handling generate link invites:
     const generateInvite = async(roomId) => {
@@ -182,13 +202,14 @@ function Dashboard({ logout, sendRoomID }) {
                             </div>
 
                             {/* Want a button here that lets you LEAVE the room. */}
-                            
-
-                            {/* Want a button here that lets you DELETE the room. */}
                             <button onClick={()=>handleLeave(room.room_id)}>
                                 LEAVE ROOM
                             </button>
 
+                            {/* Want a button here that lets you DELETE the room. */}
+                            <button onClick={()=>handleDelete(room.room_id)}>
+                                DELETE ROOM
+                            </button>
 
                             {/* DEBUG:+NOTE: Maybe you only get the "leave" button if you're non-owner. Only get "delete" if you're the owner. */}
 

@@ -104,3 +104,18 @@ export const leaveRoom = async(roomId, token) => {
     return result.json();
 };
 
+// 2.7. For DELETING a room:
+export const deleteRoom = async(roomId, token) => {
+
+    
+    console.log("DEBUG: Inside of api.js function's deleteRoom function...");
+
+
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/delete`, {
+        method: "POST",
+        headers: {
+            Authorization: `Bearer ${token}`
+        },
+    });
+    return result.json();
+};

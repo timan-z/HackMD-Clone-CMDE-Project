@@ -1,7 +1,8 @@
 import express from "express";
 import { 
     registerUser, loginUser, getCurrentUser, createNewEdRoom, 
-    getAllEdRooms, checkEditorAccess, generateEdInvLink, joinEdRoomViaInv, leaveEdRoom 
+    getAllEdRooms, checkEditorAccess, generateEdInvLink, joinEdRoomViaInv, 
+    leaveEdRoom, deleteEdRoom 
 } from '../controllers/authController.js';
 import { verifyToken } from '../../utility/utilityFuncsBE.js';
 
@@ -19,5 +20,6 @@ router.get('/rooms/:roomId/access', verifyToken, checkEditorAccess);
 router.post('/rooms/:roomId/invite', verifyToken, generateEdInvLink);
 router.post('/invite/:inviteId', verifyToken, joinEdRoomViaInv);
 router.post('/rooms/:roomId/leave', verifyToken, leaveEdRoom);
+router.post('/rooms/:roomId/delete', verifyToken, deleteEdRoom);
 
 export default router;
