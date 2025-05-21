@@ -23,16 +23,10 @@ import { io } from "socket.io-client"; // <-- Bringing this one back.
 import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
-
-
-
-
 //import { createUsersList } from '../misc-features/usersListBar.js';
 import {createUsersList} from '../misc-features/UsersListBar.jsx';
 
-
 import { useNavigate } from "react-router-dom";
-
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
