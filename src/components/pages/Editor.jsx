@@ -27,7 +27,8 @@ const socket = io("http://localhost:4000"); // <-- bringing this back for tying 
 
 
 
-import { createUsersList } from '../misc-features/usersListBar.js';
+//import { createUsersList } from '../misc-features/usersListBar.js';
+import {createUsersList} from '../misc-features/UsersListBar.jsx';
 
 
 import { useNavigate } from "react-router-dom";

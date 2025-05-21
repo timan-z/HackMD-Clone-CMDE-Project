@@ -1,29 +1,36 @@
-function removeUsersList(usersListBtn) {
-    const removeUsersList = document.getElementById('users-list-container');
-    document.body.removeChild(removeUsersList);
-    usersListBtn = document.getElementById('users-list-button'); // Get rid of the shadow overlay effect.
-    usersListBtn.classList.remove('users-l-add-shadow');
-}
+// Refactored version of my original usersListBar.js file to be in .jsx form:
+import React, { useState } from "react";
 
 export function createUsersList() {
     let usersListBtn = null;
+
+    // my old function "removeUsersList":
+    const removeUsersList = (usersListBtn) => {
+        const removeUsersList = document.getElementById('users-list-container');
+        if (removeUsersList) {
+            document.body.removeChild(removeUsersList);
+            usersListBtn = document.getElementById('users-list-button'); // Get rid of the shadow overlay effect.
+            if (usersListBtn) usersListBtn.classList.remove('users-l-add-shadow');
+        }
+    };
+
     // If function invoked while Users-List bar is already present in the DOM, it should be removed (so I don't double+ import it):
-    if(document.getElementById('users-list-container')) {
+    if (document.getElementById('users-list-container')) {
         removeUsersList(usersListBtn);
         return;
     } else {
         // Otherwise, apply darkened shadow styling to the "className="users-list-button" User Icon <div> to imply Users List is active:
         usersListBtn = document.getElementById('users-list-button');
-        usersListBtn.classList.add('users-l-add-shadow');
+        if (usersListBtn) usersListBtn.classList.add('users-l-add-shadow');
     }
 
     // Creating Users-List Container that'll wrap the header (Users-List Bar) and collaspible body (the actual Users List):
     const usersListContainer = document.createElement('div');
     usersListContainer.id = 'users-list-container';
     Object.assign(usersListContainer.style, {
-        top:'0%', // Important for positioning it at the top (the positionToTheRight() function I added *only* does that).
-        width:'375px',
-        backgroundColor: '#008F11', // NOTE: This is the darker Matrix green.
+        top: '0%',
+        width: '375px',
+        backgroundColor: '#008F11',
         border: '5px solid #0D0208',
         borderRadius: '7.5%',
         fontFamily: 'Arial, sans-serif',
@@ -36,8 +43,8 @@ export function createUsersList() {
     const usersListBar = document.createElement('div');
     usersListBar.id = 'users-list-bar';
     Object.assign(usersListBar.style, {
-        width:'335px',
-        height:'50px',
+        width: '335px',
+        height: '50px',
         fontSize: '37px',
         fontWeight: 'bold',
         fontFamily: 'Arial, sans-serif',
@@ -54,7 +61,7 @@ export function createUsersList() {
     /* Adding buttons for the Users-List Bar: 
     1 - "^" (upside-down "V") collapse the Users List (button will transform to a regular "V" symbol after for re-expanding).
     2 - "X" to close the Users-List Bar. */
-    let buttonStyling = {
+    const buttonStyling = {
         width: '37px',
         height: '37px',
         backgroundColor: '#0D0208',
@@ -83,19 +90,19 @@ export function createUsersList() {
     usersListBar.appendChild(expBtn);
 
     // Adding functionality for the ("^"/"V") button - expanding and collapsing the Users List Body (which will be defined later on).
-    expBtn.addEventListener("click", function () {
+    expBtn.addEventListener('click', function () {
         const getExpBtn = document.getElementById('ulb-exp-btn');
         const getUserListBody = document.getElementById('users-list-body');
-        if(!getExpBtn || !getUserListBody) return;
+        if (!getExpBtn || !getUserListBody) return;
 
-        if(getExpBtn.style.transform === 'rotate(0deg)') {
+        if (getExpBtn.style.transform === 'rotate(0deg)') {
             // [1/2] The Users List Body <div> wants to be visible (so the "V" button should be rotated while the display is enabled):
             getExpBtn.style.transform = 'rotate(180deg)';
             getUserListBody.style.display = 'flex';
-            return;
+        } else {
+            getExpBtn.style.transform = 'rotate(0deg)'; // [2/2] vice-versa.
+            getUserListBody.style.display = 'none';
         }
-        getExpBtn.style.transform = 'rotate(0deg)'; // [2/2] vice-versa.
-        getUserListBody.style.display = 'none';
     });
 
     // 2 - Making the "X" button:
@@ -103,7 +110,7 @@ export function createUsersList() {
     closeBtn.id = 'ulb-close-btn';
     Object.assign(closeBtn.style, buttonStyling);
     closeBtn.textContent = 'X';
-    closeBtn.addEventListener("click", function () {
+    closeBtn.addEventListener('click', function () {
         removeUsersList(usersListBtn);
     });
     usersListBar.appendChild(closeBtn);
@@ -146,6 +153,8 @@ export function createUsersList() {
     });
     activeUsersHeader.textContent = 'Active Users';
     activeUsersSection.append(activeUsersHeader);
+
+
 
     // BELOW-DEBUG: TEST USERS FOR ACTIVE SECTION:
     // NOTE: Need to make this more advanced -- username, underneath it is user.id, to the far right is the Text Msg icon w/ link to the user.
@@ -209,7 +218,7 @@ export function createUsersList() {
     document.body.appendChild(usersListContainer);
 
     // Making this whole container "draggable":
-    addDragFunc(usersListContainer);  
+    addDragFunc(usersListContainer);
 }
 
 // NOTE: Maybe move these functions below to UtilityFuncs.js afterwards... (if it makes sense to do so):
@@ -301,3 +310,4 @@ function addDragFunc(element) {
     // Custom positioning of the <div> element:
     positionToTheRight(element);
 }
+
