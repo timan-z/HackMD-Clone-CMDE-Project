@@ -27,8 +27,28 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
 
                 // MAKE THE TO-BE-RENDERED CURSORS BASED ON otherCursors INFORMATION:
                 otherCursors.forEach(cursor => {
-                    const {cursorPos, id} = cursor; // GETTING THE CURSOR POSITION AND ID OF THIS CURSOR (LET'S KEEP IT SIMPLE, THAT'S ALL I WANT).
+                    const {cursorPos, id, username} = cursor; // GETTING THE CURSOR POSITION AND ID OF THIS CURSOR (LET'S KEEP IT SIMPLE, THAT'S ALL I WANT).
                     
+
+
+
+
+
+                    console.log("CURSOR-OVERLAY-DEBUG: THE VALUE OF username => [", username, "]");
+                    
+                    // DEBUG: Have this here for testing purposes...
+                    /*let labelTextCtnt = null;
+                    if(!username) {
+                        labelTextCtnt = id;
+                    } else {
+                        labelTextCtnt = username;
+                    }*/
+                    // DEBUG: Have this here for testing purposes...
+
+
+
+
+
                     let dummyVal = 1.1;
                     //console.log("DEBUG-1: The value of dummyVal is = ", dummyVal);
                     dummyVal += 1;
@@ -76,7 +96,7 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
                         cursorEl.style.zIndex = 10;
                         // This is the horizontal ID-tag that appears next to the vert line.
                         const label = document.createElement("div");
-                        label.textContent = id;
+                        label.textContent = username; // DEBUG: For now...
                         label.style.position = "absolute";
                         label.style.top = "-1.5em";
                         label.style.left = "4px";

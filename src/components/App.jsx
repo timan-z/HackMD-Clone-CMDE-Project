@@ -16,6 +16,12 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
   const [roomId, setRoomID] = useState(null);
 
+
+  // test:
+  const [username, setUsername] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+
   // Function for handling logging-out (will be passed to routes):
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -42,6 +48,8 @@ function App() {
       try {
         const userData = await getCurrentUser(token);
         setUser(userData);
+        setUsername(userData.username);
+        setUserId(userData.id);
       } catch(err) {
         console.error("ERROR: Failed to retrieve current user data => ", err);
       }
@@ -88,7 +96,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} sendRoomID={handleRoomJoin} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} userName={username} userId={userId} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.

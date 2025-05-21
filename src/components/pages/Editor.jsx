@@ -126,7 +126,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, userName, userId }) {
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -152,7 +152,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
   const [isDraggingMD, setIsDraggingMD] = useState(false);
   // The following const(s) is for rendering the cursors of the *other* clients in the Text Editor during real-time collaboration:
   const [otherCursors, setOtherCursors] = useState([]);
-  //const [userID, setUserID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
 
@@ -178,6 +177,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
   // USERSLIST-DEBUG:
   const firstRender = useRef(false);
   const [usersList, setUsersList] = useState([]);
+  const [activeUsersList, setActiveUsersList] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);  
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
@@ -189,26 +189,33 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
   
   if(!userData) {
     loadUser(); // Just a function in App.jsx that does the deed.
-    
-    console.log("Is this entered?");
-    
-    //console.log("DEBUG: The value of userData => [", userData.username, "]");
   }
-  
-
-
-
 
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadUserRooms = async(roomId) => {
-      const usersData = await loadRoomUsers(roomId);
-      console.log("DEBUG: The value of usersData => [", usersData, "]");
-      setUsersList(usersData);
+    const usersData = await loadRoomUsers(roomId);
+    console.log("DEBUG: The value of usersData => [", usersData, "]");
+    setUsersList(usersData);
   };
   useEffect(() => {
     callLoadUserRooms(roomId);
   }, []);
- 
+
+  // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
+  useEffect(() => {
+    // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
+    socket.emit("join-room", roomId, userId, userName); // Join the specific Socket.IO room for this Editor Room.
+
+    // Listen for an updated list of Active Users:
+    socket.on("active-users-list", (activeUsers) => {
+      console.log("DEBUG: Receiving updated list of active users!!! => [", activeUsers, "]");
+      setActiveUsersList(activeUsers);
+    });
+    return () => {
+      socket.off("active-users-list");
+    };
+  }, []);
+
   
 
 
@@ -341,7 +348,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
 
 
   const sendCursorToServer = throttle((cursorPos) => {
-    socket.emit("send-cursor-pos", cursorPos, socket.id, userData.username);
+    socket.emit("send-cursor-pos", cursorPos, socket.id, userName);
   }, 100); // <-- throttle causes a slight delay in the rendering (it'll trail behind the actual typing pos, but I think that's okay and good).
 
 
@@ -439,7 +446,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
 
 
 
-      console.log("Debug: The value of userData => [", userData, "]");
+      console.log("Debug: The value of otherCursors => [", otherCursors, "]");
 
 
 
@@ -852,11 +859,11 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
   );
 }
 
-function Editor({ loadUser, loadRoomUsers, roomId, userData }) {
+function Editor({ loadUser, loadRoomUsers, roomId, userData, userName, userId }) {
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} />
+      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} userName={userName} userId={userId} />
     </LexicalComposer>
   );
 }

@@ -7,6 +7,7 @@ import http from "http"; // Express runs on HTTP.
 import { Server } from "socket.io";
 import cors from "cors";
 import pkg from 'lodash';
+import { connect } from "http2";
 const { throttle } = pkg;
 
 /* NOTE-TO-SELF:
@@ -30,13 +31,52 @@ const io = new Server(server, {
 
 
 
-let clientCursors = []; // This will be my array variable holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
+let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
+
+let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
 
 
 io.on("connection", (socket) => {
-    // connection notice:
+    // connection notice (to the overall Socket.IO server):
     console.log("A user connected: ", socket.id);
+
+    // connection notice (to a particular Text Editor Room):
+    socket.on("join-room", (roomId, userId, userName) => {
+        socket.join(roomId);    // We'll have a room specifically matching the Text Editor RoomId...
+        socket.userId = userId;
+        socket.username = userName;
+        socket.roomId = roomId;
+        
+        console.log("User {", userName, "} ID:(", userId, ") has connected to Socket.IO Server #", roomId);
+        // I want to track this user's "activity" status for this Room:
+        if(!connectedUsers[roomId]) connectedUsers[roomId] = [];
+
+        const alreadyExists = connectedUsers[roomId].some(
+            (user) => user.userId === userId
+        );
+        if(!alreadyExists) {
+            connectedUsers[roomId].push({
+                socketId: socket.id, userId, userName
+            });
+        }
+
+        // Emit updated list (of Active Users) to the Editor Room:
+        io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
+    });
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
     const broadcastCursors = throttle(() => {
@@ -67,10 +107,18 @@ io.on("connection", (socket) => {
         broadcastCursors();
     });
 
-    // disconnection notice:
+
+
+
+
+
+
+
+    // disconnection notice (from the server):
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
         console.log("DEBUG: [clientCursors Pre-Splice] => ", clientCursors);
+
         // After disconnection, I need to remove the recently-disconnected socket from array clientCursors too:
         let targetIndex = 0;
         clientCursors.forEach(client => {
@@ -83,7 +131,32 @@ io.on("connection", (socket) => {
         });
         console.log("DEBUG: [clientCursors Post-Splice] => ", clientCursors);
         broadcastCursors();
+
+
+
+
+        // UPDATE: NEW ADDITIONS (REMOVING Socket FROM connectedUsers):
+        const {userId, roomId, username} = socket;
+        if(roomId && connectedUsers[roomId]) {
+            connectedUsers[roomId] = connectedUsers[roomId].filter(
+                (user) => user.socketId !== socket.id
+            );
+
+            // Notify remaining users in the room:
+            io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
+            // Clean up empty rooms (if applicable):
+            if(connectedUsers[roomId].length === 0) {
+                delete connectedUsers[roomId];
+            }
+        }
+
     });
+
+
+
+
+
+
 });
 
 server.listen(4000, () => console.log("Server running on port 4000")); // specify port 4000 as the server location.
