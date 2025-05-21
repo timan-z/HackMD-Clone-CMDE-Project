@@ -26,6 +26,11 @@ const socket = io("http://localhost:4000"); // <-- bringing this back for tying 
 //import { createUsersList } from '../misc-features/usersListBar.js';
 import {createUsersList} from '../misc-features/UsersListBar.jsx';
 
+
+import UsersListContainer from '../misc-features/UsersListContainer.jsx'; // USERSLIST-DEBUG:
+
+
+
 import { useNavigate } from "react-router-dom";
 
 /* NOTE-TO-SELF:
@@ -147,6 +152,8 @@ function EditorContent({ roomId }) {
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
 
+
+  const [showUsersList, setShowUsersList] = useState(false); // USERSLIST-DEBUG:
 
 
 
@@ -537,9 +544,18 @@ function EditorContent({ roomId }) {
         <div style={{display:"flex", flexDirection:"row", gap:"5px"}}>
 
           {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
-          <div id="users-list-button" onClick={()=> createUsersList()}>
+          {/*<div id="users-list-button" onClick={()=> createUsersList()}>*/}
+          <div id="users-list-button" onClick={()=> setShowUsersList(prev => !prev)}>
             <img id="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
           </div>
+
+
+          {/* USERSLIST-DEBUG: Code to have the Users List appear (can be placed anywhere since I have "createPortal" in 
+          UsersListContainer.jsx, which should append it to the document.body regardless): */}
+          {showUsersList && (
+            <UsersListContainer onClose={()=>setShowUsersList(false)}/>
+          )}
+
 
           {/* This will be the "Home" (Return to Dashboard) button on the top-right of the T.E. room webpage: */}
           <div id="to-dashboard-button" onClick={()=> goToDashboard()}>
