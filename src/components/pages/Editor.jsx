@@ -155,12 +155,30 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
   //const [userID, setUserID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // USERSLIST-DEBUG:
-  const [showUsersList, setShowUsersList] = useState(false); // USERSLIST-DEBUG:
-
-  
-
-
+  const firstRender = useRef(false);
+  const [usersList, setUsersList] = useState([]);
+  const [showUsersList, setShowUsersList] = useState(false);  
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
@@ -168,16 +186,30 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
   if(!roomId) {
     roomId = useParams().roomId;
   }
+  
   if(!userData) {
     loadUser(); // Just a function in App.jsx that does the deed.
-  }
-
-
-  // useEffect Hook #0 -- The one I want to run on mount (for requeusting and retrieving a list of current users tied to this Room):
-  /*useEffect(() => {
     
-  }, []);*/
+    console.log("Is this entered?");
+    
+    //console.log("DEBUG: The value of userData => [", userData.username, "]");
+  }
+  
 
+
+
+
+  // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
+  const callLoadUserRooms = async(roomId) => {
+      const usersData = await loadRoomUsers(roomId);
+      console.log("DEBUG: The value of usersData => [", usersData, "]");
+      setUsersList(usersData);
+  };
+  useEffect(() => {
+    callLoadUserRooms(roomId);
+  }, []);
+ 
+  
 
 
 
@@ -308,17 +340,15 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
 
 
 
-
-
-
-
-
-
-
-
   const sendCursorToServer = throttle((cursorPos) => {
-    socket.emit("send-cursor-pos", cursorPos, socket.id);
+    socket.emit("send-cursor-pos", cursorPos, socket.id, userData.username);
   }, 100); // <-- throttle causes a slight delay in the rendering (it'll trail behind the actual typing pos, but I think that's okay and good).
+
+
+
+
+
+
 
 
 
@@ -407,12 +437,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
 
-      
-      console.log("DEBUG: About to call function \"loadRoomUsers\":");
-      const usersData = loadRoomUsers(roomId);
-      console.log("Debug: The value of usersData => [", usersData, "]");
 
-      // POST-EATING: ^^^ THIS WORKS!!! Send the information to SocketIO server on page load after...
+
+      console.log("Debug: The value of userData => [", userData, "]");
 
 
 

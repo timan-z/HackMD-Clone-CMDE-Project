@@ -44,10 +44,15 @@ io.on("connection", (socket) => {
     }, 100); // 100ms seems like a reasonable interval.
 
     // Handle client sending their cursor position within the Text Editor (*will happen frequently*). Needed for foreign cursor rendering!!!: 
-    socket.on("send-cursor-pos", (absCursorPos, clientId) => {
+    socket.on("send-cursor-pos", (absCursorPos, clientId, clientUsername) => {
+
+
         console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
+        console.log("DEBUG: The client sending their username: [", clientUsername, "]");
+
+
         console.log("DEBUG: Their cursor position: ", absCursorPos);
-        const clientCursor = {cursorPos: absCursorPos, id:clientId};
+        const clientCursor = {cursorPos: absCursorPos, id:clientId, username: clientUsername};
         const isItAlrThere = clientCursors.findIndex(item => item.id === clientId); // Check if there's already an obj in clientCursors rep'ing this socket.        
 
         if(isItAlrThere !== -1) {
