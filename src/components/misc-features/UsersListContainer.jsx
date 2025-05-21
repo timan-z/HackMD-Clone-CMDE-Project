@@ -3,11 +3,29 @@ import React, { useEffect, useRef } from 'react';
 
 import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting HTML into the DOM, createPortal will mimic my original appending to document.body
 
-const UsersListContainer = ({ onClose }) => {
+const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
     const containerRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
+
     
+
+
+
+    console.log("DEBUG: The value of usersList => [", activeUsersList, "]");
+    console.log("DEBUG: The value of activeUsersList => [", activeUsersList, "]");
+    // DEBUG: Below not sure if it works yet.
+    // Building the list of inactive users (by just getting the subset of usersList and activeUsersList or whatever):
+    const inactiveUsersList = usersList.filter(
+        user => !activeUsersList.some(active => active.userId === user.user_id) // NOTE:+DEBUG: I'm all over the place with naming consistency.
+    );
+    console.log("DEBUG: The value of inactiveUsersList => [", inactiveUsersList, "]");
+    // DEBUG: Above not sure if it works yet.
+    // UPDATE: WORKS!!!
+
+
+    
+
     useEffect(() => {
         const container = containerRef.current;
         const dragHandle = dragHandleRef.current;
@@ -103,10 +121,38 @@ const UsersListContainer = ({ onClose }) => {
                 >X</button>
             </div>
         
+
+
+
+
+
+
+
             {/* Placeholder for active users and message area: */}
-            <div id="active-users-section">[active users here]</div>
-            <div id="message-box-placeholder">[messages or chat]</div>
-        
+            {/* ACTIVE USERS: */}
+            <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
+                <h4 style={{ marginBottom: '5px' }}>Active Users</h4>
+                <ul>
+                    {activeUsersList.map(user => (
+                    <li key={user.username}>{user.username}</li>
+                    ))}
+                </ul>
+            </div>
+            {/* INACTIVE USERS: */}
+            <div style={{ maxHeight: '100px', overflowY: 'auto', marginTop: '10px' }}>
+                <h4 style={{ marginBottom: '5px' }}>Inactive Users</h4>
+                <ul>
+                    {inactiveUsersList.map(user => (
+                    <li key={user.userId}>{user.username}</li>
+                    ))}
+                </ul>
+            </div>
+                    
+
+
+
+
+
         </div>
     );
 

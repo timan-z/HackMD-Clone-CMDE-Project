@@ -135,6 +135,10 @@ io.on("connection", (socket) => {
 
 
 
+
+        
+
+
         // UPDATE: NEW ADDITIONS (REMOVING Socket FROM connectedUsers):
         const {userId, roomId, username} = socket;
         if(roomId && connectedUsers[roomId]) {
@@ -149,7 +153,7 @@ io.on("connection", (socket) => {
                 delete connectedUsers[roomId];
             }
         }
-
+        // ABOVE-UPDATE: SEEMS TO WORK QUITE GOOD SO FAR...
     });
 
 
