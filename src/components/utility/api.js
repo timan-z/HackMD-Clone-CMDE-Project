@@ -34,7 +34,7 @@ export const getCurrentUser = async (token) => {
     return await result.json();
 };
 
-// 2. MULTI-USER SESSION MANAGEMENT:
+// 2. ROOM SESSION MANAGEMENT:
 // 2.1. Create new Collaborative Editor Session.
 export const createNewEdRoom = async (edRoomName, token) => {
     const result = await fetch(`${API_BASE}/auth/create-room`, {
@@ -106,11 +106,6 @@ export const leaveRoom = async(roomId, token) => {
 
 // 2.7. For DELETING a room:
 export const deleteRoom = async(roomId, token) => {
-
-    
-    console.log("DEBUG: Inside of api.js function's deleteRoom function...");
-
-
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/delete`, {
         method: "POST",
         headers: {
@@ -119,3 +114,18 @@ export const deleteRoom = async(roomId, token) => {
     });
     return result.json();
 };
+
+// 3. USER MANAGEMENT:
+// 3.1. For returning a list of Users associated with a particular Text Editor Room:
+export const getRoomUsers = async(roomId, token) => {
+
+
+    console.log("DEBUG: Something's wrong...");
+
+    
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/users`, {
+        method:"GET",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return await result.json();
+}

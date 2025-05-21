@@ -23,8 +23,12 @@ import { io } from "socket.io-client"; // <-- Bringing this one back.
 import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
+
+import { useParams } from "react-router-dom"; 
+
+
 //import { createUsersList } from '../misc-features/usersListBar.js';
-import {createUsersList} from '../misc-features/UsersListBar.jsx';
+//import {createUsersList} from '../misc-features/UsersListBar.jsx';
 
 
 import UsersListContainer from '../misc-features/UsersListContainer.jsx'; // USERSLIST-DEBUG:
@@ -122,7 +126,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ roomId }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData }) {
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -151,9 +155,37 @@ function EditorContent({ roomId }) {
   //const [userID, setUserID] = useState("");
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
-
-
+  // USERSLIST-DEBUG:
   const [showUsersList, setShowUsersList] = useState(false); // USERSLIST-DEBUG:
+
+  
+
+
+
+  /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
+  They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
+  then I should quickly re-retrieve them during rendering: */
+  if(!roomId) {
+    roomId = useParams().roomId;
+  }
+  if(!userData) {
+    loadUser(); // Just a function in App.jsx that does the deed.
+  }
+
+
+  // useEffect Hook #0 -- The one I want to run on mount (for requeusting and retrieving a list of current users tied to this Room):
+  /*useEffect(() => {
+    
+  }, []);*/
+
+
+
+
+
+
+
+
+
 
 
 
@@ -164,10 +196,6 @@ function EditorContent({ roomId }) {
   const goToDashboard = () => {
     navigate("/dashboard");
   };
-
-
-
-
 
   // Function for handling the webpage view toggle between the Text Editor and Preview Panel (Split, Editor, Preview):
   const handleViewChange = (mode) => {
@@ -267,9 +295,38 @@ function EditorContent({ roomId }) {
     });
   };
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   const sendCursorToServer = throttle((cursorPos) => {
     socket.emit("send-cursor-pos", cursorPos, socket.id);
   }, 100); // <-- throttle causes a slight delay in the rendering (it'll trail behind the actual typing pos, but I think that's okay and good).
+
+
+
+
+
+
+
+
 
   // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
@@ -340,15 +397,22 @@ function EditorContent({ roomId }) {
 
 
 
+
+
+
+
   // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
 
+      
+      console.log("DEBUG: About to call function \"loadRoomUsers\":");
+      const usersData = loadRoomUsers(roomId);
+      console.log("Debug: The value of usersData => [", usersData, "]");
 
-
-      console.log("DEBUG:The value of otherCursors is => [", otherCursors, "]");
+      // POST-EATING: ^^^ THIS WORKS!!! Send the information to SocketIO server on page load after...
 
 
 
@@ -549,13 +613,11 @@ function EditorContent({ roomId }) {
             <img id="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
           </div>
 
-
-          {/* USERSLIST-DEBUG: Code to have the Users List appear (can be placed anywhere since I have "createPortal" in 
+          {/* Code to have the Users List appear (can be placed anywhere since I have "createPortal" in 
           UsersListContainer.jsx, which should append it to the document.body regardless): */}
           {showUsersList && (
             <UsersListContainer onClose={()=>setShowUsersList(false)}/>
           )}
-
 
           {/* This will be the "Home" (Return to Dashboard) button on the top-right of the T.E. room webpage: */}
           <div id="to-dashboard-button" onClick={()=> goToDashboard()}>
@@ -763,11 +825,11 @@ function EditorContent({ roomId }) {
   );
 }
 
-function Editor({ roomId }) {
+function Editor({ loadUser, loadRoomUsers, roomId, userData }) {
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent roomId={roomId} />
+      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} />
     </LexicalComposer>
   );
 }

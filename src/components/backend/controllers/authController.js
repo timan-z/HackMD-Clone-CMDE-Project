@@ -253,27 +253,6 @@ export const leaveEdRoom = async(req, res) => {
     res.json({ success: true });
 };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 // 2.7. Function for DELETING an Editor Room:
 export const deleteEdRoom = async(req, res) => {
     const {roomId} = req.params;
@@ -293,4 +272,34 @@ export const deleteEdRoom = async(req, res) => {
     `, [roomId]);   // NOTE: I should rework my user_rooms to have "room_id UUID REFERENCES rooms(id)" become "room_id UUID REFERENCES rooms(id) ON DELETE CASCADE"
 
     res.json({ success: true});
+};
+
+// 3. USER MANAGEMENT:
+// 3.1. Function for retrieving a list of users associated with a particular room:
+export const getEdRoomUsers = async(req, res) => {
+    const {roomId} = req.params;
+    try {
+        const usersData = await pool.query(`
+            SELECT 
+                u.id AS user_id,
+                u.username,
+                u.displayname,
+                ur.role,
+                ur.room_id
+            FROM user_rooms ur
+            JOIN users u ON ur.user_id = u.id
+            WHERE ur.room_id = $1
+        `, [roomId]);
+
+
+
+        console.log("DEBUG rows:", usersData.rows);
+
+
+        
+        res.json(usersData.rows);
+    } catch(err) {
+        console.error("ERROR while fetching users for room ID:(", roomId, ") because of: ", err);
+        res.status(500).json({ error: "Failed to fetch users for the room" });
+    }
 };

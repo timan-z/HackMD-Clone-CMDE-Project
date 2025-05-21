@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { getCurrentUser } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
+import { getCurrentUser, getRoomUsers } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
 // The three main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -10,14 +10,11 @@ import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing u
 import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx"; // ^ More of the same but for more minor purposes.
 import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
 
-
 // NOTE-TO-SELF: This "App" function serves as our root.
 function App() {
-
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
   const [roomId, setRoomID] = useState(null);
-
 
   // Function for handling logging-out (will be passed to routes):
   const handleLogout = () => {
@@ -26,34 +23,52 @@ function App() {
     setUser(null);
   };
 
-
-
   // Function for handling joining a unique editor room (in the sense of passing its ID here so we can map it to the right Yjs document):
   const handleRoomJoin = (roomId) => {
 
-
     console.log("DEBUG: RAAAAAAAAAAAAAAAAAAAHHH!!!");
     console.log("Debug: The value of roomId => [", roomId, "]");
-
 
     setRoomID(roomId);
   };
 
 
 
-  useEffect(() => {
-    const loadUser = async () => {
 
-      if(token) {
+
+  // Function for handling user data extraction (it will be invoked whenever "token" data is set via useEffect...):
+  const loadUser = async () => {
+    if(token) {
+      try {
         const userData = await getCurrentUser(token);
         setUser(userData);
+      } catch(err) {
+        console.error("ERROR: Failed to retrieve current user data => ", err);
       }
-    };
+    }
+  }
+  useEffect(() => {
     loadUser();
-
   }, [token]);
 
+
+
+  // Function for handling retrieval of all Users associated with a particular Room:
+  const loadRoomUsers = async(roomId) => {
+    if(token) {
+      try {
+        const usersData = await getRoomUsers(roomId, token);
+        return usersData;
+      } catch(err) {
+        console.error("ERROR: Failed to retrieve users associated with room ID:[", roomId, "] => ", err);
+      }
+    }
+  }
+
+
   
+
+
   return (
     <Router>
       <Routes>
@@ -73,7 +88,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} sendRoomID={handleRoomJoin} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.

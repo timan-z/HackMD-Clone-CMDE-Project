@@ -28,8 +28,9 @@ const io = new Server(server, {
 });
 
 
-let clientCursors = []; // This will be my array variable holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
+
+let clientCursors = []; // This will be my array variable holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
 
 
