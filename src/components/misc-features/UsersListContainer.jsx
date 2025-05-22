@@ -95,14 +95,14 @@ const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
                 ref={dragHandleRef}
                 className="drag-handle"
                 style={{
-                cursor: 'move',
-                backgroundColor: '#003300',
-                padding: '8px',
-                marginBottom: '10px',
-                fontWeight: 'bold',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
+                    cursor: 'move',
+                    backgroundColor: '#003300',
+                    padding: '8px',
+                    marginBottom: '10px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
                 }}
             >
                 <span>Active Users</span>
@@ -119,58 +119,43 @@ const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
                 >X</button>
             </div>
         
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-            
-
-            {/* Placeholder for active users and message area: */}
             {/* ACTIVE USERS: */}
-            <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                <h4 style={{ marginBottom: '5px' }}>Active Users</h4>
+            <div>
                 <ul>
                     {activeUsersList.map(user => (
-                        <li key={user.userId}>{user.username}</li>
+                        <li key={user.userId}>
+                            <span>{user.username}</span>
+                            <button>CHAT</button>
+                        </li>
                     ))}
                 </ul>
             </div>
+
             {/* INACTIVE USERS: */}
-            <div style={{ maxHeight: '100px', overflowY: 'auto', marginTop: '10px' }}>
-                <h4 style={{ marginBottom: '5px' }}>Inactive Users</h4>
+            <div
+                className="drag-handle"
+                style={{
+                    backgroundColor: '#003300',
+                    padding: '8px',
+                    marginBottom: '10px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+            >
+                <span>Inactive Users</span>
+            </div>
+            <div>
                 <ul>
                     {inactiveUsersList.map(user => (
-                        <li key={user.user_id}>{user.username}</li> /* <-- DEBUG:+NOTE: Again, my naming consistency is atrocious... (Come back to fix this!) */
+                        <li key={user.user_id}>{/*<-- DEBUG:+NOTE: Again, my naming consistency is atrocious... (Come back to fix this!)*/}
+                            <span>{user.username}</span>
+                            <button>CHAT</button>
+                        </li>
                     ))}
                 </ul>
             </div>
-
-
-
-
-                    
-
-
-
-
-
-
-
-
-
-
-
-
 
         </div>
     );
