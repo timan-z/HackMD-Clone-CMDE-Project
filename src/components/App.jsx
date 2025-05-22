@@ -25,6 +25,7 @@ function App() {
   // Function for handling logging-out (will be passed to routes):
   const handleLogout = () => {
     localStorage.removeItem("token");
+    localStorage.removeItem("userData");
     setToken(null);
     setUser(null);
   };
@@ -48,6 +49,9 @@ function App() {
       try {
         const userData = await getCurrentUser(token);
         setUser(userData);
+
+        localStorage.setItem("userData", JSON.stringify(userData));
+
         setUsername(userData.username);
         setUserId(userData.id);
       } catch(err) {
@@ -56,7 +60,12 @@ function App() {
     }
   }
   useEffect(() => {
-    loadUser();
+    const savedUser = localStorage.getItem("userData");
+    if (savedUser) {
+      setUser(JSON.parse(savedUser));
+    } else {
+      loadUser();
+    }
   }, [token]);
 
 
@@ -96,7 +105,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} sendRoomID={handleRoomJoin} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} username={username} userId={userId} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.

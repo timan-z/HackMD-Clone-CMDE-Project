@@ -126,7 +126,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser }) {
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -183,22 +183,26 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
   then I should quickly re-retrieve them during rendering: */
-
-  console.log("EEE-DEBUG: The value of roomId => [", roomId, "]");
-
-
-
   if(roomId === null) {
     roomId = useParams().roomId;
-    console.log("EEE-DEBUG: NOW The value of roomId is => [", roomId, "]");
   }
   
-  console.log("EEE-DEBUG: The value of userData => [", userData, "]");
+  useEffect(() => {
+    if(!userData) {
+      const storedUser = localStorage.getItem("userData");
+      if(storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } else {
+        loadUser();
+      }
+    }
+  }, []);
+  
 
-  if(userData === null) {
+  /*if(userData === null) {
     loadUser(); // Just a function in App.jsx that does the deed.
-    console.log("EEE-DEBUG: NOW The value of userData is => [", userData, "]");
-  }
+  }*/
 
 
 
@@ -219,18 +223,27 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
   useEffect(() => {
 
+    console.log("DEBUG: useEffect #0.5 entered...");
+    console.log("The value of userData => [", userData, "]");
+
+    if(!userData || userData === null) {
+      console.log("DEBUG: userData is null or not available.");
+      return;
+    }
+
     //console.log("PRIOR-TO-EMIT-DEBUG: The value of roomId => [", roomId, "]");
     //console.log("Debug: The value of userId => [", userId, "]");
     //console.log("Debug: The value of username => [", username, "]");
     //console.log(`Sending Room ID:(${roomId}), User ID:(${userId}), and username:(${username}) over to the Socket.IO server.`);
-    console.log("Sending Room ID:(", roomId, ") User ID:(", userId, "), and username:(", username, ") over to the Socket.IO server.");
+    console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
 
-
+    
 
 
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
-    socket.emit("join-room", roomId, userId, username); // Join the specific Socket.IO room for this Editor Room.
+    socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
 
+    
     // Listen for an updated list of Active Users:
     socket.on("active-users-list", (activeUsers) => {
       console.log("DEBUG: Receiving updated list of active users!!! => [", activeUsers, "]");
@@ -239,7 +252,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     return () => {
       socket.off("active-users-list");
     };
-  }, []);
+  }, [userData]);
 
   
 
@@ -891,11 +904,11 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   );
 }
 
-function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId }) {
+function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser }) {
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} username={username} userId={userId} />
+      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} />
     </LexicalComposer>
   );
 }

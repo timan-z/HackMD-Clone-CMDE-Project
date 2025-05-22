@@ -141,7 +141,7 @@ const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
                 <h4 style={{ marginBottom: '5px' }}>Active Users</h4>
                 <ul>
                     {activeUsersList.map(user => (
-                        <li key={user.userId}>{user.userName}</li> /* <-- DEBUG:+NOTE: Again, my naming consistency is atrocious... (Come back to fix this!) */
+                        <li key={user.userId}>{user.username}</li>
                     ))}
                 </ul>
             </div>
