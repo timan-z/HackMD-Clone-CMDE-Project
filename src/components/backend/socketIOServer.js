@@ -42,13 +42,13 @@ io.on("connection", (socket) => {
     console.log("A user connected: ", socket.id);
 
     // connection notice (to a particular Text Editor Room):
-    socket.on("join-room", (roomId, userId, userName) => {
+    socket.on("join-room", (roomId, userId, username) => {
         socket.join(roomId);    // We'll have a room specifically matching the Text Editor RoomId...
         socket.userId = userId;
-        socket.username = userName;
+        socket.username = username;
         socket.roomId = roomId;
         
-        console.log("User {", userName, "} ID:(", userId, ") has connected to Socket.IO Server #", roomId);
+        console.log("User {", username, "} ID:(", userId, ") has connected to Socket.IO Server #", roomId);
         // I want to track this user's "activity" status for this Room:
         if(!connectedUsers[roomId]) connectedUsers[roomId] = [];
 
@@ -57,7 +57,7 @@ io.on("connection", (socket) => {
         );
         if(!alreadyExists) {
             connectedUsers[roomId].push({
-                socketId: socket.id, userId, userName
+                socketId: socket.id, userId, username
             });
         }
 

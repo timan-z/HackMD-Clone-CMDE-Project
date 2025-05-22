@@ -10,9 +10,7 @@ const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
 
     
 
-
-
-    console.log("DEBUG: The value of usersList => [", activeUsersList, "]");
+    console.log("DEBUG: The value of usersList => [", usersList, "]");
     console.log("DEBUG: The value of activeUsersList => [", activeUsersList, "]");
     // DEBUG: Below not sure if it works yet.
     // Building the list of inactive users (by just getting the subset of usersList and activeUsersList or whatever):
@@ -128,13 +126,22 @@ const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
 
 
 
+
+
+
+
+
+
+
+            
+
             {/* Placeholder for active users and message area: */}
             {/* ACTIVE USERS: */}
             <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
                 <h4 style={{ marginBottom: '5px' }}>Active Users</h4>
                 <ul>
                     {activeUsersList.map(user => (
-                        <li key={user.userId}>{user.userName}</li> /* <-- DEBUG:+NOTE: Again, my naming consistency is atrocious... */
+                        <li key={user.userId}>{user.userName}</li> /* <-- DEBUG:+NOTE: Again, my naming consistency is atrocious... (Come back to fix this!) */
                     ))}
                 </ul>
             </div>
@@ -143,11 +150,23 @@ const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
                 <h4 style={{ marginBottom: '5px' }}>Inactive Users</h4>
                 <ul>
                     {inactiveUsersList.map(user => (
-                        <li key={user.userId}>{user.username}</li>
+                        <li key={user.user_id}>{user.username}</li> /* <-- DEBUG:+NOTE: Again, my naming consistency is atrocious... (Come back to fix this!) */
                     ))}
                 </ul>
             </div>
+
+
+
+
                     
+
+
+
+
+
+
+
+
 
 
 
