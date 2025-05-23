@@ -1,6 +1,5 @@
 // BREAKING DOWN "UsersListContainer" - UsersListHeader.jsx
 // For the "draggable" bar part of the Users List pop-up that appears.
-
 import React from "react";
 
 const UsersListHeader = ({ dragHandleRef, onClose }) => {
@@ -19,7 +18,7 @@ const UsersListHeader = ({ dragHandleRef, onClose }) => {
                 alignItems: 'center',
             }}
         >
-            <span>Active Users</span>
+            <span>USERS LIST</span>
             <button
             className="close-btn"
             onClick={onClose}

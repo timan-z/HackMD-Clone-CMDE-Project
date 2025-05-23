@@ -5,6 +5,7 @@ import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting
 
 // MODULARITY:
 import UsersListHeader from './UsersListHeader.jsx';
+import UsersListSection from './UsersListSection.jsx';
 import UsersListEntry from './UsersListEntry.jsx';
 
 const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) => {
@@ -92,49 +93,19 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) =
             <UsersListHeader dragHandleRef={dragHandleRef} onClose={onClose}/>
 
             {/* ACTIVE USERS: */}
-            <div>
-                <ul>
-                    {activeUsersList.map(user => (
-                        <UsersListEntry
-                            key={user.userId}
-                            user={user}
-                            isActive={true}
-                            currentUserId={userData.id}
-                            onChatClick={(targetUser) => console.log("COME BACK HERE AND ADD THE CHAT FEATURE FOR: ", targetUser)}
-                        />
-                    ))}
-                </ul>
-            </div>
+            <UsersListSection
+                title="Active Users"
+                users={activeUsersList}
+                currentUserId={userData.id}
+            />
 
             {/* INACTIVE USERS: */}
-            <div
-                className="drag-handle"
-                style={{
-                    backgroundColor: '#003300',
-                    padding: '8px',
-                    marginBottom: '10px',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
-                <span>Inactive Users</span>
-            </div>
-            <div>
-                <ul>
-                    {inactiveUsersList.map(user => (
-                        <UsersListEntry
-                            key={user.userId}
-                            user={user}
-                            isActive={false}
-                            currentUserId={userData.id}
-                            onChatClick={(targetUser) => console.log("COME BACK HERE AND ADD THE CHAT FEATURE FOR: ", targetUser)}
-                        />
-                    ))}
-                </ul>
-            </div>
-
+            <UsersListSection
+                title="Inactive Users"
+                users={inactiveUsersList}
+                currentUserId={userData.id}
+            />
+            
         </div>
     );
 

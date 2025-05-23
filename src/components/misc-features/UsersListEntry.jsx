@@ -1,5 +1,5 @@
 // BREAKING DOWN "UsersListContainer" - UsersListEntry.jsx
-// For rendering a single User Item (Row) in the UsersListContainer (- <Username> [Chat Msg Icon])
+// For rendering a single User Item (Row) in the UsersListContainer (- <Username> [Chat Msg Icon]). Basically, this is for a single Row.
 
 import React from "react";
 
