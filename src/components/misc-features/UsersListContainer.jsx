@@ -1,28 +1,18 @@
 // UPDATE: Better to break my original usersListBar.js (or translated UsersListBar.jsx) file into multiple modular pieces:
+// DEBUG: Don't forget to add back "shadowing" the Users Icon button at the top-right corner of the Editor.jsx page later on...
 import React, { useEffect, useRef } from 'react';
 
 import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting HTML into the DOM, createPortal will mimic my original appending to document.body
 
-const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
+const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) => {
     const containerRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
 
-    
-
-    console.log("DEBUG: The value of usersList => [", usersList, "]");
-    console.log("DEBUG: The value of activeUsersList => [", activeUsersList, "]");
-    // DEBUG: Below not sure if it works yet.
     // Building the list of inactive users (by just getting the subset of usersList and activeUsersList or whatever):
     const inactiveUsersList = usersList.filter(
         user => !activeUsersList.some(active => active.userId === user.user_id) // NOTE:+DEBUG: I'm all over the place with naming consistency.
-    );
-    console.log("DEBUG: The value of inactiveUsersList => [", inactiveUsersList, "]");
-    // DEBUG: Above not sure if it works yet.
-    // UPDATE: WORKS!!!
-
-
-    
+    );    
 
     useEffect(() => {
         const container = containerRef.current;
@@ -118,14 +108,17 @@ const UsersListContainer = ({ activeUsersList, usersList, onClose }) => {
                 }}
                 >X</button>
             </div>
-        
+
             {/* ACTIVE USERS: */}
             <div>
                 <ul>
                     {activeUsersList.map(user => (
-                        <li key={user.userId}>
+                        <li key={user.userId} > 
                             <span>{user.username}</span>
-                            <button>CHAT</button>
+
+                            {user.userId !== userData.id && (
+                                <button>CHAT</button>
+                            )}
                         </li>
                     ))}
                 </ul>

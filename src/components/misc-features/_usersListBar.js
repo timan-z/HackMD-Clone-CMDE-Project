@@ -1,3 +1,5 @@
+// THIS WILL BE OLD CODE LEFT FOR REFERENCE...
+
 function removeUsersList(usersListBtn) {
     const removeUsersList = document.getElementById('users-list-container');
     document.body.removeChild(removeUsersList);
