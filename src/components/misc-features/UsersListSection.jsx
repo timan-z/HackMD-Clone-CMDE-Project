@@ -31,7 +31,7 @@ const UsersListSection = ({ title, users, currentUserId, onChat }) => {
                                 key={user.userId}
                                 user={user}
                                 currentUserId={currentUserId}
-                                onChat={()=>onChat(user.userId)} // <--DEBUG:+NOTE: Don't forget to come back here and add something proper.
+                                onChat={() => onChat(user.userId)}
                             />
                         );
                     })}

@@ -23,6 +23,12 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
 
     // Function for toggling chat with user state variables:
     const toggleChatWithUser = (targetUserId) => {
+
+        
+        console.log("DEBUG: Function \"toggleChatWithUser\" has been entered!");
+        console.log("DEBUG: DON'T TURN OFF THE LIGHT!!!");
+
+
         if(chatTargetId === targetUserId) {
             setChatTargetId(null);  // Close Chat (and return to Users List or w/e).
         } else {
