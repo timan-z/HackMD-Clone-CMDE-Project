@@ -1,0 +1,159 @@
+// UPDATE: Better to break my original usersListBar.js (or translated UsersListBar.jsx) file into multiple modular pieces:
+// DEBUG: Don't forget to add back "shadowing" the Users Icon button at the top-right corner of the Editor.jsx page later on...
+import React, { useEffect, useRef } from 'react';
+
+import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting HTML into the DOM, createPortal will mimic my original appending to document.body
+
+const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) => {
+    const containerRef = useRef(null);
+    const dragHandleRef = useRef(null);
+    const offset = useRef({ x: 0, y: 0 });
+
+    // Building the list of inactive users (by just getting the subset of usersList and activeUsersList or whatever):
+    const inactiveUsersList = usersList.filter(
+        user => !activeUsersList.some(active => active.userId === user.user_id) // NOTE:+DEBUG: I'm all over the place with naming consistency.
+    );    
+
+    useEffect(() => {
+        const container = containerRef.current;
+        const dragHandle = dragHandleRef.current;
+        if (!container || !dragHandle) return;
+
+        let isDragging = false;
+
+        // dragging functions:
+        // 1.
+        const onMouseDown = (e) => {
+            isDragging = true;
+            offset.current = {
+                x: e.clientX - container.getBoundingClientRect().left,
+                y: e.clientY - container.getBoundingClientRect().top,
+            };
+            document.addEventListener('mousemove', onMouseMove);
+            document.addEventListener('mouseup', onMouseUp);
+        };
+
+        // 2.
+        const onMouseMove = (e) => {
+            if (!isDragging) return;
+
+            // Setting Boundaries for dragging:
+            const newLeft = e.clientX - offset.current.x;
+            const newTop = e.clientY - offset.current.y;
+            // Clamp within viewport boundaries:
+            const maxLeft = window.innerWidth - container.offsetWidth;
+            const maxTop = window.innerHeight - container.offsetHeight;
+            container.style.left = `${Math.min(Math.max(0, newLeft), maxLeft)}px`;
+            container.style.top = `${Math.min(Math.max(0, newTop), maxTop)}px`;
+        };
+
+        // 3.
+        const onMouseUp = () => {
+            isDragging = false;
+            document.removeEventListener('mousemove', onMouseMove);
+            document.removeEventListener('mouseup', onMouseUp);
+        };
+
+        dragHandle.addEventListener('mousedown', onMouseDown);
+        return () => {
+            dragHandle.removeEventListener('mousedown', onMouseDown);
+        };
+    }, []);
+
+    const container = (
+        // Making it a little nicer:
+        <div 
+        ref={containerRef}
+        id="users-list-container"
+        className="users-list"
+        style={{
+            position: 'fixed',
+            top: '100px',
+            right: '5px',
+            width: '300px',
+            height: '400px',
+            backgroundColor: '#0D0208',
+            color: '#00FF41',
+            fontFamily: 'monospace',
+            border: '2px solid #00FF41',
+            borderRadius: '8px',
+            boxShadow: '0 0 10px #00FF41',
+            padding: '10px',
+            zIndex: 99999,
+        }}>
+            <div
+                ref={dragHandleRef}
+                className="drag-handle"
+                style={{
+                    cursor: 'move',
+                    backgroundColor: '#003300',
+                    padding: '8px',
+                    marginBottom: '10px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+            >
+                <span>Active Users</span>
+                <button
+                className="close-btn"
+                onClick={onClose}
+                style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#00FF41',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                }}
+                >X</button>
+            </div>
+
+            {/* ACTIVE USERS: */}
+            <div>
+                <ul>
+                    {activeUsersList.map(user => (
+                        <li key={user.userId} > 
+                            <span>{user.username}</span>
+
+                            {user.userId !== userData.id && (
+                                <button>CHAT</button>
+                            )}
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* INACTIVE USERS: */}
+            <div
+                className="drag-handle"
+                style={{
+                    backgroundColor: '#003300',
+                    padding: '8px',
+                    marginBottom: '10px',
+                    fontWeight: 'bold',
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                }}
+            >
+                <span>Inactive Users</span>
+            </div>
+            <div>
+                <ul>
+                    {inactiveUsersList.map(user => (
+                        <li key={user.user_id}>{/*<-- DEBUG:+NOTE: Again, my naming consistency is atrocious... (Come back to fix this!)*/}
+                            <span>{user.username}</span>
+                            <button>CHAT</button>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+        </div>
+    );
+
+    return createPortal(container, document.body);  // This basically mimics my "document.body.appendChild(usersListContainer);" code from my og usersListBar.js or (UsersListBar.jsx)
+};
+
+export default UsersListContainer;
