@@ -715,7 +715,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
           {/* Code to have the Users List appear (can be placed anywhere since I have "createPortal" in 
           UsersListContainer.jsx, which should append it to the document.body regardless): */}
           {showUsersList && (
-            <UsersListContainer userData={userData} activeUsersList={activeUsersList} usersList={usersList} onClose={()=>setShowUsersList(false)}/>
+            <UsersListContainer userData={userData} activeUsersList={activeUsersList} usersList={usersList} socket={socket} onClose={()=>setShowUsersList(false)}/>
           )}
 
           {/* This will be the "Home" (Return to Dashboard) button on the top-right of the T.E. room webpage: */}

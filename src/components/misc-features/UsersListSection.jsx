@@ -1,10 +1,12 @@
+// #2 -- THIS IS THE USERS LIST SECTION ("ACTIVE USERS" HEADER + ALL THE ROWS BELOW IT).
+
 // BREAKING DOWN "UsersListContainer" - UsersListSection.jsx
 // So this will be the body of the Users List Container (the body for the "Active Users" and "Inactive Users" areas).
 
 import React from "react";
 import UsersListEntry from './UsersListEntry.jsx';
 
-const UsersListSection = ({ title, users, currentUserId }) => {
+const UsersListSection = ({ title, users, currentUserId, onChat }) => {
     return(
         <>
             <div
@@ -29,7 +31,7 @@ const UsersListSection = ({ title, users, currentUserId }) => {
                                 key={user.userId}
                                 user={user}
                                 currentUserId={currentUserId}
-                                onChat={(targetUser) => console.log("COME BACK HERE AND ADD THE CHAT FEATURE FOR: ", targetUser)} // <--DEBUG:+NOTE: Don't forget to come back here and add something proper.
+                                onChat={()=>onChat(user.userId)} // <--DEBUG:+NOTE: Don't forget to come back here and add something proper.
                             />
                         );
                     })}

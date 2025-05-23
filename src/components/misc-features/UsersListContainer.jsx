@@ -1,26 +1,34 @@
+// #0 -- THIS IS THE CONTAINER FOR THE WHOLE THING.
+
 // UPDATE: Better to break my original usersListBar.js (or translated UsersListBar.jsx) file into multiple modular pieces:
 // DEBUG: Don't forget to add back "shadowing" the Users Icon button at the top-right corner of the Editor.jsx page later on...
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting HTML into the DOM, createPortal will mimic my original appending to document.body
 
 // MODULARITY:
 import UsersListHeader from './UsersListHeader.jsx';
 import UsersListSection from './UsersListSection.jsx';
-import UsersListEntry from './UsersListEntry.jsx';
+import ChatBox from './ChatBox.jsx';
 
-const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) => {
+const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, socket }) => {
     const containerRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
+    const [chatTargetId, setChatTargetId] = useState(null);
 
     // Building the list of inactive users (by just getting the subset of usersList and activeUsersList or whatever):
     const inactiveUsersList = usersList.filter(
         user => !activeUsersList.some(active => active.userId === user.userId)
     );
 
-    console.log("DEBUG: The value of usersList => [", usersList, "]");
-    console.log("DEBUG: The value of activeUsersList => [", activeUsersList, "]");
-    console.log("DEBUG: The value of inactiveUsersList => [", inactiveUsersList, "]");
+    // Function for toggling chat with user state variables:
+    const toggleChatWithUser = (targetUserId) => {
+        if(chatTargetId === targetUserId) {
+            setChatTargetId(null);  // Close Chat (and return to Users List or w/e).
+        } else {
+            setChatTargetId(targetUserId);
+        }
+    };
 
     useEffect(() => {
         const container = containerRef.current;
@@ -92,20 +100,37 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) =
             {/* THE USERS LIST HEADER (THE THING THAT YOU'LL BE DRAGGING TO MOVE THE USERS LIST CONTAINER COMPONENT AROUND): */}
             <UsersListHeader dragHandleRef={dragHandleRef} onClose={onClose}/>
 
-            {/* ACTIVE USERS: */}
-            <UsersListSection
-                title="Active Users"
-                users={activeUsersList}
-                currentUserId={userData.id}
-            />
 
-            {/* INACTIVE USERS: */}
-            <UsersListSection
-                title="Inactive Users"
-                users={inactiveUsersList}
-                currentUserId={userData.id}
-            />
-            
+
+
+            {chatTargetId ? (
+                /* MESSAGING SYSTEM: */
+                <ChatBox
+                    currentUserId={userData.id}
+                    targetUserId={chatTargetId}
+                    onClose={()=> setChatTargetId(null)}
+                    socket={socket}
+                />
+            ):(
+                /* USERS LIST SYSTEM: */
+                <>
+                    {/* ACTIVE USERS: */}
+                    <UsersListSection
+                        title="Active Users"
+                        users={activeUsersList}
+                        currentUserId={userData.id}
+                        onChat={toggleChatWithUser}
+                    />
+
+                    {/* INACTIVE USERS: */}
+                    <UsersListSection
+                        title="Inactive Users"
+                        users={inactiveUsersList}
+                        currentUserId={userData.id}
+                        onChat={toggleChatWithUser}
+                    />
+                </>
+            )}
         </div>
     );
 

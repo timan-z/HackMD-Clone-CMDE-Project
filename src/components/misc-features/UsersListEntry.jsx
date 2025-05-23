@@ -1,3 +1,5 @@
+// #3 -- THIS IS BASICALLY EVERY INDIVIDUAL ROW THAT'S WITHIN THE USERS LIST SECTION.
+
 // BREAKING DOWN "UsersListContainer" - UsersListEntry.jsx
 // For rendering a single User Item (Row) in the UsersListContainer (- <Username> [Chat Msg Icon]). Basically, this is for a single Row.
 
@@ -13,7 +15,7 @@ const UsersListEntry = ({ user, isActive, currentUserId, onChatClick }) => {
         <li key={userId}>
             <span>{user.username}</span>
             {userId !== currentUserId && (
-                <button onClick={() => onChatClick(user)}>CHAT</button>
+                <button onClick={onChatClick}>CHAT</button>
             )}
         </li>
     )

@@ -70,7 +70,15 @@ io.on("connection", (socket) => {
 
 
 
-
+    // Handle client sending private messages:
+    socket.on('private-message', ({from, to, text}) => {
+        for(const [socketId, userData] of io.sockets.sockets.entries()) {
+            if(userData.userId === to) {
+                io.to(socketId).emit('private-message', {from, to, text});
+                break;
+            }
+        }
+    });
 
 
 
