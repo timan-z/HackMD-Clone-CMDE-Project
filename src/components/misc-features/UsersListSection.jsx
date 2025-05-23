@@ -6,7 +6,7 @@
 import React from "react";
 import UsersListEntry from './UsersListEntry.jsx';
 
-const UsersListSection = ({ title, users, currentUserId, onChat }) => {
+const UsersListSection = ({ title, users, currentUserId, onChat, unreadMessages }) => {
     return(
         <>
             <div
@@ -32,6 +32,7 @@ const UsersListSection = ({ title, users, currentUserId, onChat }) => {
                                 user={user}
                                 currentUserId={currentUserId}
                                 onChat={() => onChat(user.userId)}
+                                hasUnread={!!unreadMessages[user.userId]}
                             />
                         );
                     })}

@@ -7,7 +7,7 @@ import React from "react";
 
 // DEBUG: isActive should just be a boolean value from checking if it's in the Active Users List array...
 
-const UsersListEntry = ({ user, isActive, currentUserId, onChat }) => {
+const UsersListEntry = ({ user, currentUserId, onChat, hasUnread }) => {
 
     const userId = user.userId;
     
@@ -15,10 +15,17 @@ const UsersListEntry = ({ user, isActive, currentUserId, onChat }) => {
         <li key={userId}>
             <span>{user.username}</span>
             {userId !== currentUserId && (
-                <button onClick={onChat}>CHAT</button>
+                <button onClick={onChat}>
+                    CHAT
+                </button>
+            )}
+            {hasUnread && (
+                <span>
+                    !
+                </span>
             )}
         </li>
-    )
+    );
 };
 
 export default UsersListEntry;

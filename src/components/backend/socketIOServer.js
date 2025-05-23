@@ -65,11 +65,6 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
     });
 
-
-
-
-
-
     // Handle client sending private messages:
     socket.on('private-message', ({from, to, text}) => {
         for(const [socketId, userData] of io.sockets.sockets.entries()) {
@@ -79,12 +74,6 @@ io.on("connection", (socket) => {
             }
         }
     });
-
-
-
-
-
-
 
     // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
     const broadcastCursors = throttle(() => {
@@ -115,13 +104,6 @@ io.on("connection", (socket) => {
         broadcastCursors();
     });
 
-
-
-
-
-
-
-
     // disconnection notice (from the server):
     socket.on("disconnect", () => {
         console.log("User disconnected:", socket.id);
@@ -140,13 +122,6 @@ io.on("connection", (socket) => {
         console.log("DEBUG: [clientCursors Post-Splice] => ", clientCursors);
         broadcastCursors();
 
-
-
-
-
-        
-
-
         // UPDATE: NEW ADDITIONS (REMOVING Socket FROM connectedUsers):
         const {userId, roomId, username} = socket;
         if(roomId && connectedUsers[roomId]) {
@@ -163,11 +138,6 @@ io.on("connection", (socket) => {
         }
         // ABOVE-UPDATE: SEEMS TO WORK QUITE GOOD SO FAR...
     });
-
-
-
-
-
 
 });
 

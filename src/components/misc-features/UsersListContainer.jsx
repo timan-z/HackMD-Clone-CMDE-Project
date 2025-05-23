@@ -15,6 +15,7 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
     const [chatTargetId, setChatTargetId] = useState(null);
+    const [unreadMessages, setUnreadMessages] = useState({});
 
     // Building the list of inactive users (by just getting the subset of usersList and activeUsersList or whatever):
     const inactiveUsersList = usersList.filter(
@@ -23,19 +24,38 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
 
     // Function for toggling chat with user state variables:
     const toggleChatWithUser = (targetUserId) => {
-
-        
-        console.log("DEBUG: Function \"toggleChatWithUser\" has been entered!");
-        console.log("DEBUG: DON'T TURN OFF THE LIGHT!!!");
-
-
         if(chatTargetId === targetUserId) {
             setChatTargetId(null);  // Close Chat (and return to Users List or w/e).
         } else {
             setChatTargetId(targetUserId);
+            setUnreadMessages(prev => {
+                const updated={...prev};
+                delete updated[targetUserId];
+                return updated;
+            });
         }
     };
 
+    // useEffect to handle incoming messages notifications:
+    useEffect(() => {
+        const handlePrivateMessage = ({ from, to, text }) => {
+
+
+            console.log("PRIVATE-MSG-DEBUG: RECEIVED A MESSAGE FROM [", from, "] AND THE MESSAGE WAS: ", text);
+
+
+            // If the message received isn't in an already active chat, a symbol (!) will indicate a new message was sent.
+            if(chatTargetId !== from) {
+                setUnreadMessages(prev => ({...prev, [from]: true}));
+            }
+        };
+        socket.on('private-message', handlePrivateMessage);
+        return() => {
+            socket.off('private-message', handlePrivateMessage);
+        };
+    }, [chatTargetId, socket]);
+
+    // useEffect for the dragging functionality:
     useEffect(() => {
         const container = containerRef.current;
         const dragHandle = dragHandleRef.current;
@@ -126,6 +146,7 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
                         users={activeUsersList}
                         currentUserId={userData.id}
                         onChat={toggleChatWithUser}
+                        unreadMessages={unreadMessages}
                     />
 
                     {/* INACTIVE USERS: */}
@@ -134,6 +155,7 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
                         users={inactiveUsersList}
                         currentUserId={userData.id}
                         onChat={toggleChatWithUser}
+                        unreadMessages={unreadMessages}
                     />
                 </>
             )}
