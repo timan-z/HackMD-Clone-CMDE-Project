@@ -210,15 +210,35 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
+
+
+
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadUserRooms = async(roomId) => {
     const usersData = await loadRoomUsers(roomId);
     console.log("DEBUG: The value of usersData => [", usersData, "]");
-    setUsersList(usersData);
+
+    /* When this list of Users is exported, it takes "user_id" from my table user_rooms (for linking users to rooms).
+    To prevent naming inconsistency headaches with setting state var "usersList" w/ usersData, I'm going to slightly
+    tweak the returned array so that its user_id item is renamed to userId (and same w/ room_id => roomId): */
+    const tweakedArr = usersData.map(user => ({
+      userId: user.user_id,
+      username: user.username,
+      displayname: user.displayname,
+      role: user.role,
+      roomId: user.room_id,
+    }));
+    setUsersList(tweakedArr);
   };
   useEffect(() => {
     callLoadUserRooms(roomId);
   }, []);
+
+
+
+
+
+
 
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
   useEffect(() => {

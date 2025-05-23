@@ -1,5 +1,5 @@
 // BREAKING DOWN "UsersListContainer" - UsersListEntry.jsx
-// 1. For rendering a single User Item (Row) in the UsersListContainer (- <Username> [Chat Msg Icon])
+// For rendering a single User Item (Row) in the UsersListContainer (- <Username> [Chat Msg Icon])
 
 import React from "react";
 
@@ -7,7 +7,7 @@ import React from "react";
 
 const UsersListEntry = ({ user, isActive, currentUserId, onChatClick }) => {
 
-    const userId = user.userId || user.user_id; {/* <-- NOTE:+DEBUG: Should really change things so it's just userId. My naming consistency is terrible. */}
+    const userId = user.userId;
     
     return(
         <li key={userId}>

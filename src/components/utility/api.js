@@ -119,10 +119,6 @@ export const deleteRoom = async(roomId, token) => {
 // 3.1. For returning a list of Users associated with a particular Text Editor Room:
 export const getRoomUsers = async(roomId, token) => {
 
-
-    console.log("DEBUG: Something's wrong...");
-
-    
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/users`, {
         method:"GET",
         headers: { Authorization: `Bearer ${token}` },

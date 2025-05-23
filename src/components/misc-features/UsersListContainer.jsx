@@ -1,8 +1,11 @@
 // UPDATE: Better to break my original usersListBar.js (or translated UsersListBar.jsx) file into multiple modular pieces:
 // DEBUG: Don't forget to add back "shadowing" the Users Icon button at the top-right corner of the Editor.jsx page later on...
 import React, { useEffect, useRef } from 'react';
-
 import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting HTML into the DOM, createPortal will mimic my original appending to document.body
+
+// MODULARITY:
+import UsersListHeader from './UsersListHeader.jsx';
+import UsersListEntry from './UsersListEntry.jsx';
 
 const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) => {
     const containerRef = useRef(null);
@@ -11,8 +14,12 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) =
 
     // Building the list of inactive users (by just getting the subset of usersList and activeUsersList or whatever):
     const inactiveUsersList = usersList.filter(
-        user => !activeUsersList.some(active => active.userId === user.user_id) // NOTE:+DEBUG: I'm all over the place with naming consistency.
-    );    
+        user => !activeUsersList.some(active => active.userId === user.userId)
+    );
+
+    console.log("DEBUG: The value of usersList => [", usersList, "]");
+    console.log("DEBUG: The value of activeUsersList => [", activeUsersList, "]");
+    console.log("DEBUG: The value of inactiveUsersList => [", inactiveUsersList, "]");
 
     useEffect(() => {
         const container = containerRef.current;
@@ -81,45 +88,20 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) =
             padding: '10px',
             zIndex: 99999,
         }}>
-            <div
-                ref={dragHandleRef}
-                className="drag-handle"
-                style={{
-                    cursor: 'move',
-                    backgroundColor: '#003300',
-                    padding: '8px',
-                    marginBottom: '10px',
-                    fontWeight: 'bold',
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                }}
-            >
-                <span>Active Users</span>
-                <button
-                className="close-btn"
-                onClick={onClose}
-                style={{
-                    background: 'none',
-                    border: 'none',
-                    color: '#00FF41',
-                    fontSize: '18px',
-                    cursor: 'pointer',
-                }}
-                >X</button>
-            </div>
+            {/* THE USERS LIST HEADER (THE THING THAT YOU'LL BE DRAGGING TO MOVE THE USERS LIST CONTAINER COMPONENT AROUND): */}
+            <UsersListHeader dragHandleRef={dragHandleRef} onClose={onClose}/>
 
             {/* ACTIVE USERS: */}
             <div>
                 <ul>
                     {activeUsersList.map(user => (
-                        <li key={user.userId} > 
-                            <span>{user.username}</span>
-
-                            {user.userId !== userData.id && (
-                                <button>CHAT</button>
-                            )}
-                        </li>
+                        <UsersListEntry
+                            key={user.userId}
+                            user={user}
+                            isActive={true}
+                            currentUserId={userData.id}
+                            onChatClick={(targetUser) => console.log("COME BACK HERE AND ADD THE CHAT FEATURE FOR: ", targetUser)}
+                        />
                     ))}
                 </ul>
             </div>
@@ -142,10 +124,13 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose }) =
             <div>
                 <ul>
                     {inactiveUsersList.map(user => (
-                        <li key={user.user_id}>{/*<-- DEBUG:+NOTE: Again, my naming consistency is atrocious... (Come back to fix this!)*/}
-                            <span>{user.username}</span>
-                            <button>CHAT</button>
-                        </li>
+                        <UsersListEntry
+                            key={user.userId}
+                            user={user}
+                            isActive={false}
+                            currentUserId={userData.id}
+                            onChatClick={(targetUser) => console.log("COME BACK HERE AND ADD THE CHAT FEATURE FOR: ", targetUser)}
+                        />
                     ))}
                 </ul>
             </div>

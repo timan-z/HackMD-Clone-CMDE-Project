@@ -123,14 +123,8 @@ export const createNewEdRoom = async(req, res) => {
 
 // 2.2. Function for retrieving all Editor Rooms associated with a certain user:
 export const getAllEdRooms = async (req, res) => {
-
-    console.log("DEBUG: THE FUNCTION getAllEdRooms WAS ENTERED!!!");
-
     const userID = req.user.id; // Will get obtained by func verifyToken...
     try {
-
-        console.log("DEBUG: POOL.QUERY IS ABOUT TO HAPPEN!!!");
-
         const roomsRes = await pool.query(`
             SELECT
                 ur.id AS user_room_id,
@@ -145,9 +139,6 @@ export const getAllEdRooms = async (req, res) => {
             WHERE ur.user_id = $1
             ORDER BY r.created_at DESC
         `, [userID]);
-
-        console.log("DEBUG: OKAY SO IT MADE IT TO THIS POINT???");
-        console.log("Debug: The value of roomsRes.rows => [", roomsRes.rows, "]");
 
         res.json(roomsRes.rows);
     } catch (err) {
