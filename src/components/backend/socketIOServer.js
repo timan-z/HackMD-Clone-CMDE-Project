@@ -28,14 +28,8 @@ const io = new Server(server, {
     },
 });
 
-
-
-
 let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
-
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
-
-
 
 io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
@@ -69,7 +63,14 @@ io.on("connection", (socket) => {
     socket.on('private-message', ({from, to, text}) => {
         for(const [socketId, userData] of io.sockets.sockets.entries()) {
             if(userData.userId === to) {
-                io.to(socketId).emit('private-message', {from, to, text});
+                io.to(socketId).emit('private-message', {from, to, text});  // For emitting the actual message.
+                io.to(socketId).emit('notification', {  // For emitting the notification.
+                    type:"dm",
+                    from,
+                    to,
+                    message: `New message from ${socket.username}.`,
+                    timestamp: Date.now()
+                })
                 break;
             }
         }

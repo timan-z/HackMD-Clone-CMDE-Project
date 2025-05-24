@@ -102,7 +102,7 @@ function App() {
         {/* BELOW ARE THE PROTECTED ROUTES (PAGES) -- NEED AUTHORIZATION TO ACCESS THEM!: */}
         
         {/* 3. Editing Session Dashboard Page. (Homepage **if** logged in): */}
-        <Route path="/dashboard" element={<PrivateRoute><Dashboard logout={handleLogout} sendRoomID={handleRoomJoin} /></PrivateRoute>} />
+        <Route path="/dashboard" element={<PrivateRoute><Dashboard loadUser={loadUser} logout={handleLogout} sendRoomID={handleRoomJoin} userData={user} setUser={setUser} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}

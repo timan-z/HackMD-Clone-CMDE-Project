@@ -32,8 +32,7 @@ import { useParams } from "react-router-dom";
 
 
 import UsersListContainer from '../misc-features/UsersListContainer.jsx'; // USERSLIST-DEBUG:
-
-
+import NotificationBar from '../misc-features/NotificationBar.jsx';
 
 import { useNavigate } from "react-router-dom";
 
@@ -179,6 +178,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   const [usersList, setUsersList] = useState([]);
   const [activeUsersList, setActiveUsersList] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);  
+  const [showNotifs, setShowNotifs] = useState(false);
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
@@ -295,11 +295,44 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
    
 
-  // For returning to the dashboard:
+  // Function for returning to the dashboard:
   const navigate = useNavigate();
   const goToDashboard = () => {
     navigate("/dashboard");
   };
+
+  // Function for triggering the Users List popup and "shadowing" the Users List button when clicked:
+  const toggleUsersList = () => {
+    let usersListBtn = document.getElementById('users-list-button');
+    if(!showUsersList) {
+      usersListBtn.classList.add('users-l-add-shadow');
+    } else {
+      usersListBtn.classList.remove('users-l-add-shadow');
+    }
+    setShowUsersList(prev => !prev);
+  };
+   
+  // Function for triggering the Notifications popup and "shadowing" the Notifications button when clicked:
+  const toggleNotifs = () => {
+
+    console.log("DEBUG: The value of showNotifs => [", showNotifs, "]");
+
+    let notifsBtn = document.getElementById('notifs-button');
+    if(!showNotifs) {
+      notifsBtn.classList.add('users-l-add-shadow');
+    } else {
+      notifsBtn.classList.remove('users-l-add-shadow');
+    }
+
+    // NOTE:+DEBUG: Need to have a thing where if the Notifs button background is Red, it gets turned back to Green.
+    // DEBUG: ^ I need to set this whole thing up in general... 
+
+    setShowNotifs(prev => !prev);
+  };
+  
+
+
+
 
   // Function for handling the webpage view toggle between the Text Editor and Preview Panel (Split, Editor, Preview):
   const handleViewChange = (mode) => {
@@ -509,11 +542,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
 
-
-
-      console.log("Debug: The value of otherCursors => [", otherCursors, "]");
-
-
+      console.log("[INSERT SOMETHING TO DEBUG]");
 
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction exited...");
@@ -543,22 +572,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   };
-
-  // The following const functions are for making the T.E. supplementary elements (Users List Bar, Notifications Bar, etc) draggable:
-  /*const startDragging = (e, dragObj) => {
-    let 
-
-  }*/
-  
-  /*function start_dragging(e, dragObj) {
-    // making sure I can't drag the menu or legend's inner contents (e.g., buttons etc).
-    if ((e.target === drag_menu || e.target === drag_legend) && !dragObj.drag_active) {
-      dragObj.drag_in_prog = e.target;
-      setOriginalPosition(e, dragObj);
-      dragObj.drag_active = true;
-      activeDragObj = dragObj;
-    }
-  }*/
 
 
 
@@ -706,16 +719,27 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
         {/* NOTE: Added this parent <div> for the stuff inbetween to add in-between spacing... */}
         <div style={{display:"flex", flexDirection:"row", gap:"5px"}}>
 
+          {/* This will be the "Notifications" button on the top-right of the T.E. room webpage (will be extremely primitive): */}
+          <div id="notifs-button" onClick={()=> toggleNotifs()} >
+            <img id="notifs-button-icon" src="../../images/notif-icon.png" alt="Stock Notification Bell Icon"></img>
+          </div>
+
+          {/* Code to have the Notifications component appear: */}
+          {showNotifs && (
+            <NotificationBar socket={socket}/>
+          )}
+
+
+
           {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
-          {/*<div id="users-list-button" onClick={()=> createUsersList()}>*/}
-          <div id="users-list-button" onClick={()=> setShowUsersList(prev => !prev)}>
+          <div id="users-list-button" onClick={()=> toggleUsersList()}>
             <img id="users-list-icon" src="../../images/users-icon.png" alt="Stock Users Icon"></img>
           </div>
 
           {/* Code to have the Users List appear (can be placed anywhere since I have "createPortal" in 
           UsersListContainer.jsx, which should append it to the document.body regardless): */}
           {showUsersList && (
-            <UsersListContainer userData={userData} activeUsersList={activeUsersList} usersList={usersList} socket={socket} onClose={()=>setShowUsersList(false)}/>
+            <UsersListContainer userData={userData} activeUsersList={activeUsersList} usersList={usersList} socket={socket} onClose={()=>toggleUsersList()}/>
           )}
 
           {/* This will be the "Home" (Return to Dashboard) button on the top-right of the T.E. room webpage: */}

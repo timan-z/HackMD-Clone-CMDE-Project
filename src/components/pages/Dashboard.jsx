@@ -7,6 +7,8 @@ import { createNewEdRoom, getAllRooms, checkRoomAccess, generateInvLink, joinRoo
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 import { set } from "lodash";
+import { io } from "socket.io-client";
+const socket = io("http://localhost:4000");
 /* NOTE:
 - I should be safe using uuidv4(); to generate Room IDs because the probability of duplication is astronomically low
 AND since it's my primary key in the database anyways, PostgreSQL will automatically reject duplicates for me. 
@@ -23,7 +25,7 @@ DON'T FORGET: Solve this stupid problem:
 
 */
 
-function Dashboard({ logout, sendRoomID }) {
+function Dashboard({ userData, logout, sendRoomID, loadUser, setUser }) {
     const joinEdRoomLink = useRef(null);
     const newEdRoomNameRef = useRef(null);
     const [invLink, setInvLink] = useState("");
@@ -36,6 +38,22 @@ function Dashboard({ logout, sendRoomID }) {
         navigate("/login");
     };
 
+    // 1. useEffect that'll run on mount and double-check that userData is valid:
+    // NOTE: (Adding this well after writing most of the code for the page -- don't need to do the same with roomId since it's obtained directly elsewhere). 
+    useEffect(() => {
+        if(!userData) {
+            const storedUser = localStorage.getItem("userData");
+            if(storedUser) {
+                const parsedUser = JSON.parse(storedUser);
+                setUser(parsedUser);
+            } else {
+                loadUser();
+            }
+        }
+    }, []);
+
+
+    // 2. useEffect that'll run on mount for loading in the Editor Rooms this User has access to:
     useEffect(() => {
         const fetchRooms = async() => {
             const token = localStorage.getItem("token");
@@ -55,6 +73,16 @@ function Dashboard({ logout, sendRoomID }) {
     // To join a new room from the area I'll be loading them:
     const handleJoin = async(roomId) => {    
         sendRoomID(roomId);        
+        // Notify the Socket.IO server of this new join:
+        socket.emit("notification", {
+            type:"join",
+            roomId: roomId,
+            userId: userData.id,
+            username: userData.username,
+            message: `${userData.username} has joined the room!`,
+            timestamp: Date.now(),
+        });
+        
         navigate(`/editor/${roomId}`);
     }
 
@@ -64,12 +92,21 @@ function Dashboard({ logout, sendRoomID }) {
         if(!token) return;
         try {
             const data = await leaveRoom(roomId, token);
+            // Notify the Socket.IO server of this leave:
+            socket.emit("notification", {
+                type:"leave",
+                roomId: roomId,
+                userId: userData.id,
+                username: userData.username,
+                message: `${userData.username} has left the room!`,
+                timestamp: Date.now(),
+            });
+
             navigate('/dashboard');
         } catch (err) {
             console.error("DEBUG: Error in attempting to leave the Editor Room ID: ", roomId);
         }
     }
-
 
     // To delete a room:
     const handleDelete = async(roomId) => {
@@ -88,7 +125,7 @@ function Dashboard({ logout, sendRoomID }) {
             console.error("DEBUG: Error in attempting to delete the Editor Room ID: ", roomId);
         }
     }
-
+    // NOTE:+DEBUG: Don't forget -- when a room is deleted, I get rid of all server records related to it...
 
     // Function for handling generate link invites:
     const generateInvite = async(roomId) => {
@@ -161,7 +198,6 @@ function Dashboard({ logout, sendRoomID }) {
                     </form>
                 </div>
             </div>
-
 
 
 

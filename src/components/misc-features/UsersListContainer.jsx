@@ -39,11 +39,6 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
     // useEffect to handle incoming messages notifications:
     useEffect(() => {
         const handlePrivateMessage = ({ from, to, text }) => {
-
-
-            console.log("PRIVATE-MSG-DEBUG: RECEIVED A MESSAGE FROM [", from, "] AND THE MESSAGE WAS: ", text);
-
-
             // If the message received isn't in an already active chat, a symbol (!) will indicate a new message was sent.
             if(chatTargetId !== from) {
                 setUnreadMessages(prev => ({...prev, [from]: true}));
