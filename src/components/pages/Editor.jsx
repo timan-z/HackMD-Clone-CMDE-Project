@@ -27,12 +27,11 @@ const socket = io("http://localhost:4000"); // <-- bringing this back for tying 
 import { useParams } from "react-router-dom"; 
 
 
-//import { createUsersList } from '../misc-features/usersListBar.js';
-//import {createUsersList} from '../misc-features/UsersListBar.jsx';
-
-
 import UsersListContainer from '../misc-features/UsersListContainer.jsx'; // USERSLIST-DEBUG:
 import NotificationBar from '../misc-features/NotificationBar.jsx';
+
+
+
 
 import { useNavigate } from "react-router-dom";
 
@@ -719,6 +718,11 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
         {/* NOTE: Added this parent <div> for the stuff inbetween to add in-between spacing... */}
         <div style={{display:"flex", flexDirection:"row", gap:"5px"}}>
 
+
+
+
+
+
           {/* This will be the "Notifications" button on the top-right of the T.E. room webpage (will be extremely primitive): */}
           <div id="notifs-button" onClick={()=> toggleNotifs()} >
             <img id="notifs-button-icon" src="../../images/notif-icon.png" alt="Stock Notification Bell Icon"></img>
@@ -726,8 +730,13 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
           {/* Code to have the Notifications component appear: */}
           {showNotifs && (
-            <NotificationBar socket={socket}/>
+            <NotificationBar socket={socket} onClose={()=>toggleNotifs()} />
           )}
+
+
+
+
+
 
 
 
