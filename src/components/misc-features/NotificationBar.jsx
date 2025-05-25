@@ -7,7 +7,7 @@ import NotificationBarHeader from "./NotificationBarHeader";
 
 
 
-const NotificationBar = ({ onClose, socket }) => {
+const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     const notifBarRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
@@ -27,6 +27,15 @@ const NotificationBar = ({ onClose, socket }) => {
         const twentyFourHours = 1000 * 86400;   // 86400 seconds in 24hrs...
         const handleNotif = (notif) => {
             console.log("DEBUG: The handleNotif function has been entered...");
+            // So if the Notifications component isn't open, set the background colour of the icon to Red (to imply new notifications):
+            if(!notifsOpen) {
+                let notifsBtn = document.getElementById('notifs-button');
+                notifsBtn.style.backgroundColor = 'red';
+                /*if(notifsBtn.style.backgroundColor === 'red') {
+                    console.log("DEBUG: Yeah I can work with this.");
+                }*/
+            }
+
             setNotifications((prev) => [...prev, notif]);
             setTimeout(() => {
                 setNotifications((prev) => prev.filter(n => n !== notif));

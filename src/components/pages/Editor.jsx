@@ -319,6 +319,10 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     let notifsBtn = document.getElementById('notifs-button');
     if(!showNotifs) {
       notifsBtn.classList.add('users-l-add-shadow');
+      // Going to make it so that the Notifs Icon turns red when new notifications are received (clicking it will get rid of the applied red):
+      if(notifsBtn.style.backgroundColor === 'red') {
+        notifsBtn.style.backgroundColor = '#00FF41';
+      }
     } else {
       notifsBtn.classList.remove('users-l-add-shadow');
     }
@@ -730,7 +734,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
           {/* Code to have the Notifications component appear: */}
           {showNotifs && (
-            <NotificationBar socket={socket} onClose={()=>toggleNotifs()} />
+            <NotificationBar notifsOpen={showNotifs} socket={socket} onClose={()=>toggleNotifs()} />
           )}
 
 
