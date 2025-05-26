@@ -256,12 +256,8 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     //console.log(`Sending Room ID:(${roomId}), User ID:(${userId}), and username:(${username}) over to the Socket.IO server.`);
     console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
 
-    
-
-
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
     socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
-
     
     // Listen for an updated list of Active Users:
     socket.on("active-users-list", (activeUsers) => {
@@ -276,7 +272,21 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   
 
 
+  // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
+  // DEBUG: ^ Definitely organize this better -- it's so minor that it can probably be stuffed into another useEffect hook...
+  useEffect(()=> {
+    const handleNotif = () => {
+      let notifBarCheck = document.getElementById('notification-bar');
 
+      if(!notifBarCheck) {
+        let notifsBtn = document.getElementById('notifs-button');
+        notifsBtn.style.backgroundColor = 'red';
+      }
+    }
+
+    socket.on("notification", handleNotif);
+    return () => socket.off("notification", handleNotif);
+  }, []);
 
 
 
