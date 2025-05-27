@@ -13,8 +13,8 @@ const ManageUsersListEntry = ({roomId, roomName, user, currentUserId, onKick, on
             {/* "Kick User" and "Transfer Ownership" buttons for all non-current (owner) users: */}
             {userId !== currentUserId && (
                 <div>
-                    <button onClick={()=>onKick(user.userId, roomId)}>KICK USER</button>
-                    <button onClick={()=>onTransfer(roomId, user.userId, currentUserId)} >TRANSFER OWNERSHIP</button>
+                    <button onClick={()=>onKick(user.username, user.userId, roomId)}>KICK USER</button>
+                    <button onClick={()=>onTransfer(roomId, user.userId, currentUserId, user.username)} >TRANSFER OWNERSHIP</button>
                 </div>
             )}
         </li>

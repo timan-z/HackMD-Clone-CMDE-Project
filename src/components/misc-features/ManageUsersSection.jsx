@@ -3,15 +3,14 @@ user transfer ownership to others in the Editor Room or remove certain users. */
 import React, { useState, useEffect} from 'react';
 import { createPortal } from 'react-dom';
 import { kickRoomUser, transferRoomOwn } from "../utility/api.js";
-
 import UsersListSection from './UsersListSection.jsx';
 import ManageUsersListSection from './ManageUsersListSection.jsx';
 
 
+const socket = io("http://localhost:4000");
+
+
 const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onClose, onTransfer }) => {
-
-
-
 
     // Function for kicking a User.
     /* DEBUG:+TO-DO:
@@ -19,7 +18,7 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
     - Kicking a User -- while said User is active in the Editor Room -- will prompt a pop-up to appear on their screen letting them know.
     - Kicking a User should force the <ManageUsersListSection> to re-render the members present in real-time. (Likely involves UseEffect)
     */
-    const handleKick = async(targetUserId, roomId) => {
+    const handleKick = async(targetUsername, targetUserId, roomId) => {
         const token = localStorage.getItem("token");
         if(!token) return;
 
@@ -29,26 +28,50 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
             // ALSO -- Check to see if said user is currently in that room! (Which I think I can do with Socket.IO!)
             const data = await kickRoomUser(roomId, targetUserId, token);
             console.log("DEBUG: The value of data.success => [", data.success, "]");
+
             // INSERT SOCKET.IO EMIT THING!!! <-- DEBUG:+TO-DO COME BACK HERE LATER!!!
+            socket.emit("notification", {
+                type:"kick",
+                roomId: roomId,
+                userId: targetUserId,
+                username: targetUsername,
+                message:`${targetUsername} ID:${targetUserId} was kicked from the room.`,
+                timestamp: Date.now(),
+            })
+
         } catch(err) {
             console.error("DEBUG: Error in attempting to kick User ID:(", targetUserId, ") from Room ID:(", roomId, ") => ", err);
         }
     };
 
 
+
+
+
+
     // Function for transferring ownership:
     /* DEBUG:+TO-DO:
     - Transferring ownership should send a notification (either "X user has become New Owner" or "YOU have become New Owner").
     */
-    const handleOwnTransfer = async(roomId, targetUserId, currentUserId) => {
+    const handleOwnTransfer = async(roomId, targetUserId, currentUserId, targetUsername) => {
         const token = localStorage.getItem("token");
         if(!token) return;
 
         try {
             const data = await transferRoomOwn(roomId, targetUserId, currentUserId, token);
-
             console.log("DEBUG: The value of data.success => [", data.success, "]");
+
             // INSERT SOCKET.IO EMIT THING!!! <--DEBUG:+TO-DO COME BACK HERE LATER!!!
+            socket.emit("notification", {
+                type:"transferOwn",
+                roomId: roomId,
+                targetUserId: targetUserId,
+                currentUserId: currentUserId,
+                targetUsername: targetUsername,
+                message: `User ${targetUsername} ID:${targetUserId} was promoted to Owner of Editor Room [${roomId}]`,
+                timestamp: Date.now(),
+            })
+        
         } catch(err) {
             console.error("DEBUG: Error in attempting to transfer ownership of Room ID:(", roomId, ") from User ID:(", currentUserId, ") to User ID:(", targetUserId, ")");
         }
