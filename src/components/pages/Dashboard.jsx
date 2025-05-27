@@ -298,7 +298,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
                             {/* Code to have the Manage Users component appear: */}
                             {showManageUsers && (
-                                <ManageUsersSection currentUserId={userData.id} roomName={room.room_name} roomMembers={roomMembers} onClose={()=>setShowManageUsers(prev => !prev)} />
+                                <ManageUsersSection currentUserId={userData.id} roomName={room.room_name} roomId={room.room_id} roomMembers={roomMembers} onClose={()=>setShowManageUsers(prev => !prev)} />
                             )}
 
 

@@ -125,3 +125,13 @@ export const getRoomUsers = async(roomId, token) => {
     });
     return await result.json();
 }
+
+// 3.2. To kick a specific User from an Editor Room (and so userId here refers to a "target" userId):
+export const kickRoomUser = async(roomId, userId, token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/kick/${userId}`, {
+        method:"POST",
+        headers: {Authorization: `Bearer ${token}` }
+    });
+    return result.json();
+}
+

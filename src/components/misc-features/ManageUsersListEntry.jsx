@@ -3,16 +3,20 @@
 
 import React from "react";
 
-const ManageUsersListEntry = ({user, currentUserId }) => {
+const ManageUsersListEntry = ({roomId, roomName, user, currentUserId, onKick }) => {
     const userId = user.userId;
 
     return(
         <li key={userId}>
-            
-            {/*{userId !== currentUserId && ()}*/}
-            
             <span>{user.username}</span>
             
+            {/* "Kick User" and "Transfer Ownership" buttons for all non-current (owner) users: */}
+            {userId !== currentUserId && (
+                <div>
+                    <button onClick={()=>onKick(user.userId, roomId)}>KICK USER</button>
+                    <button>TRANSFER OWNERSHIP</button>
+                </div>
+            )}
         </li>
     );
 };

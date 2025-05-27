@@ -2,17 +2,40 @@
 user transfer ownership to others in the Editor Room or remove certain users. */
 import React, { useState, useEffect} from 'react';
 import { createPortal } from 'react-dom';
-
-
-
+import { kickRoomUser } from "../utility/api.js";
 
 import UsersListSection from './UsersListSection.jsx';
 import ManageUsersListSection from './ManageUsersListSection.jsx';
 
 
-const ManageUsersSection = ({ roomName, roomMembers, currentUserId, onKick, onClose }) => {
+const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onClose }) => {
 
 
+    // Function for kicking a User.
+    /* DEBUG:+TO-DO:
+    - Kicking a User should send a notification.
+    - Kicking a User -- while said User is active in the Editor Room -- will prompt a pop-up to appear on their screen letting them know.
+    - Kicking a User should force the <ManageUsersListSection> to re-render the members present in real-time. (Likely involves UseEffect)
+    */
+    const handleKick = async(targetUserId, roomId) => {
+        const token = localStorage.getItem("token");
+        if(!token) return;
+
+        try {
+            //const data = await kickUser(roomId, targetUserId);
+            // AFTER the function runs, I need to send a notification out from here.
+            // ALSO -- Check to see if said user is currently in that room! (Which I think I can do with Socket.IO!)
+
+            const data = await kickRoomUser(roomId, targetUserId, token);
+            
+            console.log("DEBUG: The value of data.success => [", data.success, "]");
+
+            // INSERT SOCKET.IO EMIT THING!!!
+
+        } catch(err) {
+            console.error("DEBUG: Error in attempting to kick User ID:(", targetUserId, ") from Room ID:(", roomId, ") => ", err);
+        }
+    };
     
 
 
@@ -51,12 +74,7 @@ const ManageUsersSection = ({ roomName, roomMembers, currentUserId, onKick, onCl
             </div>
 
             {/* Loading a list of the Users associated with this Room: */}
-            <ManageUsersListSection users={roomMembers} currentUserId={currentUserId} />
-
-
-
-
-
+            <ManageUsersListSection roomId={roomId} roomName={roomName} users={roomMembers} currentUserId={currentUserId} onKick={handleKick} />
 
         </div>
     );

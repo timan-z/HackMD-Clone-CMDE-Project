@@ -294,3 +294,18 @@ export const getEdRoomUsers = async(req, res) => {
         res.status(500).json({ error: "Failed to fetch users for the room" });
     }
 };
+
+// 3.2. Function for kicking a specific user from a particular room.
+export const kickEdRoomUser = async(req, res) => {
+    const {roomId} = req.params;
+    const targetUserId = req.params.userId;
+
+    // Remove this user from the Editor Room:
+    try {
+        await pool.query(`DELETE FROM user_rooms WHERE room_id = $1 AND user_id = $2`, [roomId, targetUserId]);
+        res.status(201).json({success: true});
+    } catch (err) {
+        console.error("ERROR while attempting to kick User ID:(", targetUserId, ") from Room ID:(", roomId, ") because of: ", err);
+        res.status(500).json({ success:false, error: "FAILED TO KICK USER" });
+    }
+};
