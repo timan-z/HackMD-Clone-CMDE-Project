@@ -8,39 +8,24 @@ import { createNewEdRoom, getAllRooms, checkRoomAccess, generateInvLink, joinRoo
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 import { set } from "lodash";
 import { io } from "socket.io-client";
+import ManageUsersSection from "../misc-features/ManageUsersSection.jsx";
 const socket = io("http://localhost:4000");
-/* NOTE:
-- I should be safe using uuidv4(); to generate Room IDs because the probability of duplication is astronomically low
-AND since it's my primary key in the database anyways, PostgreSQL will automatically reject duplicates for me. 
-*/
 
-
-
-
-/* 
-
-DON'T FORGET: Solve this stupid problem: 
-"Uncaught SyntaxError: The requested module '/src/components/pages/Register.jsx?t=1747099488268' does not provide an export named 'default' (at App.jsx:5:8)"
-^ HAS SOMETHING TO DO WITH CACHING -- TOO TIRED TO FIGURE IT OUT TONIGHT.
-
-*/
-
-
-
-
-
-
-
-
-
-function Dashboard({ userData, logout, sendRoomID, loadUser, setUser }) {
+function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setUser }) {
     const joinEdRoomLink = useRef(null);
     const newEdRoomNameRef = useRef(null);
     const [invLink, setInvLink] = useState("");
     const [rooms, setRooms] = useState([]);
-    
-    const navigate = useNavigate();
 
+    const [showManageUsers, setShowManageUsers] = useState(false);
+    const [roomMembers, setRoomMembers] = useState([]); // Related to showManageUsers state var (gets the members of the Room you click "Manage Users" on).
+    
+    
+
+
+
+    const navigate = useNavigate();
+    
     const handleLogout = () => {
         logout();
         navigate("/login");
@@ -148,6 +133,52 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, setUser }) {
         }
     };
 
+    // Function for retrieving the members associated with a Editor Room:
+    const callLoadUserRooms = async(roomId) => {
+        const usersData = await loadRoomUsers(roomId);
+
+        const tweakedArr = usersData.map(user => ({
+            userId: user.user_id,
+            username: user.username,
+        }));
+        setRoomMembers(tweakedArr);
+    };
+
+    // Function for handling the "Manage Users" button:
+    const handleManageUsers = (roomId) => {
+        setShowManageUsers(prev => !prev);
+
+        /* It takes a full re-render cycle for the state variable value to actually change so if the "Show Managers" section is to 
+        now appear -- the value of "showManageUsers" will actually be false for the remainder of this function execution... */
+        if(!showManageUsers) {
+            callLoadUserRooms(roomId);  // ...and that's the condition that must be met for callLoadUserRooms().
+        }
+    };
+
+    /* State variable "roomMembers" is filled for every time the "Manage Users" button is interacted with for a particular room.
+    Since its value is tied to a specific interaction, its value will be regularly cleared by this UseEffect hook: */
+    useEffect(() => {
+        let manageUsersCheck = document.getElementById("manage-users-sect");
+        if(!showManageUsers && manageUsersCheck === null) {
+            setRoomMembers([]);
+        }
+    }, [showManageUsers]);
+
+
+
+
+
+
+
+    
+    const debugFunction = () => {
+
+        console.log("The value of userData => [", userData, "]");
+
+    };
+
+
+
     return(
         <div>
             <h1>DASHBOARD GOES HERE!!!</h1>
@@ -253,6 +284,32 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, setUser }) {
                             {/* Want a button here that lets you DELETE the room. */}
                             <button onClick={()=>handleDelete(room.room_id)}>
                                 DELETE ROOM
+                            </button>
+
+
+
+
+
+
+                            {/* Want a button here that lets you manage users: */}
+                            <button onClick={()=>handleManageUsers(room.room_id)}>
+                                MANAGE USERS
+                            </button>
+
+                            {/* Code to have the Manage Users component appear: */}
+                            {showManageUsers && (
+                                <ManageUsersSection currentUserId={userData.id} roomName={room.room_name} roomMembers={roomMembers} onClose={()=>setShowManageUsers(prev => !prev)} />
+                            )}
+
+
+
+
+
+
+
+                            {/* DEBUG: */}
+                            <button onClick={()=> debugFunction()}>
+                                DEBUG!
                             </button>
 
                             {/* DEBUG:+NOTE: Maybe you only get the "leave" button if you're non-owner. Only get "delete" if you're the owner. */}
