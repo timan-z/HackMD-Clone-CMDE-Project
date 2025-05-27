@@ -2,13 +2,15 @@
 user transfer ownership to others in the Editor Room or remove certain users. */
 import React, { useState, useEffect} from 'react';
 import { createPortal } from 'react-dom';
-import { kickRoomUser } from "../utility/api.js";
+import { kickRoomUser, transferRoomOwn } from "../utility/api.js";
 
 import UsersListSection from './UsersListSection.jsx';
 import ManageUsersListSection from './ManageUsersListSection.jsx';
 
 
-const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onClose }) => {
+const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onClose, onTransfer }) => {
+
+
 
 
     // Function for kicking a User.
@@ -25,15 +27,30 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
             //const data = await kickUser(roomId, targetUserId);
             // AFTER the function runs, I need to send a notification out from here.
             // ALSO -- Check to see if said user is currently in that room! (Which I think I can do with Socket.IO!)
-
             const data = await kickRoomUser(roomId, targetUserId, token);
-            
             console.log("DEBUG: The value of data.success => [", data.success, "]");
-
-            // INSERT SOCKET.IO EMIT THING!!!
-
+            // INSERT SOCKET.IO EMIT THING!!! <-- DEBUG:+TO-DO COME BACK HERE LATER!!!
         } catch(err) {
             console.error("DEBUG: Error in attempting to kick User ID:(", targetUserId, ") from Room ID:(", roomId, ") => ", err);
+        }
+    };
+
+
+    // Function for transferring ownership:
+    /* DEBUG:+TO-DO:
+    - Transferring ownership should send a notification (either "X user has become New Owner" or "YOU have become New Owner").
+    */
+    const handleOwnTransfer = async(roomId, targetUserId, currentUserId) => {
+        const token = localStorage.getItem("token");
+        if(!token) return;
+
+        try {
+            const data = await transferRoomOwn(roomId, targetUserId, currentUserId, token);
+
+            console.log("DEBUG: The value of data.success => [", data.success, "]");
+            // INSERT SOCKET.IO EMIT THING!!! <--DEBUG:+TO-DO COME BACK HERE LATER!!!
+        } catch(err) {
+            console.error("DEBUG: Error in attempting to transfer ownership of Room ID:(", roomId, ") from User ID:(", currentUserId, ") to User ID:(", targetUserId, ")");
         }
     };
     
@@ -74,7 +91,7 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
             </div>
 
             {/* Loading a list of the Users associated with this Room: */}
-            <ManageUsersListSection roomId={roomId} roomName={roomName} users={roomMembers} currentUserId={currentUserId} onKick={handleKick} />
+            <ManageUsersListSection roomId={roomId} roomName={roomName} users={roomMembers} currentUserId={currentUserId} onKick={handleKick} onTransfer={handleOwnTransfer} />
 
         </div>
     );

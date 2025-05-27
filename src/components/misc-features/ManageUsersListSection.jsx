@@ -4,7 +4,7 @@
 import React from "react";
 import ManageUsersListEntry from "./ManageUsersListEntry";
 
-const ManageUsersListSection = ({ roomId, roomName, users, currentUserId, onKick }) => {
+const ManageUsersListSection = ({ roomId, roomName, users, currentUserId, onKick, onTransfer }) => {
     return(
         <>
             <ul>
@@ -17,6 +17,7 @@ const ManageUsersListSection = ({ roomId, roomName, users, currentUserId, onKick
                             onKick={onKick}
                             roomId={roomId}
                             roomName={roomName}
+                            onTransfer={onTransfer}
                         />
                     );
                 })}

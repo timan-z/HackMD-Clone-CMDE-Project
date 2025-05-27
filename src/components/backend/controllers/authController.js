@@ -309,3 +309,29 @@ export const kickEdRoomUser = async(req, res) => {
         res.status(500).json({ success:false, error: "FAILED TO KICK USER" });
     }
 };
+
+// 3.3. Function to transfer Editor Room ownership from one user to the other.
+export const transferEdRoomOwn = async(req, res) => {
+    const {roomId} = req.params;
+    const targetUserId = req.params.tUserId;
+    const currentUserId = req.params.cUserId;
+
+    // Transfer ownership:
+    try {
+        await pool.query(`
+            UPDATE user_rooms
+            SET role = CASE
+                WHEN user_id = $1 AND room_id = $3 THEN 'member'
+                WHEN user_id = $2 AND room_id = $3 THEN 'king'
+                ELSE role  -- leave other rows unchanged
+            END
+            WHERE room_id = $3
+            AND user_id IN ($1, $2);
+        `, [currentUserId, targetUserId, roomId]);
+        
+        res.status(201).json({success: true});
+    } catch(err) {
+        console.error("ERROR while attempting to transfer Editor Room [", roomId, "] ownership from User ID:(", currentUserId, ") to User ID:(", targetUserId, ")");
+        res.status(500).json({ success:false, error: "Failed to transfer ownership"});
+    }
+};

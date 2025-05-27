@@ -135,3 +135,11 @@ export const kickRoomUser = async(roomId, userId, token) => {
     return result.json();
 }
 
+// 3.3. To transfer Editor Room ownership from a specific user to another:
+export const transferRoomOwn = async(roomId, targetUserId, currentUserId, token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/transfer/${targetUserId}/from/${currentUserId}`, {
+        method:"POST",
+        headers: {Authorization: `Bearer ${token}` }
+    });
+    return result.json();
+}

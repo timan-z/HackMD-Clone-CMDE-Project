@@ -3,7 +3,7 @@
 
 import React from "react";
 
-const ManageUsersListEntry = ({roomId, roomName, user, currentUserId, onKick }) => {
+const ManageUsersListEntry = ({roomId, roomName, user, currentUserId, onKick, onTransfer }) => {
     const userId = user.userId;
 
     return(
@@ -14,7 +14,7 @@ const ManageUsersListEntry = ({roomId, roomName, user, currentUserId, onKick }) 
             {userId !== currentUserId && (
                 <div>
                     <button onClick={()=>onKick(user.userId, roomId)}>KICK USER</button>
-                    <button>TRANSFER OWNERSHIP</button>
+                    <button onClick={()=>onTransfer(roomId, user.userId, currentUserId)} >TRANSFER OWNERSHIP</button>
                 </div>
             )}
         </li>
