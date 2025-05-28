@@ -81,6 +81,8 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
             const data = await leaveRoom(roomId, token);
             
             console.log("ABOUT THE SEND AN EMIT");
+            console.log("The value of userData.id => ", userData.id);
+            console.log("The value of userData.username => ", userData.username);
 
             // Send an emit to the Socket.IO server indicating resignation of access:
             socket.emit("notification", {
@@ -88,9 +90,20 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                 roomId: roomId,
                 userId: userData.id,
                 username: userData.username,
-                message: `${username} ID:(${userId}) has LEFT this Editor Room!`,
+                message: `${userData.username} ID:(${userData.id}) has LEFT this Editor Room!`,
                 timestamp: Date.now(),
             });
+
+            
+
+            /*socket.emit("notification", {
+                type:"leave-room",
+                roomId: "3d86c8e1-5b61-4ce4-bab3-4335109e2f81",
+                userId: "2",
+                username: "homer",
+                message: `homer ID:(2) has LEFT this Editor Room!`,
+                timestamp: Date.now(),
+            });*/
 
 
 

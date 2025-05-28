@@ -94,13 +94,6 @@ io.on("connection", (socket) => {
     socket.on("notification", (data) => {
 
 
-
-
-        console.log("socket.on(\"notification\") has been entered!!!");
-        console.log("WHAT");
-        console.log("The value of data.type => [", data.type, "]");
-
-
         // This notification was from Dashboard.jsx -- it's for when a User decides to leave the Room (resigning access):
         if(data.type === "leave-room") {
             socket.to(data.roomId).emit("notification", {
