@@ -10,6 +10,14 @@ import pkg from 'lodash';
 import { connect } from "http2";
 const { throttle } = pkg;
 
+// FOR SERVER SET-UP STUFF:
+import * as Y from 'yjs';
+const yDocs = new Map();    // Key: roomId, Value: Y.Doc instance (serialized)
+
+
+
+
+
 /* NOTE-TO-SELF:
  - io.emit will send this event to *all* clients (including the server, which here will be irrelevant).
  - socket.emit will send the event *only* to the specific client that triggered it.
@@ -31,23 +39,36 @@ const io = new Server(server, {
 let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
+
+
+
+
+
+
+
+
+const saveYDocToPostgres = async(roomId, ydoc) => {
+    const binaryData = Y.encodeStateAsUpdate(ydoc); // Turning ydoc document state to Uint8Array.
+
+    try {
+        console.log("NEED TO CALL api.js FUNCTION HERE!!!");
+
+    } catch(err) {
+        console.error(`ERROR: Failed to save Yjs doc for Room ID:(${roomId}) because of: ${err}`);
+    }
+}
+
+
+
+
+
+
+
+
+
 io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
     console.log("A user connected: ", socket.id);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     // connection notice (to a particular Text Editor Room):
     socket.on("join-room", (roomId, userId, username) => {
@@ -56,11 +77,7 @@ io.on("connection", (socket) => {
         socket.username = username;
         socket.roomId = roomId;
 
-
-
         console.log("JOIN-DEBUG: join-room socket entered!!!");
-
-
         
         let joinNotif = `User {${username}} ID:(${userId}) has connected to Socket.IO Server #${roomId}`;
         console.log(joinNotif);
@@ -86,16 +103,10 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
     });
 
-
-
-
-
     // Handle notifications from the client-side:
     socket.on("notification", (data) => {
-
         
         console.log("DEBUG: socket.on(\"notification\") HAS BEEN ENTERED!!!");
-
 
         // This notification is from Dashboard.jsx -- it's for when a User decides to leave the Room (resigning access):
         if(data.type === "leave-room") {
@@ -127,10 +138,8 @@ io.on("connection", (socket) => {
             // Loop through all connected sockets to see if the kicked user is connected (if so, they are booted in real-time):
             for(const [socketId, userData] of io.sockets.sockets) {
 
-
                 console.log("Debug: The value of socketId => [", socketId, "]");
                 console.log("Debug: The value of userData.userId => [", userData.userId, "]");
-
 
                 if(userData.userId === data.userId) {
 
@@ -161,11 +170,7 @@ io.on("connection", (socket) => {
             });
             return;
         }
-
     })
-
-
-
 
     // Handle client sending private messages:
     socket.on('private-message', ({from, to, text}) => {
@@ -191,9 +196,9 @@ io.on("connection", (socket) => {
 
     // Handle client sending their cursor position within the Text Editor (*will happen frequently*). Needed for foreign cursor rendering!!!: 
     socket.on("send-cursor-pos", (absCursorPos, clientId, clientUsername) => {
-        //console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
-        //console.log("DEBUG: The client sending their username: [", clientUsername, "]");
-        //console.log("DEBUG: Their cursor position: ", absCursorPos);
+        console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
+        console.log("DEBUG: The client sending their username: [", clientUsername, "]");
+        console.log("DEBUG: Their cursor position: ", absCursorPos);
         const clientCursor = {cursorPos: absCursorPos, id:clientId, username: clientUsername};
         const isItAlrThere = clientCursors.findIndex(item => item.id === clientId); // Check if there's already an obj in clientCursors rep'ing this socket.        
 
@@ -208,13 +213,6 @@ io.on("connection", (socket) => {
         // Broadcasting the state of clientCursors:
         broadcastCursors();
     });
-
-
-
-
-
-
-
 
     // socket "disconnect" and "leave-room" are handled the same way:
     const discLeaveHandler = (socket) => {

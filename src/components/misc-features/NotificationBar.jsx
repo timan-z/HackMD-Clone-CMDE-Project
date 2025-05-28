@@ -1,11 +1,7 @@
 // MY VERY PRIMITIVE NOTIFICATION BAR (Basically the same setup as UsersListContainer.jsx) :
 import { useState, useRef, useEffect } from "react";
 import { createPortal } from 'react-dom';
-
 import NotificationBarHeader from "./NotificationBarHeader";
-
-
-
 
 const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     const notifBarRef = useRef(null);
@@ -13,20 +9,9 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     const offset = useRef({ x: 0, y: 0 });
     const [notifications, setNotifications] = useState([]);
 
-
-
-
-
-
-
-
     // Function for handling receiving notifications is in this useEffect.
     useEffect(() => {
         if (!socket) return;
-
-
-
-
 
         const twentyFourHours = 1000 * 86400;   // 86400 seconds in 24hrs...
         const handleNotif = (notif) => {
@@ -46,22 +31,9 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
             }, twentyFourHours); // Lasts for a day.
         };
 
-
         socket.on("notification", handleNotif);
         return () => socket.off("notification", handleNotif);
     }, [socket]);
-
-
-
-
-
-
-
-
-
-
-
-
 
     // useEffect for the dragging functionality:
     useEffect(() => {
@@ -110,13 +82,6 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
         };
     }, []);
 
-
-
-
-
-
-
-
     const notifBar = (
 
         /* Uses the same type of styling as the Users List Container: */
@@ -147,12 +112,7 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
                 </div>
             ))}
         </div>
-
     );
-
-
-
-
 
     return createPortal(notifBar, document.body); // append notifBar to document.body of the webpage.
 };

@@ -8,7 +8,6 @@ import { useEffect, useState, useRef } from 'react';
 import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection, $createTextNode, $createParagraphNode } from 'lexical';
 import { parseMarkdown } from "../core-features/MDParser.jsx";
 import { findCursorPos } from '../utility/utilityFuncs.js';
-import Toolbar from "../core-features/Toolbar.jsx";
 
 // NOTE: Following lines are for Phase 3 (Introducing Real-Time Collaboration).
 import { RemoteCursorOverlay } from '../core-features/RemoteCursorOverlay.jsx';
@@ -23,15 +22,11 @@ import { io } from "socket.io-client"; // <-- Bringing this one back.
 import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
-
 import { useParams, useNavigate } from "react-router-dom"; 
 
+import Toolbar from "../core-features/Toolbar.jsx";
 import UsersListContainer from '../misc-features/UsersListContainer.jsx'; // USERSLIST-DEBUG:
 import NotificationBar from '../misc-features/NotificationBar.jsx';
-
-
-
-
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -123,15 +118,10 @@ const initialConfig = {
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
 function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser }) {
-
-
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
-
-
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
-
   // The following two const are (mainly) for the Markdown rendering effect:
   const [editorContent, setEditorContent] = useState(""); // Stores raw markdown.
   const [parsedContent, setParsedContent] = useState(""); // Stores parsed HTML.
@@ -228,28 +218,10 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
     socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
-    
-    // Listen for an updated list of Active Users:
-    /*socket.on("active-users-list", (activeUsers) => {
-      console.log("DEBUG: Receiving updated list of active users!!! => [", activeUsers, "]");
-      setActiveUsersList(activeUsers);
-    });*/
-
-
-    // Listen to see if the current user gets kicked from the editing room:
-    /*socket.on("you-have-been-kicked", () => {
-
-      console.log("DEBUG: Entered the socket.on(\"you-have-been-kicked\") function!!!");
-      setKicked(true);
-
-    });*/
-
-
-    return () => {
-      //socket.off("active-users-list");
-      //socket.off("you-have-been-kicked");
-    };
   }, [userData]);
+
+
+
 
 
 
@@ -270,8 +242,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     }
 
     socket.on("notification", handleNotif);
-
-
 
     // Listen to see if the current user gets kicked from the editing room:
     socket.on("you-have-been-kicked", () => {
@@ -343,6 +313,17 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     setShowNotifs(prev => !prev);
   };
   
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -445,36 +426,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     });
   };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-  const sendCursorToServer = throttle((cursorPos) => {
+  const sendCursorToServer = throttle((cursorPos, username) => {
     socket.emit("send-cursor-pos", cursorPos, socket.id, username);
   }, 100); // <-- throttle causes a slight delay in the rendering (it'll trail behind the actual typing pos, but I think that's okay and good).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
@@ -510,7 +464,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
         //console.log("DEBUG: The current line is: ", currentLine);
         setCurrentLine(currentLine);
 
-        sendCursorToServer(cursorPos.current); // emit current Text Editor cursor pos to the server (in external function so throttling can be applied).
+        sendCursorToServer(cursorPos.current, userData.username); // emit current Text Editor cursor pos to the server (in external function so throttling can be applied).
 
         // NOTE: The stuff below is for the Markdown renderer... 
         setEditorContent(textContent);
@@ -700,7 +654,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   }
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
-      
+
       {/* Going to have something loaded here that boots the user when they get kicked: 
       [1] - Dark overlay background (clicking anywhere on it returns you to the Dashboard).
       [2] - <div> centered in the middle of screen with a "You have been kicked" notice. */}

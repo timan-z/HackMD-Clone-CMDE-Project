@@ -143,3 +143,7 @@ export const transferRoomOwn = async(roomId, targetUserId, currentUserId, token)
     });
     return result.json();
 }
+
+// 4. SERVER PERSISTANCE:
+// 4.1. 
+

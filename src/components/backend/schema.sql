@@ -35,7 +35,8 @@ CREATE TABLE invite_links (
 
 /* THE SQL COMMANDS I RAN MANUALLY ORIGINALLY ON THE PSQL COMMAND LINE (TABLE BY TABLE):
 ******************************************************************************************
-"CREATE TABLE users(
+"
+CREATE TABLE users(
     id SERIAL PRIMARY KEY,
     username VARCHAR(50) UNIQUE NOT NULL,
     displayname VARCHAR(50),
@@ -64,7 +65,15 @@ CREATE TABLE invite_links (
     created_by INTEGER REFERENCES users(id),
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);"
+);
+
+CREATE TABLE ydocs(
+    room_id UUID PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
+    content BYTEA NOT NULL, // <-- 
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+"
+******************************************************************************************
 */
 
 /* NOTE: DO NOT FORGET I NEED TO GRANT PERMISSION FOR EACH OF THE TABLES DIRECTLY BEFORE I CAN SEND THEM POOL.QUERY THINGS

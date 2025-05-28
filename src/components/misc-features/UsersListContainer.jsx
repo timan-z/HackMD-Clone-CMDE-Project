@@ -121,9 +121,6 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
             {/* THE USERS LIST HEADER (THE THING THAT YOU'LL BE DRAGGING TO MOVE THE USERS LIST CONTAINER COMPONENT AROUND): */}
             <UsersListHeader dragHandleRef={dragHandleRef} onClose={onClose}/>
 
-
-
-
             {chatTargetId ? (
                 /* MESSAGING SYSTEM: */
                 <ChatBox

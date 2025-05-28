@@ -32,10 +32,11 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
 
 
 
-
-
                     console.log("CURSOR-OVERLAY-DEBUG: THE VALUE OF username => [", username, "]");
-                    
+                    console.log("CURSOR-OVERLAY-DEBUG: The value of cursor is: => [", cursor, "]");
+
+
+
                     // DEBUG: Have this here for testing purposes...
                     /*let labelTextCtnt = null;
                     if(!username) {
