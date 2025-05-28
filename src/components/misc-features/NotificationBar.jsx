@@ -135,7 +135,7 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
             borderRadius: '8px',
             boxShadow: '0 0 10px #00FF41',
             padding: '10px',
-            zIndex: 99999,        
+            zIndex: 99997,        
         }}>
             {/* Draggable header for the Notifications panel: */}
             <NotificationBarHeader dragHandleRef={dragHandleRef} onClose={onClose} />

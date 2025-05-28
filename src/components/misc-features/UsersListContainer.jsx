@@ -116,7 +116,7 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
             borderRadius: '8px',
             boxShadow: '0 0 10px #00FF41',
             padding: '10px',
-            zIndex: 99999,
+            zIndex: 99997,
         }}>
             {/* THE USERS LIST HEADER (THE THING THAT YOU'LL BE DRAGGING TO MOVE THE USERS LIST CONTAINER COMPONENT AROUND): */}
             <UsersListHeader dragHandleRef={dragHandleRef} onClose={onClose}/>

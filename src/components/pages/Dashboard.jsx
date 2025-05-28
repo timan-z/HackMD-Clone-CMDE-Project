@@ -22,10 +22,6 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
     const [roomMembers, setRoomMembers] = useState([]); // Related to showManageUsers state var (gets the members of the Room you click "Manage Users" on).
     
-    
-
-
-
     const navigate = useNavigate();
     
     const handleLogout = () => {
@@ -143,42 +139,17 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
         if(activeManageUsersRoomId === roomId) {
             // Clicking the same room will toggle the panel to close:
             setActiveManageUsersRoomId(null);
-            setRoomMembers([]);
+            setRoomMembers([]); // Clean the room members array.
         } else {
             // Opening a new "Manage Users" panel:
             setActiveManageUsersRoomId(roomId);
             callLoadUserRooms(roomId);
         }
-        // OLD CODE BELOW:
-        //setShowManageUsers(prev => !prev);
-        /* It takes a full re-render cycle for the state variable value to actually change so if the "Show Managers" section is to 
-        now appear -- the value of "showManageUsers" will actually be false for the remainder of this function execution... */
-        //if(!showManageUsers) {
-        //    callLoadUserRooms(roomId);  // ...and that's the condition that must be met for callLoadUserRooms().
-        //}
     };
 
-    /* State variable "roomMembers" is filled for every time the "Manage Users" button is interacted with for a particular room.
-    Since its value is tied to a specific interaction, its value will be regularly cleared by this UseEffect hook: */
-    /*useEffect(() => {
-        let manageUsersCheck = document.getElementById("manage-users-sect");
-        if(!showManageUsers && manageUsersCheck === null) {
-            setRoomMembers([]);
-        }
-    }, [showManageUsers]);*/
-
-
-
-
-
-
-
-    
     const debugFunction = () => {
         console.log("The value of userData => [", userData, "]");
     };
-
-
 
     return(
         <div>
@@ -238,13 +209,6 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                     </form>
                 </div>
             </div>
-
-
-
-
-
-
-
 
 
             {/* EVERYTHING BELOW IS WHERE THE "ROOM LOADING" STATIC CODE IS -- REMEMBER THAT FOR LATER WHEN REORGANIZING!!! */}

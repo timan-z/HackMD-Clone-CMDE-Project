@@ -24,8 +24,7 @@ import { throttle } from "lodash"; // Throttling needed to limit rate of functio
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
 
-import { useParams } from "react-router-dom"; 
-
+import { useParams, useNavigate } from "react-router-dom"; 
 
 import UsersListContainer from '../misc-features/UsersListContainer.jsx'; // USERSLIST-DEBUG:
 import NotificationBar from '../misc-features/NotificationBar.jsx';
@@ -33,7 +32,6 @@ import NotificationBar from '../misc-features/NotificationBar.jsx';
 
 
 
-import { useNavigate } from "react-router-dom";
 
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
@@ -167,20 +165,18 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
-
-
-
-
-
-
-
-
-
   // USERSLIST-DEBUG:
   const [usersList, setUsersList] = useState([]);
   const [activeUsersList, setActiveUsersList] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
+  const [kicked, setKicked] = useState(false);
+
+
+
+
+
+
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
@@ -188,7 +184,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   if(roomId === null) {
     roomId = useParams().roomId;
   }
-  
+
   useEffect(() => {
     if(!userData) {
       const storedUser = localStorage.getItem("userData");
@@ -200,20 +196,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       }
     }
   }, []);
-  
-
-  /*if(userData === null) {
-    loadUser(); // Just a function in App.jsx that does the deed.
-  }*/
-
-
-
-
-
-
-
-
-
 
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadUserRooms = async(roomId) => {
@@ -236,12 +218,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     callLoadUserRooms(roomId);
   }, []);
 
-
-
-
-
-
-
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
   useEffect(() => {
     // Guard against React 18 Strict Mode making this useEffect run twice:
@@ -254,14 +230,32 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
     
     // Listen for an updated list of Active Users:
-    socket.on("active-users-list", (activeUsers) => {
+    /*socket.on("active-users-list", (activeUsers) => {
       console.log("DEBUG: Receiving updated list of active users!!! => [", activeUsers, "]");
       setActiveUsersList(activeUsers);
-    });
+    });*/
+
+
+    // Listen to see if the current user gets kicked from the editing room:
+    /*socket.on("you-have-been-kicked", () => {
+
+      console.log("DEBUG: Entered the socket.on(\"you-have-been-kicked\") function!!!");
+      setKicked(true);
+
+    });*/
+
+
     return () => {
-      socket.off("active-users-list");
+      //socket.off("active-users-list");
+      //socket.off("you-have-been-kicked");
     };
   }, [userData]);
+
+
+
+
+
+
 
   // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
   // DEBUG: ^ Definitely organize this better -- it's so minor that it can probably be stuffed into another useEffect hook...
@@ -276,8 +270,32 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     }
 
     socket.on("notification", handleNotif);
-    return () => socket.off("notification", handleNotif);
+
+
+
+    // Listen to see if the current user gets kicked from the editing room:
+    socket.on("you-have-been-kicked", () => {
+      console.log("DEBUG: Entered the socket.on(\"you-have-been-kicked\") function!!!");
+      setKicked(true);
+    });
+
+    // Listen for an updated list of Active Users:
+    socket.on("active-users-list", (activeUsers) => {
+      console.log("DEBUG: Receiving updated list of active users!!! => [", activeUsers, "]");
+      setActiveUsersList(activeUsers);
+    });
+
+    return () => {
+      socket.off("notification", handleNotif);
+      socket.off("you-have-been-kicked");
+      socket.off("active-users-list");
+    };
   }, []);
+
+
+
+
+
 
   // Function for returning to the dashboard:
   const navigate = useNavigate();
@@ -682,11 +700,48 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   }
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
+      
+      {/* Going to have something loaded here that boots the user when they get kicked: 
+      [1] - Dark overlay background (clicking anywhere on it returns you to the Dashboard).
+      [2] - <div> centered in the middle of screen with a "You have been kicked" notice. */}
+      {kicked && (
+        <div
+          style={{
+              position: 'fixed',
+              top: 0,
+              left: 0,
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'rgba(0, 0, 0, 0.5)',
+              zIndex: 99998,
+          }}
+          onClick={() => {goToDashboard();}}
+        />
+      )}
+      {kicked && (
+        <div
+          style={{
+            position: 'fixed',
+            top:'20%',
+            right:'27.5%',
+            height:'55%',
+            width:'40%',
+            backgroundColor: '#0D0208',
+            color: '#00FF41',
+            fontFamily: 'monospace',
+            border: '2px solid #00FF41',
+            borderRadius: '8px',
+            boxShadow: '0 0 10px #00FF41',
+            padding: '10px',
+            zIndex: 99999,        
+        }} onClick={()=>{goToDashboard();}}>
+          YOU HAVE BEEN KICKED.
+        </div>
+      )}
 
       {/* The horizontal bar at the top of the webpage (where the site title is, "Text Editor|Split|Preview Panel" toggles are, etc): */}
       <div className="editor-preview-overhead">
         
-
         {/* The "Upload File" (.md) and "Download File" (.md) buttons: */}
         <div className="editor-upload-download">
           {/* The Upload .md File Button: */}
@@ -699,7 +754,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
           <button onClick={handleDownloadMD} className="download-md-button">Download as .md</button>
         </div>
 
-
         {/* The "Text Editor|Split|Preview Panel" toggles: */}
         <div className="editor-preview-toggle">
           <button onClick={()=> handleViewChange("editor-only")} disabled={viewMode==="editor-only"}>Text Editor</button>
@@ -708,16 +762,8 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
         </div>
         {/*<h1>HACKMD CLONE!!!</h1>*/}  {/* DEBUG:+NOTE: Change this to something proper eventually... */}
 
-
-
-
         {/* NOTE: Added this parent <div> for the stuff inbetween to add in-between spacing... */}
         <div style={{display:"flex", flexDirection:"row", gap:"5px"}}>
-
-
-
-
-
 
           {/* This will be the "Notifications" button on the top-right of the T.E. room webpage (will be extremely primitive): */}
           <div id="notifs-button" onClick={()=> toggleNotifs()} >
@@ -728,13 +774,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
           {showNotifs && (
             <NotificationBar notifsOpen={showNotifs} socket={socket} onClose={()=>toggleNotifs()} />
           )}
-
-
-
-
-
-
-
 
           {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}
           <div id="users-list-button" onClick={()=> toggleUsersList()}>

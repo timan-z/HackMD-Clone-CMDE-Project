@@ -120,6 +120,31 @@ io.on("connection", (socket) => {
                 message: data.message,
                 timestamp: Date.now(),
             });
+
+            console.log("DEBUG: The for-loop I'm expecting to run is about to run...");
+            console.log("DEBUG: The value of data.userId => [", data.userId, "]");
+
+            // Loop through all connected sockets to see if the kicked user is connected (if so, they are booted in real-time):
+            for(const [socketId, userData] of io.sockets.sockets) {
+
+
+                console.log("Debug: The value of socketId => [", socketId, "]");
+                console.log("Debug: The value of userData.userId => [", userData.userId, "]");
+
+
+                if(userData.userId === data.userId) {
+
+                    console.log("Debug: Sending the emit I expect to be emitted!");
+
+                    // Emit a event to the target socket:
+                    io.to(socketId).emit("you-have-been-kicked", {
+                        roomId: data.roomId,
+                        message: "You have been kicked from the room by the owner.",
+                        timestamp: Date.now(),
+                    });
+                    break;
+                }
+            }
             return;
         }
 
