@@ -285,8 +285,7 @@ export const getEdRoomUsers = async(req, res) => {
 
 
         console.log("DEBUG rows:", usersData.rows);
-
-
+        
         
         res.json(usersData.rows);
     } catch(err) {

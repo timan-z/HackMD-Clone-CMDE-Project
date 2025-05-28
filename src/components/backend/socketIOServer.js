@@ -93,18 +93,50 @@ io.on("connection", (socket) => {
     // Handle notifications from the client-side:
     socket.on("notification", (data) => {
 
+        
+        console.log("DEBUG: socket.on(\"notification\") HAS BEEN ENTERED!!!");
 
-        // This notification was from Dashboard.jsx -- it's for when a User decides to leave the Room (resigning access):
+
+        // This notification is from Dashboard.jsx -- it's for when a User decides to leave the Room (resigning access):
         if(data.type === "leave-room") {
             socket.to(data.roomId).emit("notification", {
                 type: data.type,
                 roomId: data.roomId,
                 userId: data.userId,
                 username: data.username,
-                message: `${data.username} ID:(${data.userId}) has LEFT this Editor Room!`,
+                message: data.message,
                 timestamp: Date.now(),
             });
+            return;
         }
+        
+        // This notification is from ManageUsersSection.jsx -- for when the Owner kicks a User from the room (removing access):
+        if(data.type === "kick-user") {
+            socket.to(data.roomId).emit("notification", {
+                type: data.type,
+                roomId: data.roomId,
+                userId: data.userId,
+                username: data.username,
+                message: data.message,
+                timestamp: Date.now(),
+            });
+            return;
+        }
+
+        // This notification is from ManageUsersSection.jsx -- for when the Owner transfers ownership to another user:
+        if(data.type === "transfer-ownership") {
+            socket.to(data.roomId).emit("notification", {
+                type:data.type,
+                roomId:data.roomId,
+                targetUserId:data.targetUserId,
+                currentUserId:data.currentUserId,
+                targetUsername:data.targetUsername,
+                message:data.message,
+                timestamp:Date.now(),
+            });
+            return;
+        }
+
     })
 
 

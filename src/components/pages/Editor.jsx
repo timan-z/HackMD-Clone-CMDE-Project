@@ -177,7 +177,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
   // USERSLIST-DEBUG:
-  const firstRender = useRef(false);
   const [usersList, setUsersList] = useState([]);
   const [activeUsersList, setActiveUsersList] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);  

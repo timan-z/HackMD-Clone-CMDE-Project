@@ -70,19 +70,12 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
         navigate(`/editor/${roomId}`);
     }
 
-
-
-
     // To leave a room (as in resigning access) :
     const handleLeave = async(roomId) => {
         const token = localStorage.getItem("token");
         if(!token) return;
         try {
             const data = await leaveRoom(roomId, token);
-            
-            console.log("ABOUT THE SEND AN EMIT");
-            console.log("The value of userData.id => ", userData.id);
-            console.log("The value of userData.username => ", userData.username);
 
             // Send an emit to the Socket.IO server indicating resignation of access:
             socket.emit("notification", {
@@ -94,35 +87,11 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                 timestamp: Date.now(),
             });
 
-            
-
-            /*socket.emit("notification", {
-                type:"leave-room",
-                roomId: "3d86c8e1-5b61-4ce4-bab3-4335109e2f81",
-                userId: "2",
-                username: "homer",
-                message: `homer ID:(2) has LEFT this Editor Room!`,
-                timestamp: Date.now(),
-            });*/
-
-
-
-
-            console.log("FAILED TO SEND THE NOTIFICATION EMIT.");
-
-
-
-
             navigate('/dashboard');
         } catch (err) {
             console.error("DEBUG: Error in attempting to leave the Editor Room ID: ", roomId);
         }
     }
-
-
-
-
-
 
     // To delete a room:
     const handleDelete = async(roomId) => {
@@ -195,22 +164,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
     
     const debugFunction = () => {
-
-
         console.log("The value of userData => [", userData, "]");
-        console.log("About to send the socket.emit for the notif: ");
-
-        socket.emit("notification", {
-            type:"leave-room",
-            roomId: "3d86c8e1-5b61-4ce4-bab3-4335109e2f81",
-            userId: "2",
-            username: "homer",
-            message: `homer ID:(2) has LEFT this Editor Room!`,
-            timestamp: Date.now(),
-        });
-
-        console.log("Have sent the socket.emit!!!");
-
     };
 
 

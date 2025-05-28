@@ -26,11 +26,11 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
             // AFTER the function runs, I need to send a notification out from here.
             // ALSO -- Check to see if said user is currently in that room! (Which I think I can do with Socket.IO!)
             const data = await kickRoomUser(roomId, targetUserId, token);
-            console.log("DEBUG: The value of data.success => [", data.success, "]");
+            console.log("handleKick-DEBUG: The value of data.success => [", data.success, "]");
 
             // INSERT SOCKET.IO EMIT THING!!! <-- DEBUG:+TO-DO COME BACK HERE LATER!!!
             socket.emit("notification", {
-                type:"kick",
+                type: "kick-user",
                 roomId: roomId,
                 userId: targetUserId,
                 username: targetUsername,
@@ -43,11 +43,6 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
         }
     };
 
-
-
-
-
-
     // Function for transferring ownership:
     /* DEBUG:+TO-DO:
     - Transferring ownership should send a notification (either "X user has become New Owner" or "YOU have become New Owner").
@@ -58,11 +53,11 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
 
         try {
             const data = await transferRoomOwn(roomId, targetUserId, currentUserId, token);
-            console.log("DEBUG: The value of data.success => [", data.success, "]");
+            console.log("handleOwnTransfer-DEBUG: The value of data.success => [", data.success, "]");
 
             // INSERT SOCKET.IO EMIT THING!!! <--DEBUG:+TO-DO COME BACK HERE LATER!!!
             socket.emit("notification", {
-                type:"transferOwn",
+                type:"transfer-ownership",
                 roomId: roomId,
                 targetUserId: targetUserId,
                 currentUserId: currentUserId,
