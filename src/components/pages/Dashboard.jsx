@@ -17,7 +17,9 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
     const [invLink, setInvLink] = useState("");
     const [rooms, setRooms] = useState([]);
 
-    const [showManageUsers, setShowManageUsers] = useState(false);
+    //const [showManageUsers, setShowManageUsers] = useState(false); <-- problematic!
+    const [activeManageUsersRoomId, setActiveManageUsersRoomId] = useState(null);
+
     const [roomMembers, setRoomMembers] = useState([]); // Related to showManageUsers state var (gets the members of the Room you click "Manage Users" on).
     
     
@@ -138,23 +140,32 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
     // Function for handling the "Manage Users" button:
     const handleManageUsers = (roomId) => {
-        setShowManageUsers(prev => !prev);
-
+        if(activeManageUsersRoomId === roomId) {
+            // Clicking the same room will toggle the panel to close:
+            setActiveManageUsersRoomId(null);
+            setRoomMembers([]);
+        } else {
+            // Opening a new "Manage Users" panel:
+            setActiveManageUsersRoomId(roomId);
+            callLoadUserRooms(roomId);
+        }
+        // OLD CODE BELOW:
+        //setShowManageUsers(prev => !prev);
         /* It takes a full re-render cycle for the state variable value to actually change so if the "Show Managers" section is to 
         now appear -- the value of "showManageUsers" will actually be false for the remainder of this function execution... */
-        if(!showManageUsers) {
-            callLoadUserRooms(roomId);  // ...and that's the condition that must be met for callLoadUserRooms().
-        }
+        //if(!showManageUsers) {
+        //    callLoadUserRooms(roomId);  // ...and that's the condition that must be met for callLoadUserRooms().
+        //}
     };
 
     /* State variable "roomMembers" is filled for every time the "Manage Users" button is interacted with for a particular room.
     Since its value is tied to a specific interaction, its value will be regularly cleared by this UseEffect hook: */
-    useEffect(() => {
+    /*useEffect(() => {
         let manageUsersCheck = document.getElementById("manage-users-sect");
         if(!showManageUsers && manageUsersCheck === null) {
             setRoomMembers([]);
         }
-    }, [showManageUsers]);
+    }, [showManageUsers]);*/
 
 
 
@@ -285,12 +296,15 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                             - Way I think I'll do that is, when I revamp the Room loading feature, I'll maybe make that change there so that
                             this button just wouldn't be accessible + the other ones like DELETE ROOM which require Owner status. */}
 
-
                             {/* Code to have the Manage Users component appear: */}
-                            {showManageUsers && (
-                                <ManageUsersSection currentUserId={userData.id} roomName={room.room_name} roomId={room.room_id} roomMembers={roomMembers} onClose={()=>setShowManageUsers(prev => !prev)} />
+                            {activeManageUsersRoomId === room.room_id && (
+                                <ManageUsersSection 
+                                currentUserId={userData.id} 
+                                roomName={room.room_name} 
+                                roomId={room.room_id} 
+                                roomMembers={roomMembers} 
+                                onClose={()=> {setActiveManageUsersRoomId(null); setRoomMembers([]); }}/>
                             )}
-
 
                             {/* DEBUG: */}
                             <button onClick={()=> debugFunction()}>
