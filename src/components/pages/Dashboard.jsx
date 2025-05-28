@@ -296,6 +296,26 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                             - Way I think I'll do that is, when I revamp the Room loading feature, I'll maybe make that change there so that
                             this button just wouldn't be accessible + the other ones like DELETE ROOM which require Owner status. */}
 
+                            {/* Code below is for adding a "shadowed" background when the Manage Users component appears (should come before): */}
+                            {activeManageUsersRoomId !== null && (
+                                <div
+                                    style={{
+                                        position: 'fixed',
+                                        top: 0,
+                                        left: 0,
+                                        width: '100%',
+                                        height: '100%',
+                                        backgroundColor: 'rgba(0, 0, 0, 0.5)',
+                                        zIndex: 99998, /* <ManageUsersSection> is 99999... */
+                                    }}
+                                    onClick={() => {
+                                        // Clicking in the dark area should also just close the Manage Users component.
+                                        setActiveManageUsersRoomId(null);
+                                        setRoomMembers([]);
+                                    }}
+                                />
+                            )}
+
                             {/* Code to have the Manage Users component appear: */}
                             {activeManageUsersRoomId === room.room_id && (
                                 <ManageUsersSection 
