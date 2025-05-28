@@ -31,13 +31,13 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
         const twentyFourHours = 1000 * 86400;   // 86400 seconds in 24hrs...
         const handleNotif = (notif) => {
             console.log("DEBUG: The handleNotif function has been entered...");
+
+            console.log("DEBUG: The value of notif => [", notif, "]");
+
             // So if the Notifications component isn't open, set the background colour of the icon to Red (to imply new notifications):
             if(!notifsOpen) {
                 let notifsBtn = document.getElementById('notifs-button');
-                notifsBtn.style.backgroundColor = 'red';
-                /*if(notifsBtn.style.backgroundColor === 'red') {
-                    console.log("DEBUG: Yeah I can work with this.");
-                }*/
+                if(notifsBtn) notifsBtn.style.backgroundColor = 'red';
             }
 
             setNotifications((prev) => [...prev, notif]);

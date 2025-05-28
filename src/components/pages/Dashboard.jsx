@@ -64,42 +64,52 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
     }, []);
 
     // To join a new room from the area I'll be loading them:
-    const handleJoin = async(roomId) => {    
-        sendRoomID(roomId);        
-        // Notify the Socket.IO server of this new join:
-        socket.emit("notification", {
-            type:"join",
-            roomId: roomId,
-            userId: userData.id,
-            username: userData.username,
-            message: `${userData.username} has joined the room!`,
-            timestamp: Date.now(),
-        });
-        
+    const handleJoin = async(roomId) => {
+        sendRoomID(roomId);
+        // No need to emit any join notifications; I do this in my Editor.jsx file.
         navigate(`/editor/${roomId}`);
     }
 
-    // To leave a room:
+
+
+
+    // To leave a room (as in resigning access) :
     const handleLeave = async(roomId) => {
         const token = localStorage.getItem("token");
         if(!token) return;
         try {
             const data = await leaveRoom(roomId, token);
-            // Notify the Socket.IO server of this leave:
+            
+            console.log("ABOUT THE SEND AN EMIT");
+
+            // Send an emit to the Socket.IO server indicating resignation of access:
             socket.emit("notification", {
-                type:"leave",
+                type:"leave-room",
                 roomId: roomId,
                 userId: userData.id,
                 username: userData.username,
-                message: `${userData.username} has left the room!`,
+                message: `${username} ID:(${userId}) has LEFT this Editor Room!`,
                 timestamp: Date.now(),
             });
+
+
+
+
+            console.log("FAILED TO SEND THE NOTIFICATION EMIT.");
+
+
+
 
             navigate('/dashboard');
         } catch (err) {
             console.error("DEBUG: Error in attempting to leave the Editor Room ID: ", roomId);
         }
     }
+
+
+
+
+
 
     // To delete a room:
     const handleDelete = async(roomId) => {
@@ -173,7 +183,20 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
     
     const debugFunction = () => {
 
+
         console.log("The value of userData => [", userData, "]");
+        console.log("About to send the socket.emit for the notif: ");
+
+        socket.emit("notification", {
+            type:"leave-room",
+            roomId: "3d86c8e1-5b61-4ce4-bab3-4335109e2f81",
+            userId: "2",
+            username: "homer",
+            message: `homer ID:(2) has LEFT this Editor Room!`,
+            timestamp: Date.now(),
+        });
+
+        console.log("Have sent the socket.emit!!!");
 
     };
 
@@ -286,25 +309,20 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                                 DELETE ROOM
                             </button>
 
-
-
-
-
-
                             {/* Want a button here that lets you manage users: */}
                             <button onClick={()=>handleManageUsers(room.room_id)}>
                                 MANAGE USERS
                             </button>
+                            {/* ^^^ NOTE:+DEBUG:+TO-DO:
+                            - I want to make it so that the "MANAGE USERS" button is inaccessible if the User is NOT the Owner/King of this server.
+                            - Way I think I'll do that is, when I revamp the Room loading feature, I'll maybe make that change there so that
+                            this button just wouldn't be accessible + the other ones like DELETE ROOM which require Owner status. */}
+
 
                             {/* Code to have the Manage Users component appear: */}
                             {showManageUsers && (
                                 <ManageUsersSection currentUserId={userData.id} roomName={room.room_name} roomId={room.room_id} roomMembers={roomMembers} onClose={()=>setShowManageUsers(prev => !prev)} />
                             )}
-
-
-
-
-
 
 
                             {/* DEBUG: */}

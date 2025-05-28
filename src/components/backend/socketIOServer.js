@@ -35,14 +35,41 @@ io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
     console.log("A user connected: ", socket.id);
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
     // connection notice (to a particular Text Editor Room):
     socket.on("join-room", (roomId, userId, username) => {
         socket.join(roomId);    // We'll have a room specifically matching the Text Editor RoomId...
         socket.userId = userId;
         socket.username = username;
         socket.roomId = roomId;
+
+
+
+        console.log("JOIN-DEBUG: join-room socket entered!!!");
+
+
         
-        console.log("User {", username, "} ID:(", userId, ") has connected to Socket.IO Server #", roomId);
+        let joinNotif = `User {${username}} ID:(${userId}) has connected to Socket.IO Server #${roomId}`;
+        console.log(joinNotif);
+        // When a User joins a specific Text Room, I want that to come as a notification Room-wide:
+        socket.to(roomId).emit("notification", {
+          message: joinNotif,
+          timeStamp: Date.now() 
+        });
+
         // I want to track this user's "activity" status for this Room:
         if(!connectedUsers[roomId]) connectedUsers[roomId] = [];
 
@@ -60,6 +87,32 @@ io.on("connection", (socket) => {
     });
 
 
+
+
+
+    // Handle notifications from the client-side:
+    socket.on("notification", (data) => {
+
+
+
+
+        console.log("socket.on(\"notification\") has been entered!!!");
+        console.log("WHAT");
+        console.log("The value of data.type => [", data.type, "]");
+
+
+        // This notification was from Dashboard.jsx -- it's for when a User decides to leave the Room (resigning access):
+        if(data.type === "leave-room") {
+            socket.to(data.roomId).emit("notification", {
+                type: data.type,
+                roomId: data.roomId,
+                userId: data.userId,
+                username: data.username,
+                message: `${data.username} ID:(${data.userId}) has LEFT this Editor Room!`,
+                timestamp: Date.now(),
+            });
+        }
+    })
 
 
 
@@ -81,12 +134,6 @@ io.on("connection", (socket) => {
         }
     });
 
-
-
-
-
-
-    
     // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
     const broadcastCursors = throttle(() => {
         socket.broadcast.emit("update-cursors", clientCursors);
@@ -94,13 +141,9 @@ io.on("connection", (socket) => {
 
     // Handle client sending their cursor position within the Text Editor (*will happen frequently*). Needed for foreign cursor rendering!!!: 
     socket.on("send-cursor-pos", (absCursorPos, clientId, clientUsername) => {
-
-
-        console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
-        console.log("DEBUG: The client sending their username: [", clientUsername, "]");
-
-
-        console.log("DEBUG: Their cursor position: ", absCursorPos);
+        //console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
+        //console.log("DEBUG: The client sending their username: [", clientUsername, "]");
+        //console.log("DEBUG: Their cursor position: ", absCursorPos);
         const clientCursor = {cursorPos: absCursorPos, id:clientId, username: clientUsername};
         const isItAlrThere = clientCursors.findIndex(item => item.id === clientId); // Check if there's already an obj in clientCursors rep'ing this socket.        
 
@@ -116,8 +159,15 @@ io.on("connection", (socket) => {
         broadcastCursors();
     });
 
-    // disconnection notice (from the server):
-    socket.on("disconnect", () => {
+
+
+
+
+
+
+
+    // socket "disconnect" and "leave-room" are handled the same way:
+    const discLeaveHandler = (socket) => {
         console.log("User disconnected:", socket.id);
         console.log("DEBUG: [clientCursors Pre-Splice] => ", clientCursors);
 
@@ -147,8 +197,33 @@ io.on("connection", (socket) => {
             if(connectedUsers[roomId].length === 0) {
                 delete connectedUsers[roomId];
             }
+            console.log("DEBUG: The value of userId => [", userId, "]");
+            console.log("DEBUG: The value of username => [", username, "]");
         }
         // ABOVE-UPDATE: SEEMS TO WORK QUITE GOOD SO FAR...
+
+        // NOW - EMIT A NOTIFICATION INDICATING THAT USER HAS LEFT THE ROOM:
+        socket.to(roomId).emit("notification", {
+            type:"leave-session",
+            roomId: roomId,
+            userId: userId,
+            username: username,
+            message: `${username} ID:(${userId}) has left this Editing session.`,
+            timestamp: Date.now()
+        });        
+    };
+
+    // leave-room notice:
+    socket.on("leave-room", ()=> {
+        socket.hasLeftRoom = true;
+        discLeaveHandler(socket);
+    });
+    // disconnection notice (from the server):
+    socket.on("disconnect", () => {
+        // Clean-up only occurs if it hasn't already happened (see socket.on("leave-room"))
+        if(!socket.hasLeftRoom) {
+            discLeaveHandler(socket);
+        }   
     });
 
 });

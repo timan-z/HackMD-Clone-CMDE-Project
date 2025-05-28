@@ -35,13 +35,6 @@ const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
         }
     };
 
-
-
-
-
-
-
-
     // hmmm:
     return(
         <div style={{ padding: '12px' }}>

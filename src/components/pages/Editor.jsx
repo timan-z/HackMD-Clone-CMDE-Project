@@ -125,6 +125,11 @@ const initialConfig = {
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
 function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser }) {
+
+
+  const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
+
+
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -152,7 +157,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   const [otherCursors, setOtherCursors] = useState([]);
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
-
 
 
 
@@ -241,19 +245,10 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
   useEffect(() => {
+    // Guard against React 18 Strict Mode making this useEffect run twice:
+    if(hasJoinedRef.current) return;
+    hasJoinedRef.current = true;
 
-    console.log("DEBUG: useEffect #0.5 entered...");
-    console.log("The value of userData => [", userData, "]");
-
-    if(!userData || userData === null) {
-      console.log("DEBUG: userData is null or not available.");
-      return;
-    }
-
-    //console.log("PRIOR-TO-EMIT-DEBUG: The value of roomId => [", roomId, "]");
-    //console.log("Debug: The value of userId => [", userId, "]");
-    //console.log("Debug: The value of username => [", username, "]");
-    //console.log(`Sending Room ID:(${roomId}), User ID:(${userId}), and username:(${username}) over to the Socket.IO server.`);
     console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
 
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
@@ -268,9 +263,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       socket.off("active-users-list");
     };
   }, [userData]);
-
-  
-
 
   // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
   // DEBUG: ^ Definitely organize this better -- it's so minor that it can probably be stuffed into another useEffect hook...
@@ -288,25 +280,16 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     return () => socket.off("notification", handleNotif);
   }, []);
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-   
-
   // Function for returning to the dashboard:
   const navigate = useNavigate();
   const goToDashboard = () => {
+    hasJoinedRef.current = false;
+
+    socket.emit("leave-room", roomId, userData.id);
+    socket.off("active-users-list");
+    socket.off("active-cursors");
+    socket.off("update-cursors");
+
     navigate("/dashboard");
   };
 
