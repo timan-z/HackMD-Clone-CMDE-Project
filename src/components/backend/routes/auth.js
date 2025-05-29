@@ -1,5 +1,5 @@
 import express from "express";
-import { 
+import {
     registerUser, loginUser, getCurrentUser, createNewEdRoom, 
     getAllEdRooms, checkEditorAccess, generateEdInvLink, joinEdRoomViaInv, 
     leaveEdRoom, deleteEdRoom, 

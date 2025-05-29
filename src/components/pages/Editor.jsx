@@ -845,7 +845,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
-                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:false});
+                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
                       provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
                       provider.on('sync', (isSynced) => console.log('DEBUG: Doc synced?', isSynced)) // DEBUG:
                       //providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
