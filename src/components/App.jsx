@@ -62,8 +62,6 @@ function App() {
     }
   }, [token]);
 
-
-
   // Function for handling retrieval of all Users associated with a particular Room:
   const loadRoomUsers = async(roomId) => {
     if(token) {
@@ -75,10 +73,6 @@ function App() {
       }
     }
   }
-
-
-  
-
 
   return (
     <Router>
@@ -99,19 +93,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard loadUser={loadUser} loadRoomUsers={loadRoomUsers} logout={handleLogout} sendRoomID={handleRoomJoin} userData={user} setUser={setUser} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
-
-
-
-
-
-        {/* 5. Editing Session (TEST ROOM -- NO DATA PERSISTENCE): */}
-        <Route path="/editor" element={<Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} />} />
-        {/* DEBUG:+TO-DO: ^^^ Should add something that makes it so that is userData is undefined, you just randomly generate values... */}
-        {/* ^^^ FURTHER DETAILS OF THIS AREN'T FLESHED OUT YET -- FIGURE IT OUT LATER!!! */}
-
-
-
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} testMode={false} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.
@@ -119,8 +101,7 @@ function App() {
         - any un-defined URL routes just re-map to the Login page. */}
         <Route path="*" element={<PrivateRouteMisc><Login /></PrivateRouteMisc>} />
 
-        
-
+  
       </Routes>
     </Router>
   );

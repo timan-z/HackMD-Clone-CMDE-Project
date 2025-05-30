@@ -25,7 +25,7 @@ const socket = io("http://localhost:4000"); // <-- bringing this back for tying 
 import { useParams, useNavigate } from "react-router-dom"; 
 
 import Toolbar from "../core-features/Toolbar.jsx";
-import UsersListContainer from '../misc-features/UsersListContainer.jsx'; // USERSLIST-DEBUG:
+import UsersListContainer from '../misc-features/UsersListContainer.jsx';
 import NotificationBar from '../misc-features/NotificationBar.jsx';
 
 /* NOTE-TO-SELF:
@@ -117,7 +117,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, testMode }) {
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
@@ -145,22 +145,15 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   const [otherCursors, setOtherCursors] = useState([]);
   const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
   
-
-
-
-
-
-
-
-
-
-
   // USERSLIST-DEBUG:
   const [usersList, setUsersList] = useState([]);
   const [activeUsersList, setActiveUsersList] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
   const [kicked, setKicked] = useState(false);
+
+
+
 
 
 
@@ -188,7 +181,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   }, []);
 
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
-  const callLoadUserRooms = async(roomId) => {
+  const callLoadRoomUsers = async(roomId) => {
     const usersData = await loadRoomUsers(roomId);
     console.log("DEBUG: The value of usersData => [", usersData, "]");
 
@@ -205,8 +198,13 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     setUsersList(tweakedArr);
   };
   useEffect(() => {
-    callLoadUserRooms(roomId);
+    callLoadRoomUsers(roomId);
   }, []);
+
+
+
+
+
 
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
   useEffect(() => {
@@ -946,11 +944,11 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   );
 }
 
-function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser }) {
+function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, testMode }) {
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} />
+      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} testMode={testMode} />
     </LexicalComposer>
   );
 }
