@@ -842,6 +842,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
+
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
