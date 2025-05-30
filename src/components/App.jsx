@@ -16,11 +16,9 @@ function App() {
   const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
   const [roomId, setRoomID] = useState(null);
 
-
   // test:
   const [username, setUsername] = useState(null);
   const [userId, setUserId] = useState(null);
-
 
   // Function for handling logging-out (will be passed to routes):
   const handleLogout = () => {
@@ -32,10 +30,6 @@ function App() {
 
   // Function for handling joining a unique editor room (in the sense of passing its ID here so we can map it to the right Yjs document):
   const handleRoomJoin = (roomId) => {
-
-    console.log("DEBUG: RAAAAAAAAAAAAAAAAAAAHHH!!!");
-    console.log("Debug: The value of roomId => [", roomId, "]");
-
     setRoomID(roomId);
   };
 
@@ -107,11 +101,25 @@ function App() {
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
+
+
+
+
+        {/* 5. Editing Session (TEST ROOM -- NO DATA PERSISTENCE): */}
+        <Route path="/editor" element={<Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} />} />
+        {/* DEBUG:+TO-DO: ^^^ Should add something that makes it so that is userData is undefined, you just randomly generate values... */}
+        {/* ^^^ FURTHER DETAILS OF THIS AREN'T FLESHED OUT YET -- FIGURE IT OUT LATER!!! */}
+
+
+
+
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.
         If they are NOT logged in,
         - any un-defined URL routes just re-map to the Login page. */}
         <Route path="*" element={<PrivateRouteMisc><Login /></PrivateRouteMisc>} />
+
+        
 
       </Routes>
     </Router>

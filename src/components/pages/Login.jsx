@@ -140,8 +140,13 @@ function Login({ setUser, setToken }) {
                     <div style={{marginRight:"10px"}}>New to HackMD Clone?</div><a href="Register" style={{textDecoration:"none"}}>Create an account.</a>
                 </div>
             </div>
-        </div>
 
+            
+            {/* What I want here is a button that takes you to a Test Editor Room... */}
+
+
+
+        </div>
     );
 }
 
