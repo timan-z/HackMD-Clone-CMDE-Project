@@ -30,3 +30,9 @@ Now, in editors like Google Docs, when there are several different clients editi
 
 Don't forget to attribute the authors of the blinking eye icon I used for the password:
 - https://www.flaticon.com/free-icon/show-password_6803345
+
+
+
+
+
+MDE-PART3 WILL BE IMPLEMENTING VERSION CONTROL W/ RUST!!!

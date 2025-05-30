@@ -15,33 +15,36 @@ on the client-side but that's primarily for setting up real-time sync on the fro
 */
 
 import { WebSocketServer } from "ws";
-import { setupWSConnection } from "y-websocket";
+//import { setupWSConnection } from "y-websocket";
 import * as Y from "yjs";
 import pg from "pg";
 import dotenv from "dotenv";
 
 dotenv.config({ path:'./.env'});
 
-// Yjs server:
+// Create WebSocket server:
 const YJS_PORT = 1234;
-const wss = new WebSocketServer({ port: YJS_PORT });
+const wss = new WebSocketServer({ port: YJS_PORT }, () => {
+    console.log(`DEBUG: Yjs WebSocket Server running on ws://localhost:${YJS_PORT}`);
+});
 
-// Connect to PostgreSQL:
+// PostgreSQL connection:
 const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-// In-memory doc cache:
+// Memory cache of Yjs documents per room:;
 const docs = new Map();
 
 // [1] - Fetch doc from DB or create a new one:
 async function loadDoc(roomId) {
-
-    console.log("DEBUG: Function loadDoc entered...");
+    console.log("1. DEBUG: Function loadDoc entered...");
 
     if(docs.has(roomId)) return docs.get(roomId);
     const doc = new Y.Doc(); // New doc.
     
+    console.log("DEBUG: The value of doc is => [", doc, "]");
+
     try {
         const result = await pool.query("SELECT content FROM ydocs WHERE room_id = $1", [roomId]);
         if(result.rows.length > 0) {
@@ -60,11 +63,8 @@ async function loadDoc(roomId) {
 
 // [2] - Save to the DB on final member disconnect:
 async function saveDoc(roomId, doc) {
-
-
-    console.log("DEBUG: Function saveDoc entered...");
+    console.log("2. DEBUG: Function saveDoc entered...");
     
-
     const update = Y.encodeStateAsUpdate(doc);
     try {
         await pool.query(
@@ -79,33 +79,64 @@ async function saveDoc(roomId, doc) {
     }
 }
 
+// DEBUG: AUTO-SAVE ALL DOCUMENTS IN MEMORY TO THE DATABASE IN INTERVALS (NOT SURE I WANT TO KEEP THIS BUT IT'D LOOK GOOD IN README.MD)
+setInterval(() => {
+  for (const [roomId, doc] of docs.entries()) {
+    saveDoc(roomId, doc);
+  }
+}, 1000 * 60); // every 60 seconds
 
-
+// mINIMAL WEBSOCKET MESSAGE HANDLER FOR YJS SYNCING:
 wss.on("connection", async(conn,req)=> {
     //console.log("New Yjs WebSocket connection established.");
     const url = new URL(req.url, `http://${req.headers.host}`);
     const roomId = url.pathname.slice(1);
     const doc = await loadDoc(roomId);
 
+    console.log("DEBUG: The value of url => [", url, "]");
+    console.log("DEBUG: The value of doc => [", doc, "]");
     console.log("DEBUG: The value fo roomId => [", roomId, "]");
 
-    setupWSConnection(conn, req, {
-        doc,
-        gc:true,
-    });
-    // Save on connection close (last client leaves room):
-    conn.on("close", ()=> {
-        const isEmpty = [...wss.clients].every(
-            (client) => new URL(client.upgradeReq?.url ?? "", `http://${client.upgradeReq?.headers?.host}`).pathname.slice(1) !== roomId
-        );
+    const encoder = new TextEncoder();
+    const decoder = new TextDecoder();
 
-        if(isEmpty) {
-            // basically, if a room is empty, we save its content to PostgreSQL backend and get rid of it here (to free up space):
+    // Yjs update handling:
+    conn.binaryType = "arraybuffer";
+
+    const broadcast = (message) => {
+        for(const client of wss.clients) {
+            if(client.readyState === 1) client.send(message);
+        }
+    };
+
+    const handleMessage = (data) => {
+        const update = new Uint8Array(data);
+        try {
+            Y.applyUpdate(doc, update);
+            broadcast(update);  // echo to all clients.
+        } catch(err) {
+            console.error(`ERROR: Failed to apply update because => ${err}`);
+        }
+    }
+    conn.on("message", handleMessage);
+
+    // sending initial document state:
+    const state = Y.encodeStateAsUpdate(doc);
+    conn.send(state);
+
+    // Handle disconnect:
+    conn.on("close", ()=>{
+        const stillConnected = [...wss.clients].some(client => {
+            try {
+                const clientRoom = new URL(client.upgradeReq?.url || '', `http://${client.upgradeReq?.headers?.host}`).pathname.slice(1);
+                return clientRoom === roomId;
+            } catch {
+                return false;
+            }
+        });
+        if(!stillConnected) {
             saveDoc(roomId, doc);
             docs.delete(roomId);
         }
     });
-
 });
-
-console.log(`Yjs WebSocket Server running on ws://localhost:${YJS_PORT}`);

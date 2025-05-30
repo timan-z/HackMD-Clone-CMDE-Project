@@ -100,7 +100,6 @@ function App() {
         If they are NOT logged in,
         - any un-defined URL routes just re-map to the Login page. */}
         <Route path="*" element={<PrivateRouteMisc><Login /></PrivateRouteMisc>} />
-
   
       </Routes>
     </Router>
