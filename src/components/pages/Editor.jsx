@@ -28,6 +28,10 @@ import Toolbar from "../core-features/Toolbar.jsx";
 import UsersListContainer from '../misc-features/UsersListContainer.jsx';
 import NotificationBar from '../misc-features/NotificationBar.jsx';
 
+
+
+
+
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
   - ContentEditable is the area where the user types.
@@ -849,6 +853,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       //providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
                       return provider;
                     }}
+                    
                     shouldBootstrap={false}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously

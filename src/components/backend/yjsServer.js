@@ -53,6 +53,7 @@ async function loadDoc(roomId) {
             console.log("Debug: please work...");
 
             Y.applyUpdate(doc, encoded);
+
             console.log(`Loaded doc for Room ID(${roomId})`);
         } else {
             console.log(`Created a new doc for Room ID(${roomId})`);
