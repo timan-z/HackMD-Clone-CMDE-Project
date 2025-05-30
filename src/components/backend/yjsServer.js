@@ -14,156 +14,173 @@ on the client-side but that's primarily for setting up real-time sync on the fro
 [2]. Save the document state to the database when a client disconnects.
 */
 
-import { WebSocketServer } from "ws";
+import { WebSocketServer, WebSocket } from "ws";
 import * as Y from "yjs";
+import {
+  readSyncMessage,
+  writeSyncStep1,
+  writeSyncStep2,
+  writeUpdate
+} from "y-protocols/sync";
+import {
+  Awareness,
+  applyAwarenessUpdate,
+  encodeAwarenessUpdate
+} from "y-protocols/awareness";
+import * as encoding from "lib0/encoding";
+import * as decoding from "lib0/decoding";
 import pg from "pg";
 import dotenv from "dotenv";
 
-dotenv.config({ path:'./.env'});
+dotenv.config({ path: './.env' });
 
-// Create WebSocket server:
 const YJS_PORT = 1234;
 const wss = new WebSocketServer({ port: YJS_PORT }, () => {
-    console.log(`DEBUG: Yjs WebSocket Server running on ws://localhost:${YJS_PORT}`);
+  console.log(`Yjs WebSocket Server running at ws://localhost:${YJS_PORT}`);
 });
 
-// PostgreSQL connection:
 const pool = new pg.Pool({
-    connectionString: process.env.DATABASE_URL,
+  connectionString: process.env.DATABASE_URL,
 });
 
-const docs = new Map(); // Memory cache of Yjs documents per room. (RoomId -> Y.Doc)
-const roomClients = new Map();  // RoomId -> Set of WebSocket clients.
+const docs = new Map();
+const roomClients = new Map();
+const awarenessStates = new Map();
 
-// [1] - Fetch doc from DB or create a new one:
 async function loadDoc(roomId) {
-    console.log("1. DEBUG: Function loadDoc entered...");
-
-    if(docs.has(roomId)) return docs.get(roomId);
-    const doc = new Y.Doc(); // New doc.
-    
-    //console.log("DEBUG: The value of doc is => [", doc, "]");
-
-    try {
-        const result = await pool.query("SELECT content FROM ydocs WHERE room_id = $1", [roomId]);
-        if(result.rows.length > 0) {
-            const encoded = result.rows[0].content;
-            
-            console.log("Debug: The value of encoded is => [", encoded, "]");
-            console.log("Debug: please work...");
-
-            Y.applyUpdate(doc, encoded);
-
-            console.log(`Loaded doc for Room ID(${roomId})`);
-        } else {
-            console.log(`Created a new doc for Room ID(${roomId})`);
-        }
-    } catch(err) {
-        console.error(`ERROR loading document in Room ID:(${roomId}) because => ${err}`);
+  if (docs.has(roomId)) return docs.get(roomId);
+  const doc = new Y.Doc();
+  try {
+    const result = await pool.query("SELECT content FROM ydocs WHERE room_id = $1", [roomId]);
+    if (result.rows.length > 0) {
+      const encoded = Buffer.isBuffer(result.rows[0].content)
+        ? result.rows[0].content
+        : Buffer.from(result.rows[0].content, 'hex');
+      Y.applyUpdate(doc, encoded);
+      console.log(`Loaded doc for Room ID(${roomId}), content length: ${encoded.length}`);
+    } else {
+      console.log(`Created new doc for Room ID(${roomId})`);
     }
-    docs.set(roomId, doc);
-    return doc;
+  } catch (err) {
+    console.error(`Error loading doc (${roomId}): ${err}`);
+  }
+  docs.set(roomId, doc);
+  return doc;
 }
 
-// [2] - Save to the DB on final member disconnect:
 async function saveDoc(roomId, doc) {
-    console.log("2. DEBUG: Function saveDoc entered...");
-    
-    const update = Y.encodeStateAsUpdate(doc);
-    try {
-        await pool.query(
-            `INSERT INTO ydocs (room_id, content, updated_at)
-            VALUES ($1, $2, NOW())
-            ON CONFLICT(room_id) DO UPDATE SET content = $2, updated_at = NOW()`,
-        [roomId, update]);
-
-        console.log(`Saved doc for Room ID(${roomId})`);
-    } catch(err) {
-        console.error(`ERROR saving document in Room ID:(${roomId}) because => ${err}`);
-    }
+  const update = Y.encodeStateAsUpdate(doc);
+  try {
+    await pool.query(
+      `INSERT INTO ydocs (room_id, content, updated_at)
+       VALUES ($1, $2, NOW())
+       ON CONFLICT(room_id) DO UPDATE SET content = $2, updated_at = NOW()`,
+      [roomId, update]
+    );
+    console.log(`Saved doc for Room ID(${roomId})`);
+  } catch (err) {
+    console.error(`Error saving doc (${roomId}): ${err}`);
+  }
 }
 
-// DEBUG: AUTO-SAVE ALL DOCUMENTS IN MEMORY TO THE DATABASE IN INTERVALS (NOT SURE I WANT TO KEEP THIS BUT IT'D LOOK GOOD IN README.MD)
 setInterval(() => {
   for (const [roomId, doc] of docs.entries()) {
     saveDoc(roomId, doc);
   }
-}, 1000 * 60); // every 60 seconds
+}, 60000);
 
-// mINIMAL WEBSOCKET MESSAGE HANDLER FOR YJS SYNCING:
-wss.on("connection", async(conn,req)=> {
-    //console.log("New Yjs WebSocket connection established.");
-    const url = new URL(req.url, `http://${req.headers.host}`);
-    const roomId = url.pathname.slice(1);
-    const doc = await loadDoc(roomId);
+setInterval(() => {
+  for (const [roomId, awareness] of awarenessStates.entries()) {
+    awareness.removeStates(Array.from(awareness.getStates().keys()));
+  }
+}, 300000);
 
-    console.log("wss.on-DEBUG: The value of roomId => [", roomId, "]");
+wss.on("connection", async (conn, req) => {
+  const url = new URL(req.url, `http://${req.headers.host}`);
+  const roomId = url.pathname.slice(1);
+  const doc = await loadDoc(roomId);
 
-    if(!roomClients.has(roomId)) {
-        roomClients.set(roomId, new Set());
+  if (!roomClients.has(roomId)) {
+    roomClients.set(roomId, new Set());
+  }
+  const clients = roomClients.get(roomId);
+  clients.add(conn);
+  conn.binaryType = "arraybuffer";
+
+  if (!awarenessStates.has(roomId)) {
+    const awareness = new Awareness(doc);
+    awarenessStates.set(roomId, awareness);
+  }
+  const awareness = awarenessStates.get(roomId);
+  const connAwarenessId = Math.floor(Math.random() * 0xFFFFFFFF);
+  awareness.setLocalState(connAwarenessId, {});
+
+  const awarenessBroadcast = (changedClients, origin) => {
+    const changed = encoding.createEncoder();
+    encoding.writeVarUint(changed, 0x90);
+    encoding.writeVarUint8Array(changed, encodeAwarenessUpdate(awareness, changedClients));
+    const message = encoding.toUint8Array(changed);
+
+    for (const client of clients) {
+      if (client !== origin && client.readyState === WebSocket.OPEN) {
+        client.send(message);
+      }
     }
-    roomClients.get(roomId).add(conn);
+  };
 
-    //console.log("DEBUG: The value of url => [", url, "]");
-    //console.log("DEBUG: The value of doc => [", doc, "]");
-    //console.log("DEBUG: The value fo roomId => [", roomId, "]");
+  awareness.on("update", awarenessBroadcast);
 
-    // Yjs update handling:
-    conn.binaryType = "arraybuffer";
+  const encoder = encoding.createEncoder();
+  encoding.writeVarUint(encoder, 0);
+  writeSyncStep1(encoder, doc);
+  conn.send(encoding.toUint8Array(encoder));
 
-    const broadcast = (message) => {
-        const clientsInRoom = roomClients.get(roomId);
-        if(!clientsInRoom) return;
+  const awarenessUpdate = encoding.createEncoder();
+  encoding.writeVarUint(awarenessUpdate, 0x90);
+  encoding.writeVarUint8Array(awarenessUpdate, encodeAwarenessUpdate(awareness, Array.from(awareness.getStates().keys())));
+  conn.send(encoding.toUint8Array(awarenessUpdate));
 
-        for(const client of clientsInRoom) {
-            if(client !== conn && client.readyState === 1) {
-                client.send(message);
+  conn.on("message", (data) => {
+    const decoder = decoding.createDecoder(new Uint8Array(data));
+    const encoder = encoding.createEncoder();
+    const messageType = decoding.readVarUint(decoder);
+    try {
+      switch (messageType) {
+        case 0:
+        case 1:
+        case 2:
+          readSyncMessage(decoder, encoder, doc, conn);
+          if (encoding.length(encoder) > 0) {
+            conn.send(encoding.toUint8Array(encoder));
+          }
+          if (messageType === 2) {
+            for (const client of clients) {
+              if (client !== conn && client.readyState === WebSocket.OPEN) {
+                client.send(data);
+              }
             }
-        }
-    };
-
-    const handleMessage = (data) => {
-
-        if(!(data instanceof Buffer)) {
-            console.warn('Ignoring non-buffer message:', data);
-            return;
-        }
-
-        const update = new Uint8Array(data);
-        try {
-            Y.applyUpdate(doc, update);
-            broadcast(update);  // echo to all clients.
-        } catch(err) {
-            console.error(`ERROR: Failed to apply update because => ${err}`);
-        }
+          }
+          break;
+        case 0x90:
+          const update = decoding.readVarUint8Array(decoder);
+          applyAwarenessUpdate(awareness, update, conn);
+          break;
+        default:
+          console.warn("Unknown message type:", messageType);
+      }
+    } catch (err) {
+      console.error("Failed to process Yjs message: ", err);
     }
-    conn.on("message", handleMessage);
+  });
 
-    // sending initial document state:
-    const state = Y.encodeStateAsUpdate(doc);
-    conn.send(state);
-
-    // Handle disconnect:
-    conn.on("close", ()=>{
-        const clients = roomClients.get(roomId);
-        if(clients) {
-            clients.delete(conn);
-            if(clients.size === 0) {
-                roomClients.delete(roomId);
-            }
-        }
-
-        const stillConnected = [...wss.clients].some(client => {
-            try {
-                const clientRoom = new URL(client.upgradeReq?.url || '', `http://${client.upgradeReq?.headers?.host}`).pathname.slice(1);
-                return clientRoom === roomId;
-            } catch {
-                return false;
-            }
-        });
-        if(!stillConnected) {
-            saveDoc(roomId, doc);
-            docs.delete(roomId);
-        }
-    });
+  conn.on("close", () => {
+    awareness.removeStates([connAwarenessId]);
+    clients.delete(conn);
+    if (clients.size === 0) {
+      saveDoc(roomId, doc);
+      docs.delete(roomId);
+      roomClients.delete(roomId);
+      awarenessStates.delete(roomId);
+    }
+  });
 });
