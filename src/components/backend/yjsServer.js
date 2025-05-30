@@ -15,7 +15,6 @@ on the client-side but that's primarily for setting up real-time sync on the fro
 */
 
 import { WebSocketServer } from "ws";
-//import { setupWSConnection } from "y-websocket";
 import * as Y from "yjs";
 import pg from "pg";
 import dotenv from "dotenv";
@@ -33,8 +32,8 @@ const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-// Memory cache of Yjs documents per room:;
-const docs = new Map();
+const docs = new Map(); // Memory cache of Yjs documents per room. (RoomId -> Y.Doc)
+const roomClients = new Map();  // RoomId -> Set of WebSocket clients.
 
 // [1] - Fetch doc from DB or create a new one:
 async function loadDoc(roomId) {
@@ -43,13 +42,17 @@ async function loadDoc(roomId) {
     if(docs.has(roomId)) return docs.get(roomId);
     const doc = new Y.Doc(); // New doc.
     
-    console.log("DEBUG: The value of doc is => [", doc, "]");
+    //console.log("DEBUG: The value of doc is => [", doc, "]");
 
     try {
         const result = await pool.query("SELECT content FROM ydocs WHERE room_id = $1", [roomId]);
         if(result.rows.length > 0) {
             const encoded = result.rows[0].content;
-            Y.applyUpdate(doc, Buffer.from(encoded, "binary"));
+            
+            console.log("Debug: The value of encoded is => [", encoded, "]");
+            console.log("Debug: please work...");
+
+            Y.applyUpdate(doc, encoded);
             console.log(`Loaded doc for Room ID(${roomId})`);
         } else {
             console.log(`Created a new doc for Room ID(${roomId})`);
@@ -93,23 +96,38 @@ wss.on("connection", async(conn,req)=> {
     const roomId = url.pathname.slice(1);
     const doc = await loadDoc(roomId);
 
-    console.log("DEBUG: The value of url => [", url, "]");
-    console.log("DEBUG: The value of doc => [", doc, "]");
-    console.log("DEBUG: The value fo roomId => [", roomId, "]");
+    console.log("wss.on-DEBUG: The value of roomId => [", roomId, "]");
 
-    const encoder = new TextEncoder();
-    const decoder = new TextDecoder();
+    if(!roomClients.has(roomId)) {
+        roomClients.set(roomId, new Set());
+    }
+    roomClients.get(roomId).add(conn);
+
+    //console.log("DEBUG: The value of url => [", url, "]");
+    //console.log("DEBUG: The value of doc => [", doc, "]");
+    //console.log("DEBUG: The value fo roomId => [", roomId, "]");
 
     // Yjs update handling:
     conn.binaryType = "arraybuffer";
 
     const broadcast = (message) => {
-        for(const client of wss.clients) {
-            if(client.readyState === 1) client.send(message);
+        const clientsInRoom = roomClients.get(roomId);
+        if(!clientsInRoom) return;
+
+        for(const client of clientsInRoom) {
+            if(client !== conn && client.readyState === 1) {
+                client.send(message);
+            }
         }
     };
 
     const handleMessage = (data) => {
+
+        if(!(data instanceof Buffer)) {
+            console.warn('Ignoring non-buffer message:', data);
+            return;
+        }
+
         const update = new Uint8Array(data);
         try {
             Y.applyUpdate(doc, update);
@@ -126,6 +144,14 @@ wss.on("connection", async(conn,req)=> {
 
     // Handle disconnect:
     conn.on("close", ()=>{
+        const clients = roomClients.get(roomId);
+        if(clients) {
+            clients.delete(conn);
+            if(clients.size === 0) {
+                roomClients.delete(roomId);
+            }
+        }
+
         const stillConnected = [...wss.clients].some(client => {
             try {
                 const clientRoom = new URL(client.upgradeReq?.url || '', `http://${client.upgradeReq?.headers?.host}`).pathname.slice(1);
