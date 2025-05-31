@@ -334,21 +334,23 @@ export const transferEdRoomOwn = async(req, res) => {
     }
 };
 
+
+
+
 // 4.1. To save Editor Room document data on the PostgreSQL backend server:
 export const saveEdRoomDoc = async(req, res) => {
     const {roomId} = req.params;
-    const {docData} = req.params;
-
+    const {docData} = req.body;
+    const buffer = Buffer.from(docData);
 
     console.log("DEBUG: In function saveEdRoomDoc...");
 
-    
     try {
         await pool.query(
             `INSERT INTO ydocs (room_id, content, updated_at)
             VALUES ($1, $2, NOW())
             ON CONFLICT(room_id) DO UPDATE SET content = $2, updated_at = NOW()`,
-            [roomId, [Buffer.from(docData)]]
+            [roomId, buffer]
         );
         res.status(201).json({success: true});
     } catch(err) {
@@ -356,6 +358,10 @@ export const saveEdRoomDoc = async(req, res) => {
         res.status(500).json({ success:false, error: "Failed to save document data to the backend."});
     }
 };
+
+
+
+
 
 // 4.2. To get Editor Room document data from the PostgreSQL backend server:
 export const getEdRoomDoc = async(req, res) => {
@@ -375,3 +381,7 @@ export const getEdRoomDoc = async(req, res) => {
         res.status(500).json({ error: "Failed to retrieve document data from the backend." });
     }
 };
+
+
+
+

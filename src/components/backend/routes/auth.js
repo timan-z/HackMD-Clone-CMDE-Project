@@ -32,7 +32,7 @@ router.post('/rooms/:roomId/kick/:userId', verifyToken, kickEdRoomUser);
 router.post('/rooms/:roomId/transfer/:tUserId/from/:cUserId', verifyToken, transferEdRoomOwn);
 
 // SERVER PERSISTENCE:
-router.post('/rooms/:roomId/save/:docData', verifyToken, saveEdRoomDoc);
+router.post('/rooms/:roomId/save', verifyToken, saveEdRoomDoc);
 router.get('/rooms/:roomId/get', verifyToken, getEdRoomDoc);
 
 export default router;

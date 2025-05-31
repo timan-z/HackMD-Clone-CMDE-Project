@@ -147,15 +147,35 @@ export const transferRoomOwn = async(roomId, targetUserId, currentUserId, token)
 
 
 
+
+
+
+
+
+
 // 4. SERVER PERSISTANCE:
 // 4.1. To save Editor Room document data on the PostgreSQL backend server:
 export const saveRoomDoc = async(roomId, docData, token) => {
-    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/save/${docData}`, {
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/save`, {
         method:"POST",
-        headers: {Authorization: `Bearer ${token}`}
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({ docData: Array.from(docData) }) // <-- VERY IMPORTANT. I can't pass it in the URL, it'll become corrupted!
     });
     return result.json();
 }
+
+
+
+
+
+
+
+
+
+
 
 // 4.2. To retrieve Editor Room document data from the PostgreSQL backend server:
 export const getRoomDoc = async(roomId, token) => {

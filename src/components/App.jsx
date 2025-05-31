@@ -13,7 +13,7 @@ import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
 
 
 import * as Y from 'yjs'; // DEBUG!
-
+import { XmlFragment, XmlElement, XmlText } from 'yjs'; // DEBUG!
 
 
 // NOTE-TO-SELF: This "App" function serves as our root.
@@ -69,34 +69,10 @@ function App() {
         console.log("Debug: The value of result => [", result, "]");
 
         // DEBUG: everything below is debugging stuff and should be removed after!
-        console.log("Why aren't the logs below happening???");
-        const doc = new Y.Doc();
+        /*const doc = new Y.Doc();
         const binaryArray = result.data;
-
-
-        console.log("1 - It breaks here.");
-
         const binaryArrayProper = new Uint8Array(binaryArray);
-
-        console.log("2 - It breaks here.");
-
-
-        console.log("First 20 bytes:", binaryArrayProper.slice(0, 20));
-
-
-        Y.applyUpdate(doc, binaryArrayProper);
-
-        console.log("Debug: LET'S SEE WHAT HAPPENS...");
-
-
-        //console.log("1 - it breaks here.");
-        //Y.applyUpdate(doc, new Uint8Array(result));
-        //console.log("2 - it breaks here.");
-        //const text = doc.getText('default').toString();
-        //console.log("The value of text => [", text, "]");
-        // DEBUG: everything above is debugging stuff and should be removed after!
-
-
+        Y.applyUpdate(doc, binaryArrayProper);*/
 
         return result;
       } catch(err) {
