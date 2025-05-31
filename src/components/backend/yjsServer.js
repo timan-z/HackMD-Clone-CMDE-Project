@@ -14,6 +14,8 @@ on the client-side but that's primarily for setting up real-time sync on the fro
 [2]. Save the document state to the database when a client disconnects.
 */
 
+// SCRAPPED! NOT GOING TO MOVE FORWARD WITH THIS!
+
 import { WebSocketServer, WebSocket } from "ws";
 import * as Y from "yjs";
 import {

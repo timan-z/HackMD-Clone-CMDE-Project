@@ -15,7 +15,6 @@ AND since it's my primary key in the database anyways, PostgreSQL will automatic
 
 
 dotenv.config({ path:'./.env'});
-
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const JWT_SECRET = process.env.JWT_SECRET;
 
@@ -332,5 +331,47 @@ export const transferEdRoomOwn = async(req, res) => {
     } catch(err) {
         console.error("ERROR while attempting to transfer Editor Room [", roomId, "] ownership from User ID:(", currentUserId, ") to User ID:(", targetUserId, ")");
         res.status(500).json({ success:false, error: "Failed to transfer ownership"});
+    }
+};
+
+// 4.1. To save Editor Room document data on the PostgreSQL backend server:
+export const saveEdRoomDoc = async(req, res) => {
+    const {roomId} = req.params;
+    const {docData} = req.params;
+
+
+    console.log("DEBUG: In function saveEdRoomDoc...");
+
+    
+    try {
+        await pool.query(
+            `INSERT INTO ydocs (room_id, content, updated_at)
+            VALUES ($1, $2, NOW())
+            ON CONFLICT(room_id) DO UPDATE SET content = $2, updated_at = NOW()`,
+            [roomId, [Buffer.from(docData)]]
+        );
+        res.status(201).json({success: true});
+    } catch(err) {
+        console.error("ERROR: Failed to save document data to the backend.");
+        res.status(500).json({ success:false, error: "Failed to save document data to the backend."});
+    }
+};
+
+// 4.2. To get Editor Room document data from the PostgreSQL backend server:
+export const getEdRoomDoc = async(req, res) => {
+
+
+    console.log("DEBUG: Is function \"getEdRoomDoc\" ever entered???");
+
+        
+    const {roomId} = req.params;
+    try {
+        const content = await pool.query(
+            `SELECT content FROM ydocs WHERE room_id = $1`, [roomId]
+        );
+        res.status(201).json(content.rows[0].content);
+    } catch(err) {
+        console.error("ERROR: Failed to retrieve document data from the backend.");
+        res.status(500).json({ error: "Failed to retrieve document data from the backend." });
     }
 };

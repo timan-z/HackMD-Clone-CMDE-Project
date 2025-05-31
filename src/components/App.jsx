@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { getCurrentUser, getRoomUsers } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
+import { getCurrentUser, getRoomUsers, saveRoomDoc, getRoomDoc } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
 // The three main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -9,6 +9,12 @@ import Editor from "./pages/Editor.jsx";
 import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing unauthorized access to certain pages...
 import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx"; // ^ More of the same but for more minor purposes.
 import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
+
+
+
+import * as Y from 'yjs'; // DEBUG!
+
+
 
 // NOTE-TO-SELF: This "App" function serves as our root.
 function App() {
@@ -32,6 +38,73 @@ function App() {
   const handleRoomJoin = (roomId) => {
     setRoomID(roomId);
   };
+
+
+
+
+
+
+  // Function for sending Editor document data (Yjs doc content) to the PostgreSQL server:
+  const saveRoomData = async(roomId, docData) => {
+    if(token) {
+      try {
+        const result = await saveRoomDoc(roomId, docData, token);
+        console.log("Debug: The value of result => [", result, "]");
+
+      } catch(err) {
+        console.error(`ERROR: Failed to save Editor document data for Room ID:(${roomId}) to the PostgreSQL backend.`);
+      }
+    }
+  }
+
+  // Function for retrieving Editor document data (Yjs doc content) from the PostgreSQL server:
+  const getRoomData = async(roomId) => {
+    if(token) {
+
+      console.log("1. DEBUG: Is function getRoomData even entered?");
+
+      try {
+        console.log("Debug: The value of roomId => [", roomId, "]");        
+        const result = await getRoomDoc(roomId, token);
+        console.log("Debug: The value of result => [", result, "]");
+
+        // DEBUG: everything below is debugging stuff and should be removed after!
+        console.log("Why aren't the logs below happening???");
+        const doc = new Y.Doc();
+        const binaryArray = result.data;
+
+
+        console.log("1 - It breaks here.");
+
+        const binaryArrayProper = new Uint8Array(binaryArray);
+
+        console.log("2 - It breaks here.");
+
+
+        console.log("First 20 bytes:", binaryArrayProper.slice(0, 20));
+
+
+        Y.applyUpdate(doc, binaryArrayProper);
+
+        console.log("Debug: LET'S SEE WHAT HAPPENS...");
+
+
+        //console.log("1 - it breaks here.");
+        //Y.applyUpdate(doc, new Uint8Array(result));
+        //console.log("2 - it breaks here.");
+        //const text = doc.getText('default').toString();
+        //console.log("The value of text => [", text, "]");
+        // DEBUG: everything above is debugging stuff and should be removed after!
+
+
+
+        return result;
+      } catch(err) {
+        console.error(`ERROR: Failed to retrieve Editor document data for Room ID:(${roomId}) from the PostgreSQL backend.`);
+      }
+    }
+    return null;
+  }
 
 
 
@@ -93,7 +166,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard loadUser={loadUser} loadRoomUsers={loadRoomUsers} logout={handleLogout} sendRoomID={handleRoomJoin} userData={user} setUser={setUser} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} testMode={false} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} saveRoomData={saveRoomData} getRoomData={getRoomData} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.

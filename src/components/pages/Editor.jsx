@@ -23,13 +23,9 @@ import { throttle } from "lodash"; // Throttling needed to limit rate of functio
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
 import { useParams, useNavigate } from "react-router-dom"; 
-
 import Toolbar from "../core-features/Toolbar.jsx";
 import UsersListContainer from '../misc-features/UsersListContainer.jsx';
 import NotificationBar from '../misc-features/NotificationBar.jsx';
-
-
-
 
 
 /* NOTE-TO-SELF:
@@ -38,6 +34,19 @@ import NotificationBar from '../misc-features/NotificationBar.jsx';
   - PlainTextPlugin is a plugin for plain-text input (better suited here for a markdown editor as opposed to something like RichTextPlugin).
   - LexicalErrorBoundary, embedded within PlainTextPlugin, will be for catching errors and preventing LexicalComposer from exploding basically.
 */
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 // NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming
 const sampleTheme = {
@@ -121,7 +130,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, testMode }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData }) {
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
@@ -158,8 +167,8 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
-
-
+  //const doc = new Y.Doc(); // <-- moving this outside of the <contenteditable> (yeah this is definitely better).
+  const docRef = useRef(null);
 
 
 
@@ -215,6 +224,14 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     // Guard against React 18 Strict Mode making this useEffect run twice:
     if(hasJoinedRef.current) return;
     hasJoinedRef.current = true;
+
+
+
+    // DEBUG: Think the first thing that I should do here is try and test set the editor content...
+
+
+
+
 
     console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
 
@@ -505,20 +522,83 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
   // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
+      console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
 
-      console.log("[INSERT SOMETHING TO DEBUG]");
+      //console.log("Debug: The value of ydoc.getText('default'); => ", docRef.current.getText('default'));
+
+      const root = docRef.current.share.get('root');
+      if (root instanceof Y.XmlText) {
+        console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
+      }
+      const binaryState = Y.encodeStateAsUpdate(docRef.current); // should come out as an Uint8Array...
+      console.log("debug: The value of binaryState => [", binaryState, "]");
+
+
+
+
+      //console.log("DEBUG: saveRoomData...");
+      console.log("DEBUG: getRoomData...");
+      //saveRoomData(roomId, binaryState);
+      const data = getRoomData(roomId);
+      console.log("The value of data => [", data, "]");
+
+      
+
+
+      /*const testDoc = new Y.Doc();
+      Y.applyUpdate(testDoc, new Uint8Array(data));
+
+      const text = testDoc.getText('default').toString();
+      console.log(text);*/
+
+
 
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction exited...");
+      console.log("DEBUG: ************************************************************");
     });
   }
+  // NOTE: THIS ABOVE IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
 
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
 
 
 
@@ -849,12 +929,18 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
+
+                      docRef.current = doc;
+
                       provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
-                      provider.on('sync', (isSynced) => console.log('DEBUG: Doc synced?', isSynced)) // DEBUG:
+                      //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
+                      provider.on('sync', (isSynced) => {
+                        const keys = [...doc.share.keys()];
+                        console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
+                      });
                       //providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
                       return provider;
                     }}
-                    
                     shouldBootstrap={false}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
@@ -950,11 +1036,11 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   );
 }
 
-function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, testMode }) {
+function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData }) {
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} testMode={testMode} />
+      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} />
     </LexicalComposer>
   );
 }
