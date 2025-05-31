@@ -130,8 +130,8 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData }) {
-  const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef }) {
+  //const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -167,15 +167,32 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
+
+
+
+
+
+
+  console.log("PLEASE-DEBUG: The value of docRef => [", docRef, "]");
+
+
+
+
+
+
+
+
   //const doc = new Y.Doc(); // <-- moving this outside of the <contenteditable> (yeah this is definitely better).
-  const docRef = useRef(null);
+  //const docRef = useRef(null);
+  //const [fetchedDoc, setFetchedDoc] = useState(false);
+
 
 
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
   then I should quickly re-retrieve them during rendering: */
-  if(roomId === null) {
+  /*if(roomId === null) {
     roomId = useParams().roomId;
   }
 
@@ -189,7 +206,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
         loadUser();
       }
     }
-  }, []);
+  }, []);*/
 
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadRoomUsers = async(roomId) => {
@@ -218,24 +235,32 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
-  useEffect(() => {
+  /*useEffect(() => {
     // Guard against React 18 Strict Mode making this useEffect run twice:
     if(hasJoinedRef.current) return;
     hasJoinedRef.current = true;
 
-
-
-    // DEBUG: Think the first thing that I should do here is try and test set the editor content...
-
-
-
-
+    // Function to grab any pre-existing document state from the backend.
+    const fetchAndInit = async() => {
+      const doc = new Y.Doc();
+      try {
+        const result = await getRoomData(roomId);
+        if(result.success && result.docData) {
+          const uint8 = new Uint8Array(result.docData);
+          Y.applyUpdate(doc, uint8);
+        }
+      } catch(err) {
+        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
+      }
+      docRef.current = doc;
+      setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
+    };
+    fetchAndInit();
 
     console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
-
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
     socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
-  }, [userData]);
+  }, [userData]);*/
 
 
 
@@ -732,6 +757,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     }
   }
   return(
+
+
+
     <div id="the-editor-wrapper" className="editor-wrapper">
 
       {/* Going to have something loaded here that boots the user when they get kicked: 
@@ -923,7 +951,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
-                      const doc = new Y.Doc();
+                      //const doc = new Y.Doc();
+                      
+                      const doc = docRef.current;
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
 
@@ -936,6 +966,44 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                         console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
                       });
                       //providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
+                      
+
+                      //const debugKeys = [...doc.share.keys()]; // DEBUG:
+                      //console.log("Inside providerFactory — docRef keys:", debugKeys); // DEBUG:
+                      /*if (doc.getMap("root")) {
+                        console.log("Doc has a root map");
+                      } else {
+                        console.log("Doc has no root map");
+                      }*///DEBUG:
+
+
+
+
+
+
+                      const root = doc.get('root');
+                      if (root instanceof Y.XmlFragment) {
+                        const textContent = extractTextFromXmlFragment(root);
+                        console.log('PLEASE-DEBUG: Extracted full text:', textContent);
+                      } else {
+                        console.warn('PLEASE-DEBUG: Unexpected type:', root.constructor.name);
+                      }
+
+
+
+
+
+
+                      // debug:
+                      //for (const [key, value] of doc.share.entries()) {
+                      //  console.log(`Key: ${key}, Type:`, value.constructor.name);
+                      //}
+                      // debug.
+                         
+                      
+
+
+                                           
                       return provider;
                     }}
                     shouldBootstrap={false}
@@ -1030,14 +1098,89 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
         
       </div>
     </div>
+
+
+
   );
 }
 
 function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData }) {
+
+  // DEBUG: Maybe it'd be better to have the fetch previous document function over here???
+  const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
+  const docRef = useRef(null);
+  const [fetchedDoc, setFetchedDoc] = useState(false);
+
+  /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
+  They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
+  then I should quickly re-retrieve them during rendering: */
+  if(roomId === null) {
+    roomId = useParams().roomId;
+  }
+
+  useEffect(() => {
+    if(!userData) {
+      const storedUser = localStorage.getItem("userData");
+      if(storedUser) {
+        const parsedUser = JSON.parse(storedUser);
+        setUser(parsedUser);
+      } else {
+        loadUser();
+      }
+    }
+  }, []);
+
+  // useEffect Hook #0: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
+  useEffect(() => {
+    // Guard against React 18 Strict Mode making this useEffect run twice:
+    if(hasJoinedRef.current) return;
+    hasJoinedRef.current = true;
+
+    // Function to grab any pre-existing document state from the backend.
+    const fetchAndInit = async() => {
+      const doc = new Y.Doc();
+      try {
+        console.log("fetchAndInit-DEBUG: The value of roomId => [", roomId, "]");
+        const result = await getRoomData(roomId);
+        console.log("fetchAndInit-DEBUG: The value of result => [", result, "]");
+        const binaryData = result.docData.data;
+
+
+        console.log("fetchAndInit-DEBUG: binaryData (raw):", binaryData);
+
+
+        if(result.success && result.docData) {
+          const uint8 = new Uint8Array(binaryData);
+
+          console.log("fetchAndInit-DEBUG: uint8 (raw): ", uint8);
+
+          Y.applyUpdate(doc, uint8);
+
+
+          const keys = [...doc.share.keys()];
+          console.log("Doc keys after applyUpdate:", keys);
+          console.log("fetchAndInit-DEBUG: Y.applyUpdate() has run...");
+        }
+      } catch(err) {
+        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
+      }
+      docRef.current = doc;
+      setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
+    };
+    fetchAndInit();
+
+    console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
+    // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
+    socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+  }, [userData]);
+  // DEBUG:[ABOVE] Maybe it'd be better to have the fetch previous document function over here???
+
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-      <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} />
+      {fetchedDoc ? (
+        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef}/>
+      ):(<div>LOADING...</div>)}
     </LexicalComposer>
   );
 }

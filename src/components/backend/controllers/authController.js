@@ -366,19 +366,17 @@ export const saveEdRoomDoc = async(req, res) => {
 // 4.2. To get Editor Room document data from the PostgreSQL backend server:
 export const getEdRoomDoc = async(req, res) => {
 
-
     console.log("DEBUG: Is function \"getEdRoomDoc\" ever entered???");
-
         
     const {roomId} = req.params;
     try {
         const content = await pool.query(
             `SELECT content FROM ydocs WHERE room_id = $1`, [roomId]
         );
-        res.status(201).json(content.rows[0].content);
+        res.status(201).json({ success: true, docData: content.rows[0].content});
     } catch(err) {
         console.error("ERROR: Failed to retrieve document data from the backend.");
-        res.status(500).json({ error: "Failed to retrieve document data from the backend." });
+        res.status(500).json({ success: false, error: "Failed to retrieve document data from the backend." });
     }
 };
 
