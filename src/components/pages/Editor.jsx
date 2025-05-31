@@ -130,7 +130,7 @@ const initialConfig = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap }) {
   //const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
@@ -947,7 +947,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
-
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
@@ -962,6 +961,17 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
                       //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
                       provider.on('sync', (isSynced) => {
+
+
+                        if (isSynced && shouldBootstrap) {
+
+                          console.log("DEBUG: isSynced && shouldBootstrap ENTERED!!!");
+
+                          const binary = Y.encodeStateAsUpdate(doc);
+                          saveRoomData(roomId, binary); // persist it to PostgreSQL
+                        }
+
+
                         const keys = [...doc.share.keys()];
                         console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
                       });
@@ -975,11 +985,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       } else {
                         console.log("Doc has no root map");
                       }*///DEBUG:
-
-
-
-
-
 
                       const root = doc.get('root');
                       if (root instanceof Y.XmlFragment) {
@@ -1006,11 +1011,15 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                                            
                       return provider;
                     }}
-                    shouldBootstrap={false}
+                    //shouldBootstrap={false}
+                    shouldBootstrap={shouldBootstrap}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) */
                   />
+
+
+
 
                   {/* NOTE-TO-SELF: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
@@ -1110,6 +1119,9 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const docRef = useRef(null);
   const [fetchedDoc, setFetchedDoc] = useState(false);
+  const [shouldBootstrap, setShouldBootstrap] = useState(false);
+
+
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
@@ -1156,6 +1168,8 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
 
           Y.applyUpdate(doc, uint8);
 
+          setShouldBootstrap(false);
+
 
           const keys = [...doc.share.keys()];
           console.log("Doc keys after applyUpdate:", keys);
@@ -1163,6 +1177,8 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
         }
       } catch(err) {
         console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
+
+        setShouldBootstrap(true);
       }
       docRef.current = doc;
       setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
@@ -1179,7 +1195,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
       {fetchedDoc ? (
-        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef}/>
+        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap}/>
       ):(<div>LOADING...</div>)}
     </LexicalComposer>
   );
