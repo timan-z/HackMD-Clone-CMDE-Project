@@ -172,8 +172,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
-
-
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
   then I should quickly re-retrieve them during rendering: */
@@ -543,34 +541,33 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
 
-      //console.log("Debug: The value of ydoc.getText('default'); => ", docRef.current.getText('default'));
 
       const root = docRef.current.share.get('root');
       if (root instanceof Y.XmlText) {
         console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
       }
+      console.log("DEBUG: About to run the saveRoomData function...");
+      const binaryState = Y.encodeStateAsUpdate(docRef.current);
+      saveRoomData(roomId, binaryState);
+
+
+
+      //console.log("Debug: The value of ydoc.getText('default'); => ", docRef.current.getText('default'));
+      /*const root = docRef.current.share.get('root');
+      if (root instanceof Y.XmlText) {
+        console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
+      }
       const binaryState = Y.encodeStateAsUpdate(docRef.current); // should come out as an Uint8Array...
       console.log("debug: The value of binaryState => [", binaryState, "]");
-
-
-
-
       //console.log("DEBUG: saveRoomData...");
       console.log("DEBUG: getRoomData...");
       //saveRoomData(roomId, binaryState);
       const data = getRoomData(roomId);
       console.log("The value of data => [", data, "]");
-
-
-
-
-      /*const testDoc = new Y.Doc();
+      const testDoc = new Y.Doc();
       Y.applyUpdate(testDoc, new Uint8Array(data));
-
       const text = testDoc.getText('default').toString();
       console.log(text);*/
-
-
 
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction exited...");
