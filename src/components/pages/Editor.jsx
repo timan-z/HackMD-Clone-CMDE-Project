@@ -228,6 +228,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     setUsersList(tweakedArr);
   };
   useEffect(() => {
+
+    console.log("DEBUG: useEffect Hook #0 entered!!!");
+
     callLoadRoomUsers(roomId);
   }, []);
 
@@ -276,6 +279,10 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
   // DEBUG: ^ Definitely organize this better -- it's so minor that it can probably be stuffed into another useEffect hook...
   useEffect(()=> {
+
+    console.log("DEBUG: useEffect hook (notifications) entered.");
+
+
     const handleNotif = () => {
       let notifBarCheck = document.getElementById('notification-bar');
 
@@ -476,6 +483,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
   // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
+
+    console.log("DEBUG: useEffect Hook #1 entered!!!");
+
     const unregister = editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
         /* From the Lexical documentation:
@@ -524,6 +534,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
   // "useEffect(()=>{...})" Hook #2 - For clientCursors updates (letting us know when to update the RemoteCursorOverlay rendering):
   useEffect(() => {
+
+    console.log("DEBUG: useEffect hook #2 entered!!!");
+
     // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
     socket.on("update-cursors", (cursors) => {
       //console.log("DEBUG: Received clientCursors update! cursors = [", cursors, "]");
@@ -945,12 +958,22 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
+
+
+
+
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
                       //const doc = new Y.Doc();
             
                       const doc = docRef.current;
+
+                      console.log("DEBUG: The value of shouldBootstrap => [", shouldBootstrap, "]");
+                      if (doc.share.has('root')) {
+                        console.warn("DEBUG: WITHIN <CollaborationPlugin> -- 'root' DETECTED!!!");
+                      }
+                      
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
                       docRef.current = doc;
@@ -958,9 +981,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
                       //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
 
-
-
-                      
                       provider.on('sync', (isSynced) => {
 
                         console.log(`sync-DEBUG: isSynced = ${isSynced}, shouldBootstrap = ${shouldBootstrap}`);
@@ -968,10 +988,20 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                         console.log(`sync-DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
 
 
+                        if (isSynced) {
+                          console.log("About to isLexicalREady");
+                          const isLexicalReady = root instanceof Y.XmlFragment;
+                          console.log("Lexical Ready? => [", isLexicalReady, "]");
+                          if(isLexicalReady) {
+                            console.log("YEAH IT IS READY!!!");
+                          }
+                        }
+
+
                         if (isSynced && shouldBootstrap) {
                           console.log("sync-DEBUG: isSynced && shouldBootstrap ENTERED!!!");
                           // DEBUG: Over here, supposed to WAIT for Lexical to populate the doc first (instead of creating it myself):
-                          const root = doc.get('root');
+                          /*const root = doc.get('root');
 
                           if(root instanceof Y.XmlFragment) {
                             console.log("sync-DEBUG: Lexical has populated the document with XmlFragment.");
@@ -979,7 +1009,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                             saveRoomData(roomId, binary);
                           } else {
                             console.warn("sync-DEBUG: Lexical has not finished populating the document. Delaying save.");
-                          }
+                          }*/
 
                           //const binary = Y.encodeStateAsUpdate(doc);
                           //saveRoomData(roomId, binary); // persist it to PostgreSQL

@@ -35,7 +35,7 @@ const io = new Server(server, {
 let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
-const saveYDocToPostgres = async(roomId, ydoc) => {
+/*const saveYDocToPostgres = async(roomId, ydoc) => {
     const binaryData = Y.encodeStateAsUpdate(ydoc); // Turning ydoc document state to Uint8Array.
 
     try {
@@ -44,7 +44,7 @@ const saveYDocToPostgres = async(roomId, ydoc) => {
     } catch(err) {
         console.error(`ERROR: Failed to save Yjs doc for Room ID:(${roomId}) because of: ${err}`);
     }
-}
+}*/
 
 io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
