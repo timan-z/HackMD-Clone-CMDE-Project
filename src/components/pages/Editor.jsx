@@ -167,8 +167,10 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
-
-
+  console.log("DEBUG: Scooby Dooby Doo!");
+  if(docRef.current.share.has('root')) {
+    console.warn("DEBUG: 'root' DETECTED!!!");
+  }
 
 
 
@@ -653,9 +655,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
-
-
-
   // Configuring event listeners for certain keys:
   const handleKeyInput = (event) => {
     // Making sure that pressing the "tab" key in the text editor will work as intended (multiple spaces instead of selecting stuff in browser):
@@ -757,7 +756,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     }
   }
   return(
-
 
 
     <div id="the-editor-wrapper" className="editor-wrapper">
@@ -964,20 +962,28 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                       
                       provider.on('sync', (isSynced) => {
-                        console.log(`DEBUG: isSynced = ${isSynced}, shouldBootstrap = ${shouldBootstrap}`);
+
+                        console.log(`sync-DEBUG: isSynced = ${isSynced}, shouldBootstrap = ${shouldBootstrap}`);
+                        const keys = [...doc.share.keys()];
+                        console.log(`sync-DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
+
 
                         if (isSynced && shouldBootstrap) {
-                      
+                          console.log("sync-DEBUG: isSynced && shouldBootstrap ENTERED!!!");
+                          // DEBUG: Over here, supposed to WAIT for Lexical to populate the doc first (instead of creating it myself):
+                          const root = doc.get('root');
 
-                          console.log("DEBUG: isSynced && shouldBootstrap ENTERED!!!");
+                          if(root instanceof Y.XmlFragment) {
+                            console.log("sync-DEBUG: Lexical has populated the document with XmlFragment.");
+                            const binary = Y.encodeStateAsUpdate(doc);
+                            saveRoomData(roomId, binary);
+                          } else {
+                            console.warn("sync-DEBUG: Lexical has not finished populating the document. Delaying save.");
+                          }
 
-                          const binary = Y.encodeStateAsUpdate(doc);
-                          saveRoomData(roomId, binary); // persist it to PostgreSQL
+                          //const binary = Y.encodeStateAsUpdate(doc);
+                          //saveRoomData(roomId, binary); // persist it to PostgreSQL
                         }
-
-
-                        const keys = [...doc.share.keys()];
-                        console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
                       });
 
 
@@ -1147,26 +1153,27 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     // Function to grab any pre-existing document state from the backend.
     const fetchAndInit = async() => {
       const doc = new Y.Doc();
+
+      console.log("fetchAndInit-DEBUG: Immediately after the \"new Y.Doc();\" statement, the value of doc => [", doc, "]");
+
+      if (doc.share.has('root')) {
+        console.warn("DEBUG: 'root' already exists at doc creation:", doc.get('root'));
+      }
+
+
+      let result = null;
       try {
         console.log("fetchAndInit-DEBUG: The value of roomId => [", roomId, "]");
-        const result = await getRoomData(roomId);
+        result = await getRoomData(roomId);
         console.log("fetchAndInit-DEBUG: The value of result => [", result, "]");
         const binaryData = result.docData.data;
-
-
         console.log("fetchAndInit-DEBUG: binaryData (raw):", binaryData);
-
 
         if(result.success && result.docData) {
           const uint8 = new Uint8Array(binaryData);
-
           console.log("fetchAndInit-DEBUG: uint8 (raw): ", uint8);
-
           Y.applyUpdate(doc, uint8);
-
           setShouldBootstrap(false);
-
-
           const keys = [...doc.share.keys()];
           console.log("Doc keys after applyUpdate:", keys);
           console.log("fetchAndInit-DEBUG: Y.applyUpdate() has run...");
@@ -1176,6 +1183,17 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
 
         setShouldBootstrap(true);
       }
+
+
+
+
+      // DEBUG: Removing the "incorrect root" before Lexical runs:
+      if (doc.share.has('root')) {
+        console.warn("DEBUG: 'root' DETECTED!!!");
+      }
+
+
+
       docRef.current = doc;
       setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
     };
