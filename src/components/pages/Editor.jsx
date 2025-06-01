@@ -951,19 +951,23 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
                       //const doc = new Y.Doc();
-                      
+            
                       const doc = docRef.current;
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
-
                       docRef.current = doc;
 
                       provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
                       //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
-                      provider.on('sync', (isSynced) => {
 
+
+
+                      
+                      provider.on('sync', (isSynced) => {
+                        console.log(`DEBUG: isSynced = ${isSynced}, shouldBootstrap = ${shouldBootstrap}`);
 
                         if (isSynced && shouldBootstrap) {
+                      
 
                           console.log("DEBUG: isSynced && shouldBootstrap ENTERED!!!");
 
@@ -975,9 +979,10 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                         const keys = [...doc.share.keys()];
                         console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
                       });
+
+
                       //providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
                       
-
                       //const debugKeys = [...doc.share.keys()]; // DEBUG:
                       //console.log("Inside providerFactory — docRef keys:", debugKeys); // DEBUG:
                       /*if (doc.getMap("root")) {
@@ -994,21 +999,12 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                         console.warn('PLEASE-DEBUG: Unexpected type:', root.constructor.name);
                       }
 
-
-
-
-
-
                       // debug:
                       //for (const [key, value] of doc.share.entries()) {
                       //  console.log(`Key: ${key}, Type:`, value.constructor.name);
                       //}
                       // debug.
-                         
-                      
-
-
-                                           
+                        
                       return provider;
                     }}
                     //shouldBootstrap={false}
