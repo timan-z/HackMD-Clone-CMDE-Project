@@ -1000,33 +1000,28 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                         if (isSynced && shouldBootstrap) {
                           console.log("sync-DEBUG: isSynced && shouldBootstrap ENTERED!!!");
-                          // DEBUG: Over here, supposed to WAIT for Lexical to populate the doc first (instead of creating it myself):
-                          /*const root = doc.get('root');
-
+                          /*// DEBUG: Over here, supposed to WAIT for Lexical to populate the doc first (instead of creating it myself):
+                          const root = doc.get('root');
                           if(root instanceof Y.XmlFragment) {
                             console.log("sync-DEBUG: Lexical has populated the document with XmlFragment.");
                             const binary = Y.encodeStateAsUpdate(doc);
                             saveRoomData(roomId, binary);
                           } else {
                             console.warn("sync-DEBUG: Lexical has not finished populating the document. Delaying save.");
-                          }*/
-
+                          }
                           //const binary = Y.encodeStateAsUpdate(doc);
-                          //saveRoomData(roomId, binary); // persist it to PostgreSQL
+                          //saveRoomData(roomId, binary); // persist it to PostgreSQL*/
                         }
                       });
 
-
-                      //providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2]
-                      
+                      /*//providerRef.current = provider; // <-- NOTE:+DEBUG: This one's for fixing the "Websocket is closed before " warning I'm getting with <CollaborationPlugin/> [2/2] 
                       //const debugKeys = [...doc.share.keys()]; // DEBUG:
                       //console.log("Inside providerFactory — docRef keys:", debugKeys); // DEBUG:
-                      /*if (doc.getMap("root")) {
+                      if (doc.getMap("root")) {
                         console.log("Doc has a root map");
                       } else {
                         console.log("Doc has no root map");
-                      }*///DEBUG:
-
+                      }
                       const root = doc.get('root');
                       if (root instanceof Y.XmlFragment) {
                         const textContent = extractTextFromXmlFragment(root);
@@ -1034,13 +1029,12 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       } else {
                         console.warn('PLEASE-DEBUG: Unexpected type:', root.constructor.name);
                       }
-
                       // debug:
                       //for (const [key, value] of doc.share.entries()) {
                       //  console.log(`Key: ${key}, Type:`, value.constructor.name);
                       //}
-                      // debug.
-                        
+                      // debug.*/
+                      
                       return provider;
                     }}
                     //shouldBootstrap={false}
@@ -1048,6 +1042,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) */
+                    // ^ looking like I need it temporarily (for Yjs).
                   />
 
 

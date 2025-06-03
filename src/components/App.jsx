@@ -10,6 +10,14 @@ import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing u
 import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx"; // ^ More of the same but for more minor purposes.
 import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
 
+
+
+
+import TestEditor from "./pages/TestEditor.jsx";
+import TestEditor2 from "./pages/TestEditor2.jsx";
+
+
+
 //import * as Y from 'yjs'; // DEBUG!
 //import { XmlFragment, XmlElement, XmlText } from 'yjs'; // DEBUG!
 
@@ -140,6 +148,18 @@ function App() {
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} saveRoomData={saveRoomData} getRoomData={getRoomData} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+
+
+
+        {/* TEST PAGE: */}
+        <Route path="/test" element={<TestEditor/>}    />
+        <Route path="/test2" element={<TestEditor2/>}    />
+
+
+
+
+
+
 
         {/* TO-DO: Want to make it so that if the user is logged in, 
         - any un-defined URL routes just re-map to the Dashboard page.
