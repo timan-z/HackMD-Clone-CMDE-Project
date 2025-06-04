@@ -69,7 +69,7 @@ CREATE TABLE invite_links (
 
 CREATE TABLE ydocs(
     room_id UUID PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
-    content BYTEA NOT NULL, // <-- 
+    content BYTEA NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 "

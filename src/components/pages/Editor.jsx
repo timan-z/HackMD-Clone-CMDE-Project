@@ -47,7 +47,6 @@ import NotificationBar from '../misc-features/NotificationBar.jsx';
 
 
 
-
 // NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming
 const sampleTheme = {
   ltr: 'ltr',
@@ -120,17 +119,18 @@ const sampleTheme = {
   },
 };
 
-const initialConfig = {
-  editorState:null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state).
+/*const initialConfig = {
+  //editorState: null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state).
+  editorState: null,
   namespace: 'BaseMarkdownEditor',
   sampleTheme,
   onError: (error) => {
     console.error('Lexical Error:', error);
   },
-};
+};*/
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, testUint8 }) {
   //const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
@@ -167,28 +167,13 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
-  console.log("DEBUG: Scooby Dooby Doo!");
-  if(docRef.current.share.has('root')) {
-    console.warn("DEBUG: 'root' DETECTED!!!");
-  }
-
-
-
-
-  console.log("PLEASE-DEBUG: The value of docRef => [", docRef, "]");
-
-
-
-
-
-
-
+  
 
   //const doc = new Y.Doc(); // <-- moving this outside of the <contenteditable> (yeah this is definitely better).
   //const docRef = useRef(null);
   //const [fetchedDoc, setFetchedDoc] = useState(false);
 
-
+  const docRef2 = useRef(null);
 
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
@@ -213,7 +198,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadRoomUsers = async(roomId) => {
     const usersData = await loadRoomUsers(roomId);
-    console.log("DEBUG: The value of usersData => [", usersData, "]");
 
     /* When this list of Users is exported, it takes "user_id" from my table user_rooms (for linking users to rooms).
     To prevent naming inconsistency headaches with setting state var "usersList" w/ usersData, I'm going to slightly
@@ -228,9 +212,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
     setUsersList(tweakedArr);
   };
   useEffect(() => {
-
-    console.log("DEBUG: useEffect Hook #0 entered!!!");
-
     callLoadRoomUsers(roomId);
   }, []);
 
@@ -279,10 +260,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
   // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
   // DEBUG: ^ Definitely organize this better -- it's so minor that it can probably be stuffed into another useEffect hook...
   useEffect(()=> {
-
-    console.log("DEBUG: useEffect hook (notifications) entered.");
-
-
     const handleNotif = () => {
       let notifBarCheck = document.getElementById('notification-bar');
 
@@ -296,13 +273,11 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
     // Listen to see if the current user gets kicked from the editing room:
     socket.on("you-have-been-kicked", () => {
-      console.log("DEBUG: Entered the socket.on(\"you-have-been-kicked\") function!!!");
       setKicked(true);
     });
 
     // Listen for an updated list of Active Users:
     socket.on("active-users-list", (activeUsers) => {
-      console.log("DEBUG: Receiving updated list of active users!!! => [", activeUsers, "]");
       setActiveUsersList(activeUsers);
     });
 
@@ -344,9 +319,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
    
   // Function for triggering the Notifications popup and "shadowing" the Notifications button when clicked:
   const toggleNotifs = () => {
-
-    console.log("DEBUG: The value of showNotifs => [", showNotifs, "]");
-
     let notifsBtn = document.getElementById('notifs-button');
     if(!showNotifs) {
       notifsBtn.classList.add('users-l-add-shadow');
@@ -483,9 +455,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
   // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
-
-    console.log("DEBUG: useEffect Hook #1 entered!!!");
-
     const unregister = editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
         /* From the Lexical documentation:
@@ -534,9 +503,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
   // "useEffect(()=>{...})" Hook #2 - For clientCursors updates (letting us know when to update the RemoteCursorOverlay rendering):
   useEffect(() => {
-
-    console.log("DEBUG: useEffect hook #2 entered!!!");
-
     // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
     socket.on("update-cursors", (cursors) => {
       //console.log("DEBUG: Received clientCursors update! cursors = [", cursors, "]");
@@ -580,17 +546,108 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
+      /*editor.update(() => {
+        const selection = $getSelection();
+        const tabSpace = "\t";
+
+        if($isRangeSelection(selection)) {
+          const selectedText = selection.getTextContent();
+          const wrappedText = `${selectedText}${tabSpace}`;
+          selection.insertText(wrappedText);
+        }
+      });*/
+
+      //const binaryState = Y.encodeStateAsUpdate(docRef.current);
+      //saveRoomData(roomId, binaryState);
+      
+      
+    
+      /*const root = docRef.current.share.get('root');
+      if (root instanceof Y.XmlText) {
+        console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
+      }
+      console.log("debug: The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
+      console.log("debug: ABOUT TO TRY SOMETHING:");
+      $getSelection().insertText(root.toString());
+
+      const root2 = docRef.current.share.get('root');
+      if (root2 instanceof Y.XmlText) {
+        console.log("POST-ROOT2: TEXT CONTENT (ignore the [object Object]) => [", root2.toString(), "]");
+      }*/
+      //console.log("DEBUG: The value of docRef2.current => [", docRef2.current, "]");
+      //console.log("The value of testUint8 => [", testUint8, "]");
+      //Y.applyUpdate(docRef2.current, testUint8);
 
 
-      const root = docRef.current.share.get('root');
+      /*const yText = docRef.current.get('root');
+      if (yText instanceof Y.XmlText) {
+        const plainText = yText.toString();
+        console.log('✅ Extracted text from Yjs:', plainText);
+      } else {
+        console.warn('❌ Y.Doc root is not Y.XmlText. Got:', yText?.constructor?.name);
+      }*/
+
+      console.log("The value of docRef2.current => [", docRef2.current, "]");
+      const yText = docRef.current.get('root', Y.XmlText);
+      console.log("The value of yText.toString() is => [", yText.toString(), "]");
+      console.log("something-DEBUG: The value of xmlText => [", docRef2.current.get('root', Y.XmlText).toString(), "]");
+
+
+
+
+
+      console.log("please work...");
+      const root = $getRoot();
+      root.clear();
+      const paragraph = $createParagraphNode();
+      const textNode = $createTextNode(yText.toString());
+      paragraph.append(textNode);
+      root.append(paragraph);
+
+
+
+
+
+
+
+
+
+
+
+
+
+      /*try {
+        const result = await getRoomData(roomId);
+        const binaryData = result.docData.data;
+        if(result.success && result.docData) {
+          const uint8 = new Uint8Array(binaryData);
+          Y.applyUpdate(doc, uint8);
+
+          console.log("fetchAndInit-DEBUG: Yeah. The value of doc => [", doc, "]");
+          console.log("fetchAndInit-DEBUG: The value of xmlText => [", doc.get('root', Y.XmlText), "]");
+          let buffer = doc.get('root', Y.XmlText);
+          console.log("fetchAndInit-DEBUG: The value of xmlText.toString() => [", buffer.toString(), "]");
+          console.log("fetchAndInit-DEBUG: The value of doc.share.has('root') => [", doc.share.has('root'), "]");
+          
+          setShouldBootstrap(false);
+          const keys = [...doc.share.keys()];
+          console.log("Doc keys after applyUpdate:", keys);
+        }
+      } catch(err) {
+        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
+        setShouldBootstrap(true);
+      }
+      docRef.current = doc;
+      setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.*/
+
+      //console.log("debug: The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
+      /*const root = docRef.current.share.get('root');
       if (root instanceof Y.XmlText) {
         console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
       }
       console.log("DEBUG: About to run the saveRoomData function...");
       const binaryState = Y.encodeStateAsUpdate(docRef.current);
-      saveRoomData(roomId, binaryState);
-
-
+      saveRoomData(roomId, binaryState);*/
 
       //console.log("Debug: The value of ydoc.getText('default'); => ", docRef.current.getText('default'));
       /*const root = docRef.current.share.get('root');
@@ -959,24 +1016,42 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
 
+                  
 
+                  {/*<PlainTextPlugin
+                    contentEditable={
+                      <ContentEditable className={`content-editable black-outline ${isDraggingMD ? "dragging" : ""}`} onKeyDown={handleKeyInput} 
+                      style={{
+                        backgroundColor:editorBColour, 
+                        color:editorTColour, 
+                        fontSize:`${edFontSize}px`,
+                      }} data-placeholder="Write your Markdown here..."/>
+                    }
+                    placeholder={<div className="placeholder">Write your Markdown here...</div>}
+                    ErrorBoundary={LexicalErrorBoundary}
+                  />
+                  <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/>*/}
 
 
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
-                      //const doc = new Y.Doc();
-            
-                      const doc = docRef.current;
+                      const doc = new Y.Doc();
 
-                      console.log("DEBUG: The value of shouldBootstrap => [", shouldBootstrap, "]");
-                      if (doc.share.has('root')) {
-                        console.warn("DEBUG: WITHIN <CollaborationPlugin> -- 'root' DETECTED!!!");
-                      }
+                      //const doc = docRef.current;
                       
+                      docRef2.current = doc;
+
+                      /*console.log("CPlugin-DEBUG: The value of shouldBootstrap => [", shouldBootstrap, "]");
+                      console.log("CPlugin-DEBUG: The value of doc => [", doc, "]");
+                      let buffer = doc.get('root', Y.XmlText);
+                      console.log("CPlugin-DEBUG: The value of doc.get('root', Y.XmlText); => [", buffer, "]");
+                      console.log("CPlugin-DEBUG: The value of [doc.get('root', Y.XmlText)].toString() => [", buffer.toString(), "]");
+                      const root = doc.share.get('root');*/
+
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
-                      docRef.current = doc;
+                      //docRef.current = doc;
 
                       provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
                       //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
@@ -988,7 +1063,7 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                         if (isSynced) {
                           console.log("About to isLexicalREady");
-                          const isLexicalReady = root instanceof Y.XmlFragment;
+                          const isLexicalReady = root instanceof Y.XmlText;
                           console.log("Lexical Ready? => [", isLexicalReady, "]");
                           if(isLexicalReady) {
                             console.log("YEAH IT IS READY!!!");
@@ -998,8 +1073,8 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                         if (isSynced && shouldBootstrap) {
                           console.log("sync-DEBUG: isSynced && shouldBootstrap ENTERED!!!");
                           const root = doc.get('root');
-                          if(root instanceof Y.XmlFragment) {
-                            console.log("sync-DEBUG: Lexical has populated the document with XmlFragment.");
+                          if(root instanceof Y.XmlText) {
+                            console.log("sync-DEBUG: Lexical has populated the document with XmlText.");
                             const binary = Y.encodeStateAsUpdate(doc);
                             saveRoomData(roomId, binary);
                           } else {
@@ -1012,15 +1087,13 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       
                       return provider;
                     }}
-                    shouldBootstrap={false}
-                    //shouldBootstrap={shouldBootstrap}
+                    //shouldBootstrap={false}
+                    shouldBootstrap={shouldBootstrap}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) */
                     // ^ looking like I need it temporarily (for Yjs).
                   />
-
-
 
 
                   {/* NOTE-TO-SELF: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
@@ -1040,7 +1113,8 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                     placeholder={<div className="placeholder">Write your Markdown here...</div>}
                     ErrorBoundary={LexicalErrorBoundary}
                   />
-                  <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> {/* <-- PHASE-3-DEBUG: Testing some stuff... */}
+                  <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> {/* <-- PHASE-3-DEBUG: Testing some stuff... 
+
                   {/*<HistoryPlugin/>**/} {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
                   {/* UPDATE: ^ Seems like <HistoryPlugin/> is something I should NOT use in conjunction with <CollaborationPlugin/> acc to the Lexical documentation! */}
                 </div>
@@ -1116,7 +1190,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 }
 
 function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData }) {
-
   // DEBUG: Maybe it'd be better to have the fetch previous document function over here???
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const docRef = useRef(null);
@@ -1124,6 +1197,20 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   const [shouldBootstrap, setShouldBootstrap] = useState(false);
 
 
+
+
+  const [testUint8, setTestUint8] = useState(null); // completely debug: purposed state variable.
+
+
+
+  const initialConfig = {
+    editorState: null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state). <-- yeah def need this or my collab editing thing is done.
+    namespace: 'BaseMarkdownEditor',
+    sampleTheme,
+    onError: (error) => {
+      console.error('Lexical Error:', error);
+    },
+  };
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
@@ -1153,47 +1240,36 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     // Function to grab any pre-existing document state from the backend.
     const fetchAndInit = async() => {
       const doc = new Y.Doc();
-
-      console.log("fetchAndInit-DEBUG: Immediately after the \"new Y.Doc();\" statement, the value of doc => [", doc, "]");
-
-      if (doc.share.has('root')) {
-        console.warn("DEBUG: 'root' already exists at doc creation:", doc.get('root'));
-      }
-
-
-      let result = null;
+      
       try {
-        console.log("fetchAndInit-DEBUG: The value of roomId => [", roomId, "]");
-        result = await getRoomData(roomId);
-        console.log("fetchAndInit-DEBUG: The value of result => [", result, "]");
+        const result = await getRoomData(roomId);
         const binaryData = result.docData.data;
-        console.log("fetchAndInit-DEBUG: binaryData (raw):", binaryData);
-
         if(result.success && result.docData) {
           const uint8 = new Uint8Array(binaryData);
-          console.log("fetchAndInit-DEBUG: uint8 (raw): ", uint8);
           Y.applyUpdate(doc, uint8);
+
+
+          setTestUint8(uint8);
+
+          
+          console.log("fetchAndInit-DEBUG: Yeah. The value of doc => [", doc, "]");
+          console.log("fetchAndInit-DEBUG: The value of xmlText => [", doc.get('root', Y.XmlText), "]");
+          let buffer = doc.get('root', Y.XmlText);
+          console.log("fetchAndInit-DEBUG: The value of xmlText.toString() => [", buffer.toString(), "]");
+          console.log("fetchAndInit-DEBUG: The value of doc.share.has('root') => [", doc.share.has('root'), "]");
+          
+
+
+
+          
           setShouldBootstrap(false);
           const keys = [...doc.share.keys()];
           console.log("Doc keys after applyUpdate:", keys);
-          console.log("fetchAndInit-DEBUG: Y.applyUpdate() has run...");
         }
       } catch(err) {
         console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
-
         setShouldBootstrap(true);
       }
-
-
-
-
-      // DEBUG: Removing the "incorrect root" before Lexical runs:
-      if (doc.share.has('root')) {
-        console.warn("DEBUG: 'root' DETECTED!!!");
-      }
-
-
-
       docRef.current = doc;
       setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
     };
@@ -1208,9 +1284,11 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
+
       {fetchedDoc ? (
-        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap}/>
+        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap} testUint8={testUint8} />
       ):(<div>LOADING...</div>)}
+
     </LexicalComposer>
   );
 }

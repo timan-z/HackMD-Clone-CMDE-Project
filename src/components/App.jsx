@@ -15,7 +15,7 @@ import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
 
 import TestEditor from "./pages/TestEditor.jsx";
 import TestEditor2 from "./pages/TestEditor2.jsx";
-
+import TestEditor3 from "./pages/TestEditor3.jsx";
 
 
 //import * as Y from 'yjs'; // DEBUG!
@@ -152,11 +152,11 @@ function App() {
 
 
         {/* TEST PAGE: */}
-        <Route path="/test" element={<TestEditor/>}    />
-        <Route path="/test2" element={<TestEditor2/>}    />
+        <Route path="/test" element={<TestEditor/>} />
+        <Route path="/test2" element={<TestEditor2/>} />
 
 
-
+        <Route path="/test3" element={<TestEditor3/>} />
 
 
 

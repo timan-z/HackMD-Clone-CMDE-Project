@@ -17,6 +17,10 @@ const TestEditor2 = () => {
   // Step 1: Initialize Y.Doc
   useEffect(() => {
     const doc = new Y.Doc();
+
+    console.log("DEBUG: The value of doc (FIRST INITIALIZATION) => [", doc, "]");
+
+
     docRef.current = doc;
     setDocReady(true);
   }, []);
@@ -28,7 +32,7 @@ const TestEditor2 = () => {
 
     const observer = (events, transaction) => {
       const root = doc.get('root');
-      const isValid = root instanceof Y.XmlFragment;
+      const isValid = root instanceof Y.XmlText;
 
       if (!isValid) {
         console.warn('👀 Detected non-fragment root. Deleting:', root?.constructor?.name);
@@ -49,6 +53,13 @@ const TestEditor2 = () => {
 
   const providerFactory = (id, yjsDocMap) => {
     const doc = docRef.current;
+
+
+
+    console.log("DEBUG: The value of doc => [", doc, "]");
+
+
+
     yjsDocMap.set(id, doc);
 
     const provider = new WebsocketProvider('ws://localhost:1234', id, doc);
@@ -59,7 +70,7 @@ const TestEditor2 = () => {
 
     provider.on('sync', (isSynced) => {
       const root = doc.get('root');
-      const isLexicalReady = root instanceof Y.XmlFragment;
+      const isLexicalReady = root instanceof Y.XmlText;
       console.log('🧠 isLexicalReady:', isLexicalReady, '| root type:', root?.constructor?.name);
 
       if (isSynced && shouldBootstrap && isLexicalReady) {
