@@ -27,25 +27,12 @@ import Toolbar from "../core-features/Toolbar.jsx";
 import UsersListContainer from '../misc-features/UsersListContainer.jsx';
 import NotificationBar from '../misc-features/NotificationBar.jsx';
 
-
 /* NOTE-TO-SELF:
   - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
   - ContentEditable is the area where the user types.
   - PlainTextPlugin is a plugin for plain-text input (better suited here for a markdown editor as opposed to something like RichTextPlugin).
   - LexicalErrorBoundary, embedded within PlainTextPlugin, will be for catching errors and preventing LexicalComposer from exploding basically.
 */
-
-
-
-
-
-
-
-
-
-
-
-
 
 // NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming
 const sampleTheme = {
@@ -119,22 +106,11 @@ const sampleTheme = {
   },
 };
 
-/*const initialConfig = {
-  //editorState: null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state).
-  editorState: null,
-  namespace: 'BaseMarkdownEditor',
-  sampleTheme,
-  onError: (error) => {
-    console.error('Lexical Error:', error);
-  },
-};*/
-
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {
+function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {
   //const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   
 
-  const [loaded, setLoaded] = useState(false);  // debug:
 
   const hasLoadedRef = useState(false);
 
@@ -330,64 +306,55 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       setActiveUsersList(activeUsers);
     });
 
-
-    // DEBUG: Listen for if a load is necessary:
+    // DEBUG: Listen for if a load pre-existing document state from the backend is necessary:
     socket.on("load-existing", () => {
-      
-      console.log("Charlie Charlie ooo");
-      console.log("load-existing socket entered. I'm fat.");
 
-
-
-
+      console.log("FUNCTION socket.on(\"load-existing\") HAS BEEN ENTERED!!!");
 
       editor.update(() => {
-        
-        const root = $getRoot();
-        root.clear();
-        const p = $createParagraphNode();
-        p.append($createTextNode("Hello, world!"));
-        root.append(p);
-        root.selectEnd();
-
-
-        const json = root.exportJSON();
-        console.log(JSON.stringify(json, null, 2));
-
-
+        // This will load the saved document state from the PostgreSQL server (I'm parsing a JSON string of the saved Lexical state):        
+        try {
+          editor.setEditorState(
+            editor.parseEditorState(loadContent)
+          );
+        } catch(err) {
+          console.error("ERROR: Failed to load pre-existing document state from the backend database. This may simply be because it was empty (if so, there is no problem) => ", err);
+        }
+        hasLoadedRef.current = true;
       });
     });
 
+    const handleBeforeUnload = () => {
+      if(hasLoadedRef.current) {
 
+        console.log("FUNCTION \"handleBeforeUnload\" HAS BEEN ENTERED!!!"); // <-- this function shouldn't run until load-existing one has...
 
-
+        editor.update(() => {
+          const editorState = editor.getEditorState();          
+          const jsonString = JSON.stringify(editorState); 
+          // send copy of the latest Lexical editor document state:
+          socket.emit("send-latest-doc", roomId, jsonString, token);
+        });
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       socket.off("notification", handleNotif);
       socket.off("you-have-been-kicked");
       socket.off("active-users-list");
       socket.off("load-existing");
+      //socket.off("save-existing");
+
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      handleBeforeUnload(); // If user navigates away within SPA, still save.
     };
   }, []);
 
 
 
-  /*useEffect(() => {
-    if(!loaded) return;
 
-    console.log("The loaded useEffect is entered.");
 
-    editor.update(() => {
-      const root = $getRoot();
-      root.clear();
-      const p = $createParagraphNode();
-      p.append($createTextNode("Hello, world!"));
-      root.append(p);
-      root.selectEnd();
-      setLoaded(true);
-    });
-
-  }, [loaded]);*/
 
 
 
@@ -406,6 +373,15 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
     navigate("/dashboard");
   };
+
+
+
+
+
+
+
+
+
 
   // Function for triggering the Users List popup and "shadowing" the Users List button when clicked:
   const toggleUsersList = () => {
@@ -650,32 +626,14 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
-         
-      
-      // Method #1:
-      const editorState = editor.getEditorState();
-      const json = editorState.toJSON();
-      console.log("Trying editorState.toJSON() => [", json, "]");
-      
-      // Method #2:
+
+
+      console.log("Debug: The value of activeUsersList => [", activeUsersList, "]");
+
+      /*const editorState = editor.getEditorState();
       const jsonString = JSON.stringify(editorState); 
-      console.log("Trying out JSON.stringify(editorState) => [", jsonString, "]");
-
-      const parsedJSON = JSON.parse(jsonString);
-      console.log("The value of parsedJSON (doing JSON.parse(jsonString)) => [", parsedJSON, "]");
-
-
-
-
-
-      $getRoot().clear();
-      setTimeout(() => {
-        editor.setEditorState(
-          editor.parseEditorState(parsedJSON)
-        );
-      }, 5000); // <-- yup i found my solution.
-
-
+      console.log("The value of jsonString => [", jsonString, "]");
+      saveRoomData(roomId, jsonString);*/
 
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction exited...");
@@ -1199,25 +1157,10 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   const [fetchedDoc, setFetchedDoc] = useState(false);
   const [shouldBootstrap, setShouldBootstrap] = useState(false);
   const [loadContent, setLoadContent] = useState(null);
-
-
-
-
-  const [testUint8, setTestUint8] = useState(null); // completely debug: purposed state variable.
- 
-
-
+  const [token, setToken] = useState(null);
 
   const initialConfig = {
     editorState: null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state). <-- yeah def need this or my collab editing thing is done.
-    /*editorState: () => {
-      const root = $getRoot();
-      root.clear();
-      const p = $createParagraphNode();
-      p.append($createTextNode("Hello, world!"));
-      root.append(p);
-      root.selectEnd();
-    },*/
     namespace: 'BaseMarkdownEditor',
     sampleTheme,
     onError: (error) => {
@@ -1249,11 +1192,11 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     // Guard against React 18 Strict Mode making this useEffect run twice:
     if(hasJoinedRef.current) return;
     hasJoinedRef.current = true;
+    setToken(localStorage.getItem("token"));
 
-    // Function to grab any pre-existing document state from the backend.
+    // OLD: Function to grab any pre-existing document state from the backend.
     /*const fetchAndInit = async() => {
       //const doc = new Y.Doc();
-      
       try {
         const result = await getRoomData(roomId);
         const binaryData = result.docData.data;
@@ -1280,19 +1223,15 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
       setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
     };*/
 
-
-
-
     // new fetchAndInit() -- keeping the old so I can search for a solution at some point in the future:
     const fetchAndInit = async() => {
       try {
         const result = await getRoomData(roomId);
         if(result.success && result.docData) {
-          setLoadContent(result);
+          setLoadContent(result.docData);
         }
       } catch(err) {
         console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
-        setShouldBootstrap(true);
       }
       setFetchedDoc(true);
     };
@@ -1309,7 +1248,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
       {/* Everything's pretty much just in EditorContent(...) */}
 
       {fetchedDoc ? (
-        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap} loadContent={loadContent} />
+        <EditorContent token={token} loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap} loadContent={loadContent} />
       ):(<div>LOADING...</div>)}
 
     </LexicalComposer>

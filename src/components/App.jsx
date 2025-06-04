@@ -51,12 +51,6 @@ function App() {
 
   // Function for sending Editor document data (Yjs doc content) to the PostgreSQL server:
   const saveRoomData = async(roomId, docData) => {
-
-
-    console.log("DEBUG: roomId => ", roomId);
-    console.log("DEBUG: docData => ", docData);
-
-
     if(token) {
       try {
         const result = await saveRoomDoc(roomId, docData, token);
@@ -68,23 +62,17 @@ function App() {
     }
   }
 
+
+
+
+
+
+
   // Function for retrieving Editor document data (Yjs doc content) from the PostgreSQL server:
   const getRoomData = async(roomId) => {
     if(token) {
-
-      console.log("1. DEBUG: Is function getRoomData even entered?");
-
       try {
-        console.log("Debug: The value of roomId => [", roomId, "]");        
         const result = await getRoomDoc(roomId, token);
-        console.log("Debug: The value of result => [", result, "]");
-        console.log("Debug: The value of result.docData => [", result.docData, "]");
-
-        // DEBUG: everything below is debugging stuff and should be removed after!
-        /*const doc = new Y.Doc();
-        const binaryArray = result.data;
-        const binaryArrayProper = new Uint8Array(binaryArray);
-        Y.applyUpdate(doc, binaryArrayProper);*/
 
         return result;
       } catch(err) {
@@ -154,7 +142,7 @@ function App() {
         <Route path="/dashboard" element={<PrivateRoute><Dashboard loadUser={loadUser} loadRoomUsers={loadRoomUsers} logout={handleLogout} sendRoomID={handleRoomJoin} userData={user} setUser={setUser} /></PrivateRoute>} />
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
-        <Route path="/editor/:roomId" element={<PrivateRouteEditor roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} saveRoomData={saveRoomData} getRoomData={getRoomData} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
+        <Route path="/editor/:roomId" element={<PrivateRouteEditor token={token} roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} saveRoomData={saveRoomData} getRoomData={getRoomData} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
 
 

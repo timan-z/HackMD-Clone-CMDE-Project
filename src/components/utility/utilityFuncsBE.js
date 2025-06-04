@@ -6,6 +6,8 @@ import dotenv from 'dotenv';
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
+import { saveRoomDoc } from "./api.js";
+
 // [ACCOUNT MANAGEMENT-RELATED] MIDDLEWARE THAT AUTHENTICATES AND EXTRACTS USER FROM TOKEN:
 export const verifyToken = (req, res, next) => {
     const authHeader = req.headers.authorization;
@@ -21,5 +23,24 @@ export const verifyToken = (req, res, next) => {
         next();
     } catch (err) {
         return res.status(403).json({ error: 'Invalid or expired token'});
+    }
+};
+
+// Moving this function from App.jsx over to here since I want to invoke it in socketIOServer.js now...
+export const saveRoomData = async(roomId, docData, token) => {
+
+    console.log("DEBUG: saveRoomData from utilityFuncsBE.js has been entered!!!!!");
+    console.log("Debug: Yup that's the one...");
+    console.log("Debug: The value of token => [", token, "]");
+
+    if(token) {
+        try {
+            console.log("Function saveRoomDoc is about to be entered...");
+
+            const result = await saveRoomDoc(roomId, docData, token);
+            console.log("Debug: The value of result => [", result, "]");
+        } catch(err) {
+            console.error(`ERROR: Failed to save Editor document data for Room ID:(${roomId}) to the PostgreSQL backend.`);
+        }
     }
 };

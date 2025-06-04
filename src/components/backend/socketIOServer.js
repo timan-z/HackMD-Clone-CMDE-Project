@@ -15,9 +15,12 @@ import * as Y from 'yjs';
 const yDocs = new Map();    // Key: roomId, Value: Y.Doc instance (serialized)
 
 
+import { saveRoomData } from "../utility/utilityFuncsBE.js";
+
 
 const firstUserJoined = new Map(); // will have boolean values (true/false) mapped to RoomId values...
-
+const latestEdDocs = new Map(); // Maps strings to roomIds.
+const latestEdTokens = new Map(); // ^ coincides with latestEdDocs, just saving a valid token so saveRoomData function works...
 
 /* NOTE-TO-SELF:
  - io.emit will send this event to *all* clients (including the server, which here will be irrelevant).
@@ -40,17 +43,6 @@ const io = new Server(server, {
 let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
-/*const saveYDocToPostgres = async(roomId, ydoc) => {
-    const binaryData = Y.encodeStateAsUpdate(ydoc); // Turning ydoc document state to Uint8Array.
-
-    try {
-        console.log("NEED TO CALL api.js FUNCTION HERE!!!");
-
-    } catch(err) {
-        console.error(`ERROR: Failed to save Yjs doc for Room ID:(${roomId}) because of: ${err}`);
-    }
-}*/
-
 io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
     console.log("A user connected: ", socket.id);
@@ -61,24 +53,6 @@ io.on("connection", (socket) => {
         socket.userId = userId;
         socket.username = username;
         socket.roomId = roomId;
-
-        console.log("JOIN-DEBUG: join-room socket entered!!!");
-        
-
-
-
-        /*if(!firstUserJoined.has(roomId)) {
-            firstUserJoined.set(roomId, true);
-            console.log(`Join-Debug: The first user to join Room (ID:${roomId}) has entered.`);
-            //socket.to(roomId).emit("load-existing"); 
-            setTimeout(() => {
-                socket.emit("load-existing");
-            }, 2000);
-            console.log(`Join-Debug: The emit was sent but nothing received.`);
-        }*/
-
-
-
 
         let joinNotif = `User {${username}} ID:(${userId}) has connected to Socket.IO Server #${roomId}`;
         console.log(joinNotif);
@@ -104,26 +78,31 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
     });
 
-
-
-
-
-
     // socket to signal loading of prior document data (on mount):
     socket.on("ready-for-load", (roomId) => {
         if (!firstUserJoined.has(roomId)) {
             firstUserJoined.set(roomId, true);
             console.log("First client in room is ready, sending load-existing...");
-            socket.emit("load-existing");
+            socket.emit("load-existing"); // actual document data will already be stored in a state variable...
         }
     });
 
+    // socket to receive latest documents of the text editor doc for a specific room:
+    socket.on("send-latest-doc", (roomId, jsonString, token) => {
 
 
+        console.log("send-latest-doc: The value of roomId => [", roomId, "]");
+        console.log("send-latest-doc: The value of jsonString => [", jsonString, "]");
+        console.log("send-latest-doc: The value of token => [", token, "]");
 
+        latestEdDocs.set(roomId, jsonString);
+        latestEdTokens.set(roomId, token);
 
-
-
+        /*if(!latestEdDocs.has(roomId)) {
+            latestEdDocs.set(roomId, jsonString);
+            latestEdTokens.set(roomId, token);
+        }*/
+    });
 
     // Handle notifications from the client-side:
     socket.on("notification", (data) => {
@@ -164,9 +143,7 @@ io.on("connection", (socket) => {
                 console.log("Debug: The value of userData.userId => [", userData.userId, "]");
 
                 if(userData.userId === data.userId) {
-
                     console.log("Debug: Sending the emit I expect to be emitted!");
-
                     // Emit a event to the target socket:
                     io.to(socketId).emit("you-have-been-kicked", {
                         roomId: data.roomId,
@@ -256,6 +233,16 @@ io.on("connection", (socket) => {
 
         // UPDATE: NEW ADDITIONS (REMOVING Socket FROM connectedUsers):
         const {userId, roomId, username} = socket;
+
+        console.log("That branch I have is about to run!!!");
+        console.log("The value of roomId => [", roomId, "]");
+        console.log("connectedUsers[roomId] => [", connectedUsers[roomId], "]");
+        console.log("connectedUsers[roomId]?.length => [", connectedUsers[roomId]?.length, "]");
+        if(connectedUsers[roomId]?.length === 0) {
+            console.log("DEBUG: The \"if(connectedUsers[roomId]?.length === 0) {\" branch was entered...");
+            firstUserJoined.delete(roomId);
+        }
+
         if(roomId && connectedUsers[roomId]) {
             connectedUsers[roomId] = connectedUsers[roomId].filter(
                 (user) => user.socketId !== socket.id
@@ -264,14 +251,27 @@ io.on("connection", (socket) => {
             // Notify remaining users in the room:
             io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
             // Clean up empty rooms (if applicable):
+
+            console.log("debug: The value of connectedUsers[roomId] => [", connectedUsers[roomId], "]");
+
             if(connectedUsers[roomId].length === 0) {
+                console.log("DEBUG: About to call saveRoomData!!!");
+                console.log("Debug: The value of latestEdDocs.get(roomId) => [", latestEdDocs.get(roomId), "]");
+                console.log("Debug: The value of latestEdTokens.get(roomId) => [", latestEdTokens.get(roomId), "]");
+
+                // save room data to postgresql:
+                saveRoomData(roomId, latestEdDocs.get(roomId), latestEdTokens.get(roomId));
+
                 delete connectedUsers[roomId];
+                delete latestEdDocs[roomId];
+                delete latestEdTokens[roomId];
+
+                firstUserJoined.delete(roomId); // get rid of this too (flag that lets you know if prev-data should be loaded).
             }
-            console.log("DEBUG: The value of userId => [", userId, "]");
-            console.log("DEBUG: The value of username => [", username, "]");
         }
         // ABOVE-UPDATE: SEEMS TO WORK QUITE GOOD SO FAR...
 
+        console.log("DEBUG: The value of firstUserJoined => [", firstUserJoined, "]");
         // NOW - EMIT A NOTIFICATION INDICATING THAT USER HAS LEFT THE ROOM:
         socket.to(roomId).emit("notification", {
             type:"leave-session",
@@ -293,7 +293,7 @@ io.on("connection", (socket) => {
         // Clean-up only occurs if it hasn't already happened (see socket.on("leave-room"))
         if(!socket.hasLeftRoom) {
             discLeaveHandler(socket);
-        }   
+        }
     });
 
 });
