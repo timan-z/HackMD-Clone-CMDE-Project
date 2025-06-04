@@ -14,6 +14,11 @@ const { throttle } = pkg;
 import * as Y from 'yjs';
 const yDocs = new Map();    // Key: roomId, Value: Y.Doc instance (serialized)
 
+
+
+const firstUserJoined = new Map(); // will have boolean values (true/false) mapped to RoomId values...
+
+
 /* NOTE-TO-SELF:
  - io.emit will send this event to *all* clients (including the server, which here will be irrelevant).
  - socket.emit will send the event *only* to the specific client that triggered it.
@@ -59,6 +64,22 @@ io.on("connection", (socket) => {
 
         console.log("JOIN-DEBUG: join-room socket entered!!!");
         
+
+
+
+        /*if(!firstUserJoined.has(roomId)) {
+            firstUserJoined.set(roomId, true);
+            console.log(`Join-Debug: The first user to join Room (ID:${roomId}) has entered.`);
+            //socket.to(roomId).emit("load-existing"); 
+            setTimeout(() => {
+                socket.emit("load-existing");
+            }, 2000);
+            console.log(`Join-Debug: The emit was sent but nothing received.`);
+        }*/
+
+
+
+
         let joinNotif = `User {${username}} ID:(${userId}) has connected to Socket.IO Server #${roomId}`;
         console.log(joinNotif);
         // When a User joins a specific Text Room, I want that to come as a notification Room-wide:
@@ -82,6 +103,27 @@ io.on("connection", (socket) => {
         // Emit updated list (of Active Users) to the Editor Room:
         io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
     });
+
+
+
+
+
+
+    // socket to signal loading of prior document data (on mount):
+    socket.on("ready-for-load", (roomId) => {
+        if (!firstUserJoined.has(roomId)) {
+            firstUserJoined.set(roomId, true);
+            console.log("First client in room is ready, sending load-existing...");
+            socket.emit("load-existing");
+        }
+    });
+
+
+
+
+
+
+
 
     // Handle notifications from the client-side:
     socket.on("notification", (data) => {

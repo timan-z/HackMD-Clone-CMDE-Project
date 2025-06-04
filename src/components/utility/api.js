@@ -162,7 +162,7 @@ export const saveRoomDoc = async(roomId, docData, token) => {
             Authorization: `Bearer ${token}`,
             "Content-Type": "application/json"
         },
-        body: JSON.stringify({ docData: Array.from(docData) }) // <-- VERY IMPORTANT. I can't pass it in the URL, it'll become corrupted!
+        body: JSON.stringify({ docData: docData }) // <-- VERY IMPORTANT. I can't pass it in the URL, it'll become corrupted!
     });
     return result.json();
 }
@@ -179,9 +179,6 @@ export const saveRoomDoc = async(roomId, docData, token) => {
 
 // 4.2. To retrieve Editor Room document data from the PostgreSQL backend server:
 export const getRoomDoc = async(roomId, token) => {
-
-    console.log("2. DEBUG: Is function getRoomDoc entered???");
-
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/get`, {
         method:"GET",
         headers: {Authorization: `Bearer ${token}`}

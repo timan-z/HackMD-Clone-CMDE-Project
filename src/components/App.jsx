@@ -51,6 +51,12 @@ function App() {
 
   // Function for sending Editor document data (Yjs doc content) to the PostgreSQL server:
   const saveRoomData = async(roomId, docData) => {
+
+
+    console.log("DEBUG: roomId => ", roomId);
+    console.log("DEBUG: docData => ", docData);
+
+
     if(token) {
       try {
         const result = await saveRoomDoc(roomId, docData, token);
@@ -72,6 +78,7 @@ function App() {
         console.log("Debug: The value of roomId => [", roomId, "]");        
         const result = await getRoomDoc(roomId, token);
         console.log("Debug: The value of result => [", result, "]");
+        console.log("Debug: The value of result.docData => [", result.docData, "]");
 
         // DEBUG: everything below is debugging stuff and should be removed after!
         /*const doc = new Y.Doc();
@@ -154,8 +161,6 @@ function App() {
         {/* TEST PAGE: */}
         <Route path="/test" element={<TestEditor/>} />
         <Route path="/test2" element={<TestEditor2/>} />
-
-
         <Route path="/test3" element={<TestEditor3/>} />
 
 

@@ -130,8 +130,16 @@ const sampleTheme = {
 };*/
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, testUint8 }) {
+function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {
   //const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
+  
+
+  const [loaded, setLoaded] = useState(false);  // debug:
+
+  const hasLoadedRef = useState(false);
+
+
+
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
@@ -167,14 +175,13 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
+
+
   
 
   //const doc = new Y.Doc(); // <-- moving this outside of the <contenteditable> (yeah this is definitely better).
   //const docRef = useRef(null);
   //const [fetchedDoc, setFetchedDoc] = useState(false);
-
-  const docRef2 = useRef(null);
-
 
   /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
   They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
@@ -218,6 +225,48 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
+
+
+
+
+
+
+
+  // I CANT GET LEXICAL TEXT EDITOR TO LOAD SYNC YJS DOCS FROM POSTGRESQL ON MOUNT SORRY!!!
+  /*useEffect(() => {
+    //console.log("DEBUG: The loading useEffect has been entered!!!");
+    //console.log("Debug: The value of loadContent => [", loadContent, "]");
+    //console.log("Somethingeeeee");
+    console.log("useEffect hook!");
+
+    editor.update(() => {
+      if(!$getSelection()) return;
+      if(loaded) return; // only want this one running on mount.
+
+      const root = $getRoot();
+      root.clear();
+      $getSelection().insertText(loadContent.docData);
+      setLoaded(true);
+    });
+  }, [editor]);*/
+
+  /*useEffect(() => {
+    if(!loaded) return;
+
+    console.log("The loaded useEffect is entered.");
+
+    editor.update(() => {
+      const root = $getRoot();
+      root.clear();
+      const p = $createParagraphNode();
+      p.append($createTextNode("Hello, world!"));
+      root.append(p);
+      root.selectEnd();
+      setLoaded(true);
+    });
+
+  }, [loaded]);*/
+  
 
 
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
@@ -281,12 +330,64 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
       setActiveUsersList(activeUsers);
     });
 
+
+    // DEBUG: Listen for if a load is necessary:
+    socket.on("load-existing", () => {
+      
+      console.log("Charlie Charlie ooo");
+      console.log("load-existing socket entered. I'm fat.");
+
+
+
+
+
+      editor.update(() => {
+        
+        const root = $getRoot();
+        root.clear();
+        const p = $createParagraphNode();
+        p.append($createTextNode("Hello, world!"));
+        root.append(p);
+        root.selectEnd();
+
+
+        const json = root.exportJSON();
+        console.log(JSON.stringify(json, null, 2));
+
+
+      });
+    });
+
+
+
+
+
     return () => {
       socket.off("notification", handleNotif);
       socket.off("you-have-been-kicked");
       socket.off("active-users-list");
+      socket.off("load-existing");
     };
   }, []);
+
+
+
+  /*useEffect(() => {
+    if(!loaded) return;
+
+    console.log("The loaded useEffect is entered.");
+
+    editor.update(() => {
+      const root = $getRoot();
+      root.clear();
+      const p = $createParagraphNode();
+      p.append($createTextNode("Hello, world!"));
+      root.append(p);
+      root.selectEnd();
+      setLoaded(true);
+    });
+
+  }, [loaded]);*/
 
 
 
@@ -540,131 +641,41 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
 
 
+
+
+
   // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
   const debugFunction = (editor, id, color, label, offset) => {
     editor.update(() => {
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
-      /*editor.update(() => {
-        const selection = $getSelection();
-        const tabSpace = "\t";
-
-        if($isRangeSelection(selection)) {
-          const selectedText = selection.getTextContent();
-          const wrappedText = `${selectedText}${tabSpace}`;
-          selection.insertText(wrappedText);
-        }
-      });*/
-
-      //const binaryState = Y.encodeStateAsUpdate(docRef.current);
-      //saveRoomData(roomId, binaryState);
+         
       
+      // Method #1:
+      const editorState = editor.getEditorState();
+      const json = editorState.toJSON();
+      console.log("Trying editorState.toJSON() => [", json, "]");
       
-    
-      /*const root = docRef.current.share.get('root');
-      if (root instanceof Y.XmlText) {
-        console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
-      }
-      console.log("debug: The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
-      console.log("debug: ABOUT TO TRY SOMETHING:");
-      $getSelection().insertText(root.toString());
+      // Method #2:
+      const jsonString = JSON.stringify(editorState); 
+      console.log("Trying out JSON.stringify(editorState) => [", jsonString, "]");
 
-      const root2 = docRef.current.share.get('root');
-      if (root2 instanceof Y.XmlText) {
-        console.log("POST-ROOT2: TEXT CONTENT (ignore the [object Object]) => [", root2.toString(), "]");
-      }*/
-      //console.log("DEBUG: The value of docRef2.current => [", docRef2.current, "]");
-      //console.log("The value of testUint8 => [", testUint8, "]");
-      //Y.applyUpdate(docRef2.current, testUint8);
-
-
-      /*const yText = docRef.current.get('root');
-      if (yText instanceof Y.XmlText) {
-        const plainText = yText.toString();
-        console.log('✅ Extracted text from Yjs:', plainText);
-      } else {
-        console.warn('❌ Y.Doc root is not Y.XmlText. Got:', yText?.constructor?.name);
-      }*/
-
-      console.log("The value of docRef2.current => [", docRef2.current, "]");
-      const yText = docRef.current.get('root', Y.XmlText);
-      console.log("The value of yText.toString() is => [", yText.toString(), "]");
-      console.log("something-DEBUG: The value of xmlText => [", docRef2.current.get('root', Y.XmlText).toString(), "]");
+      const parsedJSON = JSON.parse(jsonString);
+      console.log("The value of parsedJSON (doing JSON.parse(jsonString)) => [", parsedJSON, "]");
 
 
 
 
 
-      console.log("please work...");
-      const root = $getRoot();
-      root.clear();
-      const paragraph = $createParagraphNode();
-      const textNode = $createTextNode(yText.toString());
-      paragraph.append(textNode);
-      root.append(paragraph);
+      $getRoot().clear();
+      setTimeout(() => {
+        editor.setEditorState(
+          editor.parseEditorState(parsedJSON)
+        );
+      }, 5000); // <-- yup i found my solution.
 
 
-
-
-
-
-
-
-
-
-
-
-
-      /*try {
-        const result = await getRoomData(roomId);
-        const binaryData = result.docData.data;
-        if(result.success && result.docData) {
-          const uint8 = new Uint8Array(binaryData);
-          Y.applyUpdate(doc, uint8);
-
-          console.log("fetchAndInit-DEBUG: Yeah. The value of doc => [", doc, "]");
-          console.log("fetchAndInit-DEBUG: The value of xmlText => [", doc.get('root', Y.XmlText), "]");
-          let buffer = doc.get('root', Y.XmlText);
-          console.log("fetchAndInit-DEBUG: The value of xmlText.toString() => [", buffer.toString(), "]");
-          console.log("fetchAndInit-DEBUG: The value of doc.share.has('root') => [", doc.share.has('root'), "]");
-          
-          setShouldBootstrap(false);
-          const keys = [...doc.share.keys()];
-          console.log("Doc keys after applyUpdate:", keys);
-        }
-      } catch(err) {
-        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
-        setShouldBootstrap(true);
-      }
-      docRef.current = doc;
-      setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.*/
-
-      //console.log("debug: The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
-      /*const root = docRef.current.share.get('root');
-      if (root instanceof Y.XmlText) {
-        console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
-      }
-      console.log("DEBUG: About to run the saveRoomData function...");
-      const binaryState = Y.encodeStateAsUpdate(docRef.current);
-      saveRoomData(roomId, binaryState);*/
-
-      //console.log("Debug: The value of ydoc.getText('default'); => ", docRef.current.getText('default'));
-      /*const root = docRef.current.share.get('root');
-      if (root instanceof Y.XmlText) {
-        console.log("debug: TEXT CONTENT (ignore the [object Object]) => [", root.toString(), "]");
-      }
-      const binaryState = Y.encodeStateAsUpdate(docRef.current); // should come out as an Uint8Array...
-      console.log("debug: The value of binaryState => [", binaryState, "]");
-      //console.log("DEBUG: saveRoomData...");
-      console.log("DEBUG: getRoomData...");
-      //saveRoomData(roomId, binaryState);
-      const data = getRoomData(roomId);
-      console.log("The value of data => [", data, "]");
-      const testDoc = new Y.Doc();
-      Y.applyUpdate(testDoc, new Uint8Array(data));
-      const text = testDoc.getText('default').toString();
-      console.log(text);*/
 
       console.log("DEBUG: ************************************************************");
       console.log("DEBUG: debugFunction exited...");
@@ -1015,24 +1026,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
-
-                  
-
-                  {/*<PlainTextPlugin
-                    contentEditable={
-                      <ContentEditable className={`content-editable black-outline ${isDraggingMD ? "dragging" : ""}`} onKeyDown={handleKeyInput} 
-                      style={{
-                        backgroundColor:editorBColour, 
-                        color:editorTColour, 
-                        fontSize:`${edFontSize}px`,
-                      }} data-placeholder="Write your Markdown here..."/>
-                    }
-                    placeholder={<div className="placeholder">Write your Markdown here...</div>}
-                    ErrorBoundary={LexicalErrorBoundary}
-                  />
-                  <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/>*/}
-
-
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
@@ -1040,7 +1033,6 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
 
                       //const doc = docRef.current;
                       
-                      docRef2.current = doc;
 
                       /*console.log("CPlugin-DEBUG: The value of shouldBootstrap => [", shouldBootstrap, "]");
                       console.log("CPlugin-DEBUG: The value of doc => [", doc, "]");
@@ -1053,10 +1045,24 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
                       //docRef.current = doc;
 
-                      provider.on('status', (event) => console.log('DEBUG: WebSocket status:', event.status)) // DEBUG:
-                      //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
+                      provider.on('status', (event) => { 
+                        console.log('DEBUG: WebSocket status:', event.status);
 
-                      provider.on('sync', (isSynced) => {
+                        if(event.status === "connected") {
+                          hasLoadedRef.current = true;
+
+                          socket.emit("ready-for-load", roomId);
+                          
+                        }
+                      }) 
+                      
+                      
+                      
+                      
+                      
+                      // DEBUG:
+                      //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
+                      /*provider.on('sync', (isSynced) => {
                         console.log(`sync-DEBUG: isSynced = ${isSynced}, shouldBootstrap = ${shouldBootstrap}`);
                         const keys = [...doc.share.keys()];
                         console.log(`sync-DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
@@ -1083,18 +1089,17 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
                           //const binary = Y.encodeStateAsUpdate(doc);
                           //saveRoomData(roomId, binary); // persist it to PostgreSQL
                         }
-                      });
+                      });*/
                       
                       return provider;
                     }}
-                    //shouldBootstrap={false}
-                    shouldBootstrap={shouldBootstrap}
+                    shouldBootstrap={false}
+                    //shouldBootstrap={shouldBootstrap}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) */
                     // ^ looking like I need it temporarily (for Yjs).
                   />
-
 
                   {/* NOTE-TO-SELF: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
@@ -1180,11 +1185,9 @@ function EditorContent({ loadUser, loadRoomUsers, roomId, userData, username, us
             <div className="md-preview-panel black-outline" dangerouslySetInnerHTML={{ __html: parsedContent }} style={{fontFamily: previewFont, fontSize:`${prevFontSize}px`, backgroundColor:previewBColour, color:previewTColour}}/>
           </div>
         </div>)}
-        
+
       </div>
     </div>
-
-
 
   );
 }
@@ -1195,16 +1198,26 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   const docRef = useRef(null);
   const [fetchedDoc, setFetchedDoc] = useState(false);
   const [shouldBootstrap, setShouldBootstrap] = useState(false);
+  const [loadContent, setLoadContent] = useState(null);
 
 
 
 
   const [testUint8, setTestUint8] = useState(null); // completely debug: purposed state variable.
+ 
 
 
 
   const initialConfig = {
     editorState: null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state). <-- yeah def need this or my collab editing thing is done.
+    /*editorState: () => {
+      const root = $getRoot();
+      root.clear();
+      const p = $createParagraphNode();
+      p.append($createTextNode("Hello, world!"));
+      root.append(p);
+      root.selectEnd();
+    },*/
     namespace: 'BaseMarkdownEditor',
     sampleTheme,
     onError: (error) => {
@@ -1238,8 +1251,8 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     hasJoinedRef.current = true;
 
     // Function to grab any pre-existing document state from the backend.
-    const fetchAndInit = async() => {
-      const doc = new Y.Doc();
+    /*const fetchAndInit = async() => {
+      //const doc = new Y.Doc();
       
       try {
         const result = await getRoomData(roomId);
@@ -1247,20 +1260,13 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
         if(result.success && result.docData) {
           const uint8 = new Uint8Array(binaryData);
           Y.applyUpdate(doc, uint8);
-
-
           setTestUint8(uint8);
 
-          
           console.log("fetchAndInit-DEBUG: Yeah. The value of doc => [", doc, "]");
           console.log("fetchAndInit-DEBUG: The value of xmlText => [", doc.get('root', Y.XmlText), "]");
           let buffer = doc.get('root', Y.XmlText);
           console.log("fetchAndInit-DEBUG: The value of xmlText.toString() => [", buffer.toString(), "]");
           console.log("fetchAndInit-DEBUG: The value of doc.share.has('root') => [", doc.share.has('root'), "]");
-          
-
-
-
           
           setShouldBootstrap(false);
           const keys = [...doc.share.keys()];
@@ -1272,6 +1278,23 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
       }
       docRef.current = doc;
       setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
+    };*/
+
+
+
+
+    // new fetchAndInit() -- keeping the old so I can search for a solution at some point in the future:
+    const fetchAndInit = async() => {
+      try {
+        const result = await getRoomData(roomId);
+        if(result.success && result.docData) {
+          setLoadContent(result);
+        }
+      } catch(err) {
+        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
+        setShouldBootstrap(true);
+      }
+      setFetchedDoc(true);
     };
     fetchAndInit();
 
@@ -1286,7 +1309,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
       {/* Everything's pretty much just in EditorContent(...) */}
 
       {fetchedDoc ? (
-        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap} testUint8={testUint8} />
+        <EditorContent loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap} loadContent={loadContent} />
       ):(<div>LOADING...</div>)}
 
     </LexicalComposer>
