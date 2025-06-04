@@ -334,6 +334,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           const jsonString = JSON.stringify(editorState); 
           // send copy of the latest Lexical editor document state:
           socket.emit("send-latest-doc", roomId, jsonString, token);
+          socket.emit("leave-room", roomId, userData.id);
+          socket.off("active-cursors");
+          socket.off("update-cursors");
+          hasJoinedRef.current = false;
         });
       }
     };
@@ -366,10 +370,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const goToDashboard = () => {
     hasJoinedRef.current = false;
 
-    socket.emit("leave-room", roomId, userData.id);
-    socket.off("active-users-list");
-    socket.off("active-cursors");
-    socket.off("update-cursors");
+    console.log("debug: goToDashboard function has been entered...");
+    //socket.emit("leave-room", roomId, userData.id);
+    //socket.off("active-users-list");
+    //socket.off("active-cursors");
+    //socket.off("update-cursors");
 
     navigate("/dashboard");
   };
@@ -891,10 +896,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
         </div>
 
-
-
-
-
       </div>
 
       {/* The <div> below will encase the "main body" of the webpage (the Text Editor and Preview Panel, or just one of them isolated).
@@ -1011,6 +1012,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
                           socket.emit("ready-for-load", roomId);
                           
+
+                          // DEBUG: Trying to have it here instead...
+
+                          console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
+                          // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
+                          socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+
+                          // ^ YEAH THIS IS MUCH BETTER
+
                         }
                       }) 
                       
@@ -1237,11 +1247,21 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     };
     fetchAndInit();
 
-    console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
+
+
+    //console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
-    socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+    //socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+
+
+
   }, [userData]);
   // DEBUG:[ABOVE] Maybe it'd be better to have the fetch previous document function over here???
+
+
+
+
+
 
   return (
     <LexicalComposer initialConfig={initialConfig}>

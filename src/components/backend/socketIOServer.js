@@ -47,6 +47,10 @@ io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
     console.log("A user connected: ", socket.id);
 
+
+
+
+
     // connection notice (to a particular Text Editor Room):
     socket.on("join-room", (roomId, userId, username) => {
         socket.join(roomId);    // We'll have a room specifically matching the Text Editor RoomId...
@@ -65,18 +69,32 @@ io.on("connection", (socket) => {
         // I want to track this user's "activity" status for this Room:
         if(!connectedUsers[roomId]) connectedUsers[roomId] = [];
 
+        console.log("DEBUG: The value of userId => [", userId, "]");
+        console.log("DEBUG: The value of username => [", username, "]");
+        console.log("DEBUG: The value of roomId => [", roomId, "]");
+        console.log("Debug(pre-add): The value of connectedUsers[roomId] => [", connectedUsers[roomId], "]");
+
         const alreadyExists = connectedUsers[roomId].some(
             (user) => user.userId === userId
         );
+
+        console.log("Debug: The value of alreadyExists => [", alreadyExists, "]");
+
         if(!alreadyExists) {
             connectedUsers[roomId].push({
                 socketId: socket.id, userId, username
             });
         }
 
+        console.log("Debug(post-add): The value of connectedUsers[roomId] => [", connectedUsers[roomId], "]");
+
         // Emit updated list (of Active Users) to the Editor Room:
         io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
     });
+
+
+
+    
 
     // socket to signal loading of prior document data (on mount):
     socket.on("ready-for-load", (roomId) => {
