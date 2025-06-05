@@ -10,14 +10,6 @@ import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing u
 import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx"; // ^ More of the same but for more minor purposes.
 import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
 
-
-
-
-import TestEditor from "./pages/TestEditor.jsx";
-import TestEditor2 from "./pages/TestEditor2.jsx";
-import TestEditor3 from "./pages/TestEditor3.jsx";
-
-
 //import * as Y from 'yjs'; // DEBUG!
 //import { XmlFragment, XmlElement, XmlText } from 'yjs'; // DEBUG!
 
@@ -44,11 +36,6 @@ function App() {
     setRoomID(roomId);
   };
 
-
-
-
-
-
   // Function for sending Editor document data (Yjs doc content) to the PostgreSQL server:
   const saveRoomData = async(roomId, docData) => {
     if(token) {
@@ -61,12 +48,6 @@ function App() {
       }
     }
   }
-
-
-
-
-
-
 
   // Function for retrieving Editor document data (Yjs doc content) from the PostgreSQL server:
   const getRoomData = async(roomId) => {
@@ -81,10 +62,6 @@ function App() {
     }
     return null;
   }
-
-
-
-
 
   // Function for handling user data extraction (it will be invoked whenever "token" data is set via useEffect...):
   const loadUser = async () => {
@@ -143,13 +120,6 @@ function App() {
 
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<PrivateRouteEditor token={token} roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} saveRoomData={saveRoomData} getRoomData={getRoomData} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
-
-
-
-        {/* TEST PAGE: */}
-        <Route path="/test" element={<TestEditor/>} />
-        <Route path="/test2" element={<TestEditor2/>} />
-        <Route path="/test3" element={<TestEditor3/>} />
 
 
 

@@ -107,15 +107,8 @@ const sampleTheme = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {
-  //const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
-  
-
-
+function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {  
   const hasLoadedRef = useState(false);
-
-
-
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1); // 1 line is the default.
   const [currentLine, setCurrentLine] = useState(1);
