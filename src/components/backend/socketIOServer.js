@@ -14,9 +14,7 @@ const { throttle } = pkg;
 import * as Y from 'yjs';
 const yDocs = new Map();    // Key: roomId, Value: Y.Doc instance (serialized)
 
-
 import { saveRoomData } from "../utility/utilityFuncsBE.js";
-
 
 const firstUserJoined = new Map(); // will have boolean values (true/false) mapped to RoomId values...
 const latestEdDocs = new Map(); // Maps strings to roomIds.
@@ -46,10 +44,6 @@ let clientCursors = []; // This will be my array var holding the client-cursor i
 io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
     console.log("A user connected: ", socket.id);
-
-
-
-
 
     // connection notice (to a particular Text Editor Room):
     socket.on("join-room", (roomId, userId, username) => {
@@ -92,12 +86,11 @@ io.on("connection", (socket) => {
         io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
     });
 
-
-
-    
-
     // socket to signal loading of prior document data (on mount):
     socket.on("ready-for-load", (roomId) => {
+
+        console.log("rDEBUG: The value of !firstUserJoined.has(roomId) => [", firstUserJoined.has(roomId), "]");
+
         if (!firstUserJoined.has(roomId)) {
             firstUserJoined.set(roomId, true);
             console.log("First client in room is ready, sending load-existing...");
@@ -107,7 +100,6 @@ io.on("connection", (socket) => {
 
     // socket to receive latest documents of the text editor doc for a specific room:
     socket.on("send-latest-doc", (roomId, jsonString, token) => {
-
 
         console.log("send-latest-doc: The value of roomId => [", roomId, "]");
         console.log("send-latest-doc: The value of jsonString => [", jsonString, "]");

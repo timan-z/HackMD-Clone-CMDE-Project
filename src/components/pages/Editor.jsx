@@ -306,13 +306,24 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       setActiveUsersList(activeUsers);
     });
 
+
+
+
+
     // DEBUG: Listen for if a load pre-existing document state from the backend is necessary:
     socket.on("load-existing", () => {
+      if(hasLoadedRef.current) return;
 
       console.log("FUNCTION socket.on(\"load-existing\") HAS BEEN ENTERED!!!");
 
       editor.update(() => {
-        // This will load the saved document state from the PostgreSQL server (I'm parsing a JSON string of the saved Lexical state):        
+        // This will load the saved document state from the PostgreSQL server (I'm parsing a JSON string of the saved Lexical state):
+        // NOTE: I do **NOT** want anything loaded if there's existing content in the Editor state from something... (try and catch it):
+
+        console.log("debug: The value of editorState => [", editor.getEditorState() , "]");
+        console.log("debug: The value of JSON.stringify(editorState) => [", JSON.stringify(editor.getEditorState()), "]");
+        console.log("debug: The value of loadContent => [", loadContent, "]");
+
         try {
           editor.setEditorState(
             editor.parseEditorState(loadContent)
@@ -324,6 +335,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       });
     });
 
+
+
+
+
+
+
+
+
+
     const handleBeforeUnload = () => {
       if(hasLoadedRef.current) {
 
@@ -334,11 +354,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           const jsonString = JSON.stringify(editorState); 
           // send copy of the latest Lexical editor document state:
           socket.emit("send-latest-doc", roomId, jsonString, token);
-          socket.emit("leave-room", roomId, userData.id);
           socket.off("active-cursors");
           socket.off("update-cursors");
           hasJoinedRef.current = false;
         });
+        socket.emit("leave-room", roomId, userData.id);
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -354,6 +374,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       handleBeforeUnload(); // If user navigates away within SPA, still save.
     };
   }, []);
+
+
+
+
 
 
 
@@ -632,9 +656,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("DEBUG: debugFunction entered...");
       console.log("DEBUG: ************************************************************");
 
+      console.log("The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
 
-      console.log("Debug: The value of activeUsersList => [", activeUsersList, "]");
-
+      //console.log("Debug: The value of activeUsersList => [", activeUsersList, "]");
       /*const editorState = editor.getEditorState();
       const jsonString = JSON.stringify(editorState); 
       console.log("The value of jsonString => [", jsonString, "]");
@@ -1011,13 +1035,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                           hasLoadedRef.current = true;
 
                           socket.emit("ready-for-load", roomId);
-                          
 
                           // DEBUG: Trying to have it here instead...
 
+                          // NOTE: Originally had this in the first UseEffect hook in the <Editor> area... (better here, guarantees <UsersListBar> will be filled):
                           console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
                           // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
                           socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+
+
+
 
                           // ^ YEAH THIS IS MUCH BETTER
 
@@ -1247,21 +1274,12 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     };
     fetchAndInit();
 
-
-
     //console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
     //socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
 
-
-
   }, [userData]);
   // DEBUG:[ABOVE] Maybe it'd be better to have the fetch previous document function over here???
-
-
-
-
-
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
