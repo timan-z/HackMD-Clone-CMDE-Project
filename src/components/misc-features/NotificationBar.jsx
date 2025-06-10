@@ -7,11 +7,15 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     const notifBarRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
-    //const [notifications, setNotifications] = useState([]);
     const [notifications, setNotifications] = useState(() => {
         const stored = localStorage.getItem("notifications");
         return stored ? JSON.parse(stored) : [];
     });
+
+    // Function for clearing the contents of state variable "notifications":
+    const clearNotifs = () => {
+        setNotifications([]);
+    };
 
     // Function for handling receiving notifications is in this useEffect.
     useEffect(() => {
@@ -85,7 +89,6 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     }, []);
 
     const notifBar = (
-
         /* Uses the same type of styling as the Users List Container: */
         <div id="notification-bar"
         ref={notifBarRef}
@@ -102,15 +105,17 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
             borderRadius: '8px',
             boxShadow: '0 0 10px #00FF41',
             padding: '10px',
-            zIndex: 99997,        
+            zIndex: 99997,
+            overflowY: 'auto',  // In index.css, there will be styling to make the scroll bar match the <div> styling...
         }}>
             {/* Draggable header for the Notifications panel: */}
-            <NotificationBarHeader dragHandleRef={dragHandleRef} onClose={onClose} />
+            <NotificationBarHeader dragHandleRef={dragHandleRef} onClose={onClose} clearNotifs={clearNotifs} />
 
             {/* Where Notification Items are dynamically loaded: */}
             {notifications.map((n, idx) => (
                 <div key={idx} className="notif-bullet">
-                    NOTIFICATION: {n.message}
+                    {n.message}
+                    <hr/>
                 </div>
             ))}
         </div>

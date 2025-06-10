@@ -18,6 +18,10 @@ const NotificationBarHeader = ({ dragHandleRef, onClose }) => {
             }}
         >
             <span>NOTIFICATIONS</span>
+
+
+
+
             <button
             className="close-btn"
             onClick={onClose}

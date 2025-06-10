@@ -143,13 +143,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
   const [kicked, setKicked] = useState(false);
-
-
-
-
-
   
-
   //const doc = new Y.Doc(); // <-- moving this outside of the <contenteditable> (yeah this is definitely better).
   //const docRef = useRef(null);
   //const [fetchedDoc, setFetchedDoc] = useState(false);
@@ -193,16 +187,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     callLoadRoomUsers(roomId);
   }, []);
 
-
-
-
-
-
-
-
-
-
-
   // I CANT GET LEXICAL TEXT EDITOR TO LOAD SYNC YJS DOCS FROM POSTGRESQL ON MOUNT SORRY!!!
   /*useEffect(() => {
     //console.log("DEBUG: The loading useEffect has been entered!!!");
@@ -237,8 +221,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
 
   }, [loaded]);*/
-  
-
 
   // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
   /*useEffect(() => {
@@ -267,8 +249,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
     socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
   }, [userData]);*/
-
-
 
   // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
   // EDIT: This hook also stores notifications in localStorage now so they can persist after you close the Notification bar...
