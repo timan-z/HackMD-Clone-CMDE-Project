@@ -44,3 +44,31 @@ export const saveRoomData = async(roomId, docData, token) => {
         }
     }
 };
+
+
+
+
+
+
+
+
+// **************************************************************************************
+// Functions for persisting Chat Message history (per browser session):
+export const loadChatHistory = (currentUserId) => {
+  const key = `${currentUserId}_chatHistory`;
+  const raw = localStorage.getItem(key);
+  return raw ? JSON.parse(raw) : {};
+};
+
+export const saveChatHistory = (currentUserId, history) => {
+  const key = `${currentUserId}_chatHistory`;
+  localStorage.setItem(key, JSON.stringify(history));
+};
+
+export const appendMessageToHistory = (currentUserId, targetUserId, message) => {
+  const history = loadChatHistory(currentUserId);
+  if (!history[targetUserId]) history[targetUserId] = [];
+  history[targetUserId].push(message);
+  saveChatHistory(currentUserId, history);
+};
+

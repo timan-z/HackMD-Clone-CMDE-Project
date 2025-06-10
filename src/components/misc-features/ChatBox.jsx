@@ -1,9 +1,21 @@
 // FOR THE CHAT MESSAGE BOX AREA!!! -- ChatBox.jsx
 import React, { useState, useEffect } from 'react';
+import { loadChatHistory, appendMessageToHistory } from '../utility/utilityFuncsBE'; 
 
 const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
     const [messages, setMessages] = useState([]);   // LOCAL CHAT HISTORY. (SHOULD BE AN OBJECT WITH MESSAGES + WHO SENT THEM I THINK).
     const [newMessage, setNewMessage] = useState('');
+
+    // Loading existing chat history from localStorage:
+    /*useEffect(() => {
+        const chatHistory = loadChatHistory(currentUserId);
+        if(chatHistory[targetUserId]) {
+            setMessages(chatHistory[targetUserId]);
+        } else {
+            setMessages([]);
+        }
+    }, [currentUserId, targetUserId]);*/
+
 
     // Socket listener for incoming messages:
     useEffect(() => {
@@ -73,9 +85,6 @@ const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
         </div>
     );
     // hmmm.
-
-
-
 };
 
 export default ChatBox;

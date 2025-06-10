@@ -181,6 +181,10 @@ io.on("connection", (socket) => {
         }
     })
 
+
+
+
+    
     // Handle client sending private messages:
     socket.on('private-message', ({from, to, text}) => {
         for(const [socketId, userData] of io.sockets.sockets.entries()) {
@@ -197,6 +201,10 @@ io.on("connection", (socket) => {
             }
         }
     });
+
+
+
+
 
     // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
     const broadcastCursors = throttle(() => {

@@ -72,6 +72,24 @@ CREATE TABLE ydocs(
     content TEXT NOT NULL,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
+
+CREATE TABLE notifications(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    room_id UUID PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
+    user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+    notif TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE messages(
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+    room_id UUID PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
+    from_user VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
+    to_user VARCHAR(50) REFERENCES users(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
 "
 ******************************************************************************************
 */
