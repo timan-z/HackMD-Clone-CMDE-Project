@@ -5,6 +5,8 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting HTML into the DOM, createPortal will mimic my original appending to document.body
 
+import { appendMessageToHistory } from '../utility/utilityFuncs.js';
+
 // MODULARITY:
 import UsersListHeader from './UsersListHeader.jsx';
 import UsersListSection from './UsersListSection.jsx';
@@ -39,6 +41,13 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
     // useEffect to handle incoming messages notifications:
     useEffect(() => {
         const handlePrivateMessage = ({ from, to, text }) => {
+            const timestamp = Date.now();
+
+            // Persist messages to localStorage here so messages sent while the Chatbox is closed are kept:
+            /*if(to === currentUserId) {
+                appendMessageToHistory(currentUserId, from, {from, text, timestamp});
+            }*/
+
             // If the message received isn't in an already active chat, a symbol (!) will indicate a new message was sent.
             if(chatTargetId !== from) {
                 setUnreadMessages(prev => ({...prev, [from]: true}));

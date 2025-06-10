@@ -23,6 +23,8 @@ import { throttle } from "lodash"; // Throttling needed to limit rate of functio
 const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
 
 import { useParams, useNavigate } from "react-router-dom"; 
+import {v4 as uuidv4} from 'uuid';
+
 import Toolbar from "../core-features/Toolbar.jsx";
 import UsersListContainer from '../misc-features/UsersListContainer.jsx';
 import NotificationBar from '../misc-features/NotificationBar.jsx';
@@ -274,20 +276,44 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
+  
+
 
   // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
   // DEBUG: ^ Definitely organize this better -- it's so minor that it can probably be stuffed into another useEffect hook...
   useEffect(()=> {
-    const handleNotif = () => {
+    const handleNotif = (notif) => {
+      // Changing the colour of the Notifications Bar Icon to let the user know what's going on:
       let notifBarCheck = document.getElementById('notification-bar');
 
       if(!notifBarCheck) {
         let notifsBtn = document.getElementById('notifs-button');
         notifsBtn.style.backgroundColor = 'red';
       }
+
+      const id = uuidv4();
+      const newNotif = {
+        id, message: notif.message || notif, timestamp: Date.now(),
+      };
+
+      const stored = localStorage.getItem("notifications");
+      const prev = stored ? JSON.parse(stored) : [];
+
+      const updated = [...prev, newNotif];
+      localStorage.setItem("notifications", JSON.stringify(updated));
     }
 
     socket.on("notification", handleNotif);
+
+
+
+
+
+
+
+
+
+
 
     // Listen to see if the current user gets kicked from the editing room:
     socket.on("you-have-been-kicked", () => {
@@ -299,23 +325,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       setActiveUsersList(activeUsers);
     });
 
-
-
-
-
     // DEBUG: Listen for if a load pre-existing document state from the backend is necessary:
     socket.on("load-existing", () => {
       if(hasLoadedRef.current) return;
 
-      console.log("FUNCTION socket.on(\"load-existing\") HAS BEEN ENTERED!!!");
-
       editor.update(() => {
         // This will load the saved document state from the PostgreSQL server (I'm parsing a JSON string of the saved Lexical state):
         // NOTE: I do **NOT** want anything loaded if there's existing content in the Editor state from something... (try and catch it):
-
-        console.log("debug: The value of editorState => [", editor.getEditorState() , "]");
-        console.log("debug: The value of JSON.stringify(editorState) => [", JSON.stringify(editor.getEditorState()), "]");
-        console.log("debug: The value of loadContent => [", loadContent, "]");
 
         try {
           editor.setEditorState(
@@ -327,6 +343,20 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         hasLoadedRef.current = true;
       });
     });
+
+
+
+
+
+
+
+
+
+    
+
+
+
+
 
 
 
@@ -362,6 +392,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       socket.off("active-users-list");
       socket.off("load-existing");
       //socket.off("save-existing");
+      socket.off("notification", handleNotif);
 
       window.removeEventListener("beforeunload", handleBeforeUnload);
       handleBeforeUnload(); // If user navigates away within SPA, still save.

@@ -1,27 +1,34 @@
 // FOR THE CHAT MESSAGE BOX AREA!!! -- ChatBox.jsx
 import React, { useState, useEffect } from 'react';
-import { loadChatHistory, appendMessageToHistory } from '../utility/utilityFuncsBE'; 
+import { loadChatHistory, appendMessageToHistory } from '../utility/utilityFuncs.js';   // <-- DEBUG: Probably should remove!
 
 const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
     const [messages, setMessages] = useState([]);   // LOCAL CHAT HISTORY. (SHOULD BE AN OBJECT WITH MESSAGES + WHO SENT THEM I THINK).
     const [newMessage, setNewMessage] = useState('');
 
+
+
     // Loading existing chat history from localStorage:
-    /*useEffect(() => {
+    // DEBUG: Think I should remove this below later!!!
+    useEffect(() => {
         const chatHistory = loadChatHistory(currentUserId);
         if(chatHistory[targetUserId]) {
             setMessages(chatHistory[targetUserId]);
         } else {
             setMessages([]);
         }
-    }, [currentUserId, targetUserId]);*/
+    }, [currentUserId, targetUserId]);
+    // DEBUG: Think I should remove this above later!!!
+
 
 
     // Socket listener for incoming messages:
     useEffect(() => {
         const handleReceiveMessage = ({ from, to, text}) => {
             if(from === targetUserId && to === currentUserId) {
-                setMessages(prev => [...prev, {from, text}]);
+                const message = { from, text, timestamp: Date.now() };
+                setMessages(prev => [...prev, message]);
+                //appendMessageToHistory(currentUserId, targetUserId, message);
             }
         };
         socket.on('private-message', handleReceiveMessage);
@@ -37,12 +44,14 @@ const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
                 from: currentUserId,
                 to: targetUserId,
                 text: newMessage,
+                timestamp: Date.now(),
             };
             
             // Emit message:
             socket.emit('private-message', message);
             // Add to local display:
-            setMessages(prev => [...prev, {from: currentUserId, text: newMessage}]);
+            setMessages(prev => [...prev, message]);
+            appendMessageToHistory(currentUserId, targetUserId, message);
             setNewMessage('');
         }
     };

@@ -7,17 +7,18 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     const notifBarRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
-    const [notifications, setNotifications] = useState([]);
-
+    //const [notifications, setNotifications] = useState([]);
+    const [notifications, setNotifications] = useState(() => {
+        const stored = localStorage.getItem("notifications");
+        return stored ? JSON.parse(stored) : [];
+    });
+    
     // Function for handling receiving notifications is in this useEffect.
     useEffect(() => {
         if (!socket) return;
 
-        const twentyFourHours = 1000 * 86400;   // 86400 seconds in 24hrs...
+        const threeHours = 1000 * 10800;   // 10800 seconds is 3 hours.
         const handleNotif = (notif) => {
-            console.log("DEBUG: The handleNotif function has been entered...");
-
-            console.log("DEBUG: The value of notif => [", notif, "]");
 
             // So if the Notifications component isn't open, set the background colour of the icon to Red (to imply new notifications):
             if(!notifsOpen) {
@@ -26,9 +27,10 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
             }
 
             setNotifications((prev) => [...prev, notif]);
+            // Removal after 3 hours:
             setTimeout(() => {
-                setNotifications((prev) => prev.filter(n => n !== notif));
-            }, twentyFourHours); // Lasts for a day.
+                setNotifications((prev) => prev.filter(n => n.id !== notif));
+            }, threeHours); // Lasts for a day.
         };
 
         socket.on("notification", handleNotif);
