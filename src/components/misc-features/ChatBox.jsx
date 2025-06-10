@@ -1,24 +1,30 @@
 // FOR THE CHAT MESSAGE BOX AREA!!! -- ChatBox.jsx
 import React, { useState, useEffect } from 'react';
-import { loadChatHistory, appendMessageToHistory } from '../utility/utilityFuncs.js';   // <-- DEBUG: Probably should remove!
+//import { loadChatHistory, appendMessageToHistory } from '../utility/utilityFuncs.js';   // <-- DEBUG: Probably should remove!
+import { getMessages, sendMessage } from '../utility/api.js';
+//import { loadChatHistory } from '../utility/utilityFuncs';
 
-const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
+const ChatBox = ({ currentUserId, targetUserId, onClose, socket, token, roomId }) => {
     const [messages, setMessages] = useState([]);   // LOCAL CHAT HISTORY. (SHOULD BE AN OBJECT WITH MESSAGES + WHO SENT THEM I THINK).
     const [newMessage, setNewMessage] = useState('');
 
 
 
-    // Loading existing chat history from localStorage:
-    // DEBUG: Think I should remove this below later!!!
+
+    // On initial chat open, this useEffect will run and retrieve the chat log history:
     useEffect(() => {
-        const chatHistory = loadChatHistory(currentUserId);
-        if(chatHistory[targetUserId]) {
-            setMessages(chatHistory[targetUserId]);
-        } else {
-            setMessages([]);
-        }
-    }, [currentUserId, targetUserId]);
-    // DEBUG: Think I should remove this above later!!!
+        const loadChatHistory = async() => {
+            const messages = await getMessages(roomId, token);
+            const getUserMsgs = messages.filter(
+                m => (m.from_user === currentUserId && m.to_user === targetUserId) ||
+                (m.to_user === currentUserId && m.from_user === targetUserId)
+            );
+            setMessages(getUserMsgs.map(({ from_user, message }) => ({ from: from_user, text: message })));
+        };
+
+        if(targetUserId) loadChatHistory();
+    }, [targetUserId, roomId, currentUserId, token]);
+
 
 
 
@@ -38,7 +44,7 @@ const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
         };
     }, [socket, targetUserId, currentUserId]);
 
-    const sendMessage = () => {
+    const sendMessageLocal = async() => {
         if(newMessage.trim()) {
             const message = {
                 from: currentUserId,
@@ -49,9 +55,11 @@ const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
             
             // Emit message:
             socket.emit('private-message', message);
+            // Save to the server:
+            sendMessage(roomId, currentUserId, targetUserId, newMessage, token);
             // Add to local display:
             setMessages(prev => [...prev, message]);
-            appendMessageToHistory(currentUserId, targetUserId, message);
+            //appendMessageToHistory(currentUserId, targetUserId, message); // <-- not using this anymore.
             setNewMessage('');
         }
     };
@@ -86,11 +94,11 @@ const ChatBox = ({ currentUserId, targetUserId, onClose, socket }) => {
                 type="text"
                 value={newMessage}
                 onChange={(e) => setNewMessage(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && sendMessage()}
+                onKeyDown={(e) => e.key === 'Enter' && sendMessageLocal()}
                 placeholder="Type a message..."
                 style={{ width: '80%', marginRight: '8px' }}
             />
-            <button onClick={sendMessage}>Send</button>
+            <button onClick={sendMessageLocal}>Send</button>
         </div>
     );
     // hmmm.

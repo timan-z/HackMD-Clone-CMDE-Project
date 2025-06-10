@@ -350,11 +350,6 @@ export const saveEdRoomDoc = async(req, res) => {
     const {roomId} = req.params;
     const {docData} = req.body;
     //const buffer = Buffer.from(docData);
-
-    console.log("DEBUG: In function saveEdRoomDoc...");
-    console.log("Debug: The value of roomId => [", roomId, "]");
-    console.log("Debug: The value of docData => [", docData, "]");
-
     //const base64String = Buffer.from(docData).toString("base64");
     
     try {
@@ -370,19 +365,6 @@ export const saveEdRoomDoc = async(req, res) => {
         res.status(500).json({ success:false, error: "Failed to save document data to the backend."});
     }
 };
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 // 4.2. To get Editor Room document data from the PostgreSQL backend server:
 export const getEdRoomDoc = async(req, res) => {        
@@ -407,3 +389,53 @@ export const getEdRoomDoc = async(req, res) => {
 
 
 
+
+
+
+
+// 5. REAL-TIME INTERACTION (MESSAGING MAINLY):
+// 5.1. For sending messages:
+export const sendEdRoomMessage = async(req, res) => {
+    const {roomId} = req.params;
+    const {from_user, to_user, message} = req.body;
+
+    console.log("DEBUG: Value of from_user => ", from_user);
+    console.log("DEBUG: Value of to_user => ", to_user);
+    console.log("DEBUG: Value of message => ", message);
+
+    try {
+        await pool.query(
+            `INSERT INTO messages (room_id, from_user, to_user, message)
+             VALUES ($1, $2, $3, $4)`,
+            [roomId, from_user, to_user, message]
+        );
+        res.status(201).json({ success: true });
+    } catch(err) {
+        console.error(`ERROR: Failed to save message(s) from ${from_user} to ${to_user} because of => ${err}`);
+        res.status(500).json({ success: false, error: "Database insert of message(s) failed" });
+    }
+};
+
+
+
+
+
+
+
+
+
+
+// 5.2. For getting messages:
+export const getEdRoomMessages = async(req, res) => {
+    const {roomId} = req.params;
+
+    try {
+        const result = await pool.query(
+            `SELECT * FROM messages WHERE room_id = $1 ORDER BY created_at ASC`, [roomId]
+        );
+        res.status(200).json(result.rows);
+    } catch(err) {
+        console.error(`ERROR: Failed to retrieve saved Room chatlogs: ${err}`);
+        res.status(500).json({ success: false, error: "Database fetch of messages failed" });
+    }
+};

@@ -12,12 +12,12 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
         const stored = localStorage.getItem("notifications");
         return stored ? JSON.parse(stored) : [];
     });
-    
+
     // Function for handling receiving notifications is in this useEffect.
     useEffect(() => {
         if (!socket) return;
 
-        const threeHours = 1000 * 10800;   // 10800 seconds is 3 hours.
+        const oneHour = 1000 * 3600;   // 3600 seconds is 1 hour.
         const handleNotif = (notif) => {
 
             // So if the Notifications component isn't open, set the background colour of the icon to Red (to imply new notifications):
@@ -27,10 +27,10 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
             }
 
             setNotifications((prev) => [...prev, notif]);
-            // Removal after 3 hours:
+            // Removal after 1 hour:
             setTimeout(() => {
                 setNotifications((prev) => prev.filter(n => n.id !== notif));
-            }, threeHours); // Lasts for a day.
+            }, oneHour); // Lasts for a day.
         };
 
         socket.on("notification", handleNotif);

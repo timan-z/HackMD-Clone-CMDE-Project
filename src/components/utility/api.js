@@ -144,15 +144,6 @@ export const transferRoomOwn = async(roomId, targetUserId, currentUserId, token)
     return result.json();
 }
 
-
-
-
-
-
-
-
-
-
 // 4. SERVER PERSISTANCE:
 // 4.1. To save Editor Room document data on the PostgreSQL backend server:
 export const saveRoomDoc = async(roomId, docData, token) => {
@@ -167,16 +158,6 @@ export const saveRoomDoc = async(roomId, docData, token) => {
     return result.json();
 }
 
-
-
-
-
-
-
-
-
-
-
 // 4.2. To retrieve Editor Room document data from the PostgreSQL backend server:
 export const getRoomDoc = async(roomId, token) => {
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/get`, {
@@ -185,3 +166,31 @@ export const getRoomDoc = async(roomId, token) => {
     });
     return result.json();
 }
+
+// 5. REAL-TIME INTERACTION (MESSAGING MAINLY):
+// 5.1. For sending messages:
+export const sendMessage = async(roomId, from_user, to_user, message, token) => {
+
+
+    console.log("DEBUG: Something going on?");
+
+
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/message`, {
+        method:"POST",
+        headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify( {from_user, to_user, message} )
+    });
+    return result.json();
+};
+
+// 5.1. For retrieving messages:
+export const getMessages = async(roomId, token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/messages`, {
+        method: "GET",
+        headers: { Authorization: `Bearer ${token}` }
+    });
+    return result.json();
+};

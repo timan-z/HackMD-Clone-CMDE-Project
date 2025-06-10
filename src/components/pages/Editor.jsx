@@ -270,17 +270,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-
-
-
-
-
-
-  
-
-
   // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
-  // DEBUG: ^ Definitely organize this better -- it's so minor that it can probably be stuffed into another useEffect hook...
+  // EDIT: This hook also stores notifications in localStorage now so they can persist after you close the Notification bar...
   useEffect(()=> {
     const handleNotif = (notif) => {
       // Changing the colour of the Notifications Bar Icon to let the user know what's going on:
@@ -304,16 +295,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
 
     socket.on("notification", handleNotif);
-
-
-
-
-
-
-
-
-
-
 
     // Listen to see if the current user gets kicked from the editing room:
     socket.on("you-have-been-kicked", () => {
@@ -343,29 +324,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         hasLoadedRef.current = true;
       });
     });
-
-
-
-
-
-
-
-
-
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
 
     const handleBeforeUnload = () => {
       if(hasLoadedRef.current) {
@@ -934,7 +892,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           {/* Code to have the Users List appear (can be placed anywhere since I have "createPortal" in 
           UsersListContainer.jsx, which should append it to the document.body regardless): */}
           {showUsersList && (
-            <UsersListContainer userData={userData} activeUsersList={activeUsersList} usersList={usersList} socket={socket} onClose={()=>toggleUsersList()}/>
+            <UsersListContainer userData={userData} activeUsersList={activeUsersList} usersList={usersList} socket={socket} onClose={()=>toggleUsersList()} token={token} roomId={roomId}/>
           )}
 
           {/* This will be the "Home" (Return to Dashboard) button on the top-right of the T.E. room webpage: */}

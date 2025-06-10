@@ -8,6 +8,8 @@ import {
     transferEdRoomOwn,
     saveEdRoomDoc,
     getEdRoomDoc,
+    sendEdRoomMessage,
+    getEdRoomMessages,
 } from '../controllers/authController.js';
 import { verifyToken } from '../../utility/utilityFuncsBE.js';
 //import { verify } from "jsonwebtoken";
@@ -34,5 +36,9 @@ router.post('/rooms/:roomId/transfer/:tUserId/from/:cUserId', verifyToken, trans
 // SERVER PERSISTENCE:
 router.post('/rooms/:roomId/save', verifyToken, saveEdRoomDoc);
 router.get('/rooms/:roomId/get', verifyToken, getEdRoomDoc);
+
+// REAL-TIME INTERACTION (MESSAGING SYSTEM):
+router.post('/rooms/:roomId/message', verifyToken, sendEdRoomMessage);
+router.get('/rooms/:roomId/messages', verifyToken, getEdRoomMessages);
 
 export default router;

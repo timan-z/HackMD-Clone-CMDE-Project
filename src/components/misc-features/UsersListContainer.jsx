@@ -12,7 +12,7 @@ import UsersListHeader from './UsersListHeader.jsx';
 import UsersListSection from './UsersListSection.jsx';
 import ChatBox from './ChatBox.jsx';
 
-const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, socket }) => {
+const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, socket, token, roomId }) => {
     const containerRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
@@ -41,8 +41,9 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
     // useEffect to handle incoming messages notifications:
     useEffect(() => {
         const handlePrivateMessage = ({ from, to, text }) => {
-            const timestamp = Date.now();
-
+            
+            
+            //const timestamp = Date.now();
             // Persist messages to localStorage here so messages sent while the Chatbox is closed are kept:
             /*if(to === currentUserId) {
                 appendMessageToHistory(currentUserId, from, {from, text, timestamp});
@@ -137,6 +138,8 @@ const UsersListContainer = ({ userData, activeUsersList, usersList, onClose, soc
                     targetUserId={chatTargetId}
                     onClose={()=> setChatTargetId(null)}
                     socket={socket}
+                    token={token}
+                    roomId={roomId}
                 />
             ):(
                 /* USERS LIST SYSTEM: */
