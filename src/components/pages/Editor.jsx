@@ -326,6 +326,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           editor.setEditorState(
             editor.parseEditorState(loadContent)  // I'm just parsing a JSON string of the saved Lexical state (NOTE: For now, since I can't figure out the Yjs-Lexical sync).
           );
+
         } catch(err) {
           console.error("ERROR: Failed to load pre-existing document state from the backend database. This may simply be because it was empty (if so, there is no problem) => ", err);
         }
@@ -735,7 +736,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                           // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
                           socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
                         }
-                      }) 
+                      })
                       
                       return provider;
                     }}
