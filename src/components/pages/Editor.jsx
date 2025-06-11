@@ -1,42 +1,33 @@
-import React, { useCallback } from 'react';
-import { LexicalComposer } from '@lexical/react/LexicalComposer'; 
+import { useEffect, useState, useRef } from 'react';
+import { useParams, useNavigate } from "react-router-dom"; 
+import {v4 as uuidv4} from 'uuid';
+// standard Lexical imports:
+import { LexicalComposer } from '@lexical/react/LexicalComposer';
 import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { useEffect, useState, useRef } from 'react';
-import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $setSelection, $isParagraphNode, $createRangeSelection, $createTextNode, $createParagraphNode } from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection, $isTextNode} from 'lexical';
+// custom imports:
 import { parseMarkdown } from "../core-features/MDParser.jsx";
 import { findCursorPos } from '../utility/utilityFuncs.js';
-
-// NOTE: Following lines are for Phase 3 (Introducing Real-Time Collaboration).
 import { RemoteCursorOverlay } from '../core-features/RemoteCursorOverlay.jsx';
-
-// PART-2-ADDITIONS:
-import * as Y from 'yjs';
-import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
-import { useMemo } from 'react';
-import { WebsocketProvider } from 'y-websocket';
-// BRINGING THESE 3 BELOW BACK!!!:
-import { io } from "socket.io-client"; // <-- Bringing this one back.
-import { throttle } from "lodash"; // Throttling needed to limit rate of function calls (specifically emits to the server).
-const socket = io("http://localhost:4000"); // <-- bringing this back for tying RemoteCursorOverlay.jsx back over my Text Editor (while using <CollaborationPlugin/>). 
-
-import { useParams, useNavigate } from "react-router-dom"; 
-import {v4 as uuidv4} from 'uuid';
-
 import Toolbar from "../core-features/Toolbar.jsx";
 import UsersListContainer from '../misc-features/UsersListContainer.jsx';
 import NotificationBar from '../misc-features/NotificationBar.jsx';
+// yjs-related:
+import * as Y from 'yjs';
+import { WebsocketProvider } from 'y-websocket';
+import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
+// Socket.IO-related: 
+import { io } from "socket.io-client";
+import { throttle } from "lodash";
 
-/* NOTE-TO-SELF:
-  - LexicalComposer initializes the editor with the [theme], [namespace], and [onError] configs. (Additional plug-ins go within its tags).
-  - ContentEditable is the area where the user types.
-  - PlainTextPlugin is a plugin for plain-text input (better suited here for a markdown editor as opposed to something like RichTextPlugin).
-  - LexicalErrorBoundary, embedded within PlainTextPlugin, will be for catching errors and preventing LexicalComposer from exploding basically.
-*/
+/* Using "socket" for the real-time interaction features but also tying RemoteCursorOverlay.jsx
+back to my Text Editor (while using <CollaborationPlugin/>). */
+const socket = io("http://localhost:4000");
 
-// NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming
+// NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming (didn't change anything).
 const sampleTheme = {
   ltr: 'ltr',
   rtl: 'rtl',
@@ -110,269 +101,41 @@ const sampleTheme = {
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
 function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {  
+  // "Main" state variables:
   const hasLoadedRef = useState(false);
   const [editor] = useLexicalComposerContext();
-  const [lineCount, setLineCount] = useState(1); // 1 line is the default.
+  const [lineCount, setLineCount] = useState(1);
   const [currentLine, setCurrentLine] = useState(1);
-  // The following two const are (mainly) for the Markdown rendering effect:
-  const [editorContent, setEditorContent] = useState(""); // Stores raw markdown.
+  const [editorContent, setEditorContent] = useState(""); // Stores raw markdown. (This, and the one below, are mainly for the MD rendering effect).
   const [parsedContent, setParsedContent] = useState(""); // Stores parsed HTML.
-  // The following const is for the "view mode" toggling of the webpage (regarding Text Editor and Preview Panel):
-  const [viewMode, setViewMode] = useState("split"); // default state.
-  // The following two const are for the "draggable" divider line I have between the Text Editor and Preview Panel in split view:
-  const [editorWidth, setEditorWidth] = useState(50); // 50 is the initial width percentage...
+  const [viewMode, setViewMode] = useState("split"); // For toggling the "view mode" of the webpage (wrt Text Editor and Preview Panel).
+  const [editorWidth, setEditorWidth] = useState(50); // This, and the one below, are for the "draggable" divider line that lets you adjust Editor and Preview Panel width (in split view).
   const isResizing = useRef(false);
-  // The following consts are for Text Editor and Preview Panel customization (text zoom percentage, font and background colour):
-  const [editorFont, setEditorFont] = useState("Arial"); // default font for text editor.
-  const [previewFont, setPreviewFont] = useState("Arial"); // default font for preview panel.
-  const [edFontSize, setEdFontSize] = useState(16); // default font size.
+  const [isDraggingMD, setIsDraggingMD] = useState(false); // For the "drag-and-drop .md files" feature.
+  const [otherCursors, setOtherCursors] = useState([]); // This, and the one below, are for rendering the cursors of foreign clients during real-time collaboration.
+  const cursorPos = useRef(0); // Needed for maintaining cursor position post-changes in collaborative editing.
+  const [kicked, setKicked] = useState(false);
+
+  // Mostly cosmetic ("Secondary") state variables:
+  const [editorFont, setEditorFont] = useState("Arial");
+  const [previewFont, setPreviewFont] = useState("Arial");
+  const [edFontSize, setEdFontSize] = useState(16);
   const [prevFontSize, setPrevFontSize] = useState(16);
   const [editorBColour, setEditorBColour] = useState("#d3d3d3");
   const [previewBColour, setPreviewBColour] = useState("#b0c4de");
   const [editorTColour, setEditorTColour] = useState("#000000");
   const [previewTColour, setPreviewTColour] = useState("#000000");
-  // The following const is for the "drag-and-drop .md files" feature for the Text Editor: 
-  const [isDraggingMD, setIsDraggingMD] = useState(false);
-  // The following const(s) is for rendering the cursors of the *other* clients in the Text Editor during real-time collaboration:
-  const [otherCursors, setOtherCursors] = useState([]);
-  const cursorPos = useRef(0); // NOTE: This is needed for maintaining cursor position post-changes in collaborative editing.
-  
-  // USERSLIST-DEBUG:
   const [usersList, setUsersList] = useState([]);
   const [activeUsersList, setActiveUsersList] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
-  const [kicked, setKicked] = useState(false);
-  
-  //const doc = new Y.Doc(); // <-- moving this outside of the <contenteditable> (yeah this is definitely better).
-  //const docRef = useRef(null);
-  //const [fetchedDoc, setFetchedDoc] = useState(false);
 
-  /* Parameter values {roomId} and {userData} are both important for this Editor page's real-time interaction SocketIO features.
-  They should come in preset from the Dashboard page, but in-case the user accesses this room through manual URL type and search, 
-  then I should quickly re-retrieve them during rendering: */
-  /*if(roomId === null) {
-    roomId = useParams().roomId;
-  }
-
-  useEffect(() => {
-    if(!userData) {
-      const storedUser = localStorage.getItem("userData");
-      if(storedUser) {
-        const parsedUser = JSON.parse(storedUser);
-        setUser(parsedUser);
-      } else {
-        loadUser();
-      }
-    }
-  }, []);*/
-
-  // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
-  const callLoadRoomUsers = async(roomId) => {
-    const usersData = await loadRoomUsers(roomId);
-
-    /* When this list of Users is exported, it takes "user_id" from my table user_rooms (for linking users to rooms).
-    To prevent naming inconsistency headaches with setting state var "usersList" w/ usersData, I'm going to slightly
-    tweak the returned array so that its user_id item is renamed to userId (and same w/ room_id => roomId): */
-    const tweakedArr = usersData.map(user => ({
-      userId: user.user_id,
-      username: user.username,
-      displayname: user.displayname,
-      role: user.role,
-      roomId: user.room_id,
-    }));
-    setUsersList(tweakedArr);
-  };
-  useEffect(() => {
-    callLoadRoomUsers(roomId);
-  }, []);
-
-  // I CANT GET LEXICAL TEXT EDITOR TO LOAD SYNC YJS DOCS FROM POSTGRESQL ON MOUNT SORRY!!!
-  /*useEffect(() => {
-    //console.log("DEBUG: The loading useEffect has been entered!!!");
-    //console.log("Debug: The value of loadContent => [", loadContent, "]");
-    //console.log("Somethingeeeee");
-    console.log("useEffect hook!");
-
-    editor.update(() => {
-      if(!$getSelection()) return;
-      if(loaded) return; // only want this one running on mount.
-
-      const root = $getRoot();
-      root.clear();
-      $getSelection().insertText(loadContent.docData);
-      setLoaded(true);
-    });
-  }, [editor]);*/
-
-  /*useEffect(() => {
-    if(!loaded) return;
-
-    console.log("The loaded useEffect is entered.");
-
-    editor.update(() => {
-      const root = $getRoot();
-      root.clear();
-      const p = $createParagraphNode();
-      p.append($createTextNode("Hello, world!"));
-      root.append(p);
-      root.selectEnd();
-      setLoaded(true);
-    });
-
-  }, [loaded]);*/
-
-  // useEffect Hook #0.5: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
-  /*useEffect(() => {
-    // Guard against React 18 Strict Mode making this useEffect run twice:
-    if(hasJoinedRef.current) return;
-    hasJoinedRef.current = true;
-
-    // Function to grab any pre-existing document state from the backend.
-    const fetchAndInit = async() => {
-      const doc = new Y.Doc();
-      try {
-        const result = await getRoomData(roomId);
-        if(result.success && result.docData) {
-          const uint8 = new Uint8Array(result.docData);
-          Y.applyUpdate(doc, uint8);
-        }
-      } catch(err) {
-        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
-      }
-      docRef.current = doc;
-      setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
-    };
-    fetchAndInit();
-
-    console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
-    // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
-    socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
-  }, [userData]);*/
-
-  // useEffect hook that just listens for when notifications are sent (so the Notification Icon background can turn red):
-  // EDIT: This hook also stores notifications in localStorage now so they can persist after you close the Notification bar...
-  useEffect(()=> {
-    const handleNotif = (notif) => {
-      // Changing the colour of the Notifications Bar Icon to let the user know what's going on:
-      let notifBarCheck = document.getElementById('notification-bar');
-
-      if(!notifBarCheck) {
-        let notifsBtn = document.getElementById('notifs-button');
-        notifsBtn.style.backgroundColor = 'red';
-      }
-
-      const id = uuidv4();
-      const newNotif = {
-        id, message: notif.message || notif, timestamp: Date.now(),
-      };
-
-      const stored = localStorage.getItem("notifications");
-      const prev = stored ? JSON.parse(stored) : [];
-
-      const updated = [...prev, newNotif];
-      localStorage.setItem("notifications", JSON.stringify(updated));
-    }
-
-    socket.on("notification", handleNotif);
-
-    // Listen to see if the current user gets kicked from the editing room:
-    socket.on("you-have-been-kicked", () => {
-      setKicked(true);
-    });
-
-    // Listen for an updated list of Active Users:
-    socket.on("active-users-list", (activeUsers) => {
-      setActiveUsersList(activeUsers);
-    });
-
-    // DEBUG: Listen for if a load pre-existing document state from the backend is necessary:
-    socket.on("load-existing", () => {
-      if(hasLoadedRef.current) return;
-
-      editor.update(() => {
-        // This will load the saved document state from the PostgreSQL server (I'm parsing a JSON string of the saved Lexical state):
-        // NOTE: I do **NOT** want anything loaded if there's existing content in the Editor state from something... (try and catch it):
-
-        try {
-          editor.setEditorState(
-            editor.parseEditorState(loadContent)
-          );
-        } catch(err) {
-          console.error("ERROR: Failed to load pre-existing document state from the backend database. This may simply be because it was empty (if so, there is no problem) => ", err);
-        }
-        hasLoadedRef.current = true;
-      });
-    });
-
-    const handleBeforeUnload = () => {
-      if(hasLoadedRef.current) {
-
-        console.log("FUNCTION \"handleBeforeUnload\" HAS BEEN ENTERED!!!"); // <-- this function shouldn't run until load-existing one has...
-
-        editor.update(() => {
-          const editorState = editor.getEditorState();          
-          const jsonString = JSON.stringify(editorState); 
-          // send copy of the latest Lexical editor document state:
-          socket.emit("send-latest-doc", roomId, jsonString, token);
-          socket.off("active-cursors");
-          socket.off("update-cursors");
-          hasJoinedRef.current = false;
-        });
-        socket.emit("leave-room", roomId, userData.id);
-      }
-    };
-    window.addEventListener("beforeunload", handleBeforeUnload);
-
-    return () => {
-      socket.off("notification", handleNotif);
-      socket.off("you-have-been-kicked");
-      socket.off("active-users-list");
-      socket.off("load-existing");
-      //socket.off("save-existing");
-      socket.off("notification", handleNotif);
-
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      handleBeforeUnload(); // If user navigates away within SPA, still save.
-    };
-  }, []);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // Function for returning to the dashboard:
+  // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
   const navigate = useNavigate();
   const goToDashboard = () => {
     hasJoinedRef.current = false;
-
-    console.log("debug: goToDashboard function has been entered...");
-    //socket.emit("leave-room", roomId, userData.id);
-    //socket.off("active-users-list");
-    //socket.off("active-cursors");
-    //socket.off("update-cursors");
-
     navigate("/dashboard");
   };
-
-
-
-
-
-
-
-
-
 
   // Function for triggering the Users List popup and "shadowing" the Users List button when clicked:
   const toggleUsersList = () => {
@@ -384,41 +147,22 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
     setShowUsersList(prev => !prev);
   };
-   
+  
   // Function for triggering the Notifications popup and "shadowing" the Notifications button when clicked:
   const toggleNotifs = () => {
     let notifsBtn = document.getElementById('notifs-button');
     if(!showNotifs) {
       notifsBtn.classList.add('users-l-add-shadow');
-      // Going to make it so that the Notifs Icon turns red when new notifications are received (clicking it will get rid of the applied red):
+      // If the Notifs Icon is currently red (implying new notifications), clicking it will get rid of the applied red:
       if(notifsBtn.style.backgroundColor === 'red') {
         notifsBtn.style.backgroundColor = '#00FF41';
       }
     } else {
       notifsBtn.classList.remove('users-l-add-shadow');
     }
-
-    // NOTE:+DEBUG: Need to have a thing where if the Notifs button background is Red, it gets turned back to Green.
-    // DEBUG: ^ I need to set this whole thing up in general... 
-
     setShowNotifs(prev => !prev);
   };
   
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
   // Function for handling the webpage view toggle between the Text Editor and Preview Panel (Split, Editor, Preview):
   const handleViewChange = (mode) => {
     setViewMode(mode);
@@ -427,16 +171,21 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     if(mode === "split") {
       setEditorWidth(50); // Needed for resetting the Text Editor and Preview Panel dimensions after potential adjustments with the slider. 
-      prevPanSpace.classList.remove("preview-panel-space-full"); // NOTE:+DEBUG: Maybe cast this in a JS try-block or whatever (i get console errors for doesnt exist)
-      prevPanSpace.classList.add("preview-panel-space-split");
-      textEdSpace.classList.remove("text-editor-space-full");
-      textEdSpace.classList.add("text-editor-space-split");
+
+      if(prevPanSpace) {
+        prevPanSpace.classList.remove("preview-panel-space-full");
+        prevPanSpace.classList.add("preview-panel-space-split");
+      }
+      if(textEdSpace) {
+        textEdSpace.classList.remove("text-editor-space-full");
+        textEdSpace.classList.add("text-editor-space-split");
+      }
     } else if(mode === "editor-only") {
-      setEditorWidth(100); // Needed to make sure the Text Editor takes up the whole thing (by scaling it up to 100%)
+      setEditorWidth(100); // Make sure the Text Editor takes up the whole thing (by scaling it up to 100%)
       textEdSpace.classList.remove("text-editor-space-split");
       textEdSpace.classList.add("text-editor-space-full");
     } else {
-      setEditorWidth(0); // Needed to make sure the Preview Panel takes up the whole thing (by reducing the Text Editor to nothing).
+      setEditorWidth(0); // Make sure the Preview Panel takes up the whole thing (by reducing the Text Editor to nothing).
       prevPanSpace.classList.remove("preview-panel-space-split");
       prevPanSpace.classList.add("preview-panel-space-full");
     }
@@ -447,22 +196,17 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const handleFileUploadMD = (file) => {
     // If invalid file:
     if(file.type !== "text/markdown" && !file.name.endsWith(".md")) {
-      alert("Please upload a valid Markdown (.md) file."); // NOTE:+DEBUG: Just have an Alert for now..., but I want to change this to something more professional later on. (Pop-up -> click anywhere on screen to nullify).
+      alert("Please upload a valid Markdown (.md) file."); // TO-DO: Just have an Alert for now..., but I want to change this to something more professional later on. (Pop-up -> click anywhere on screen to nullify).
       return;
     }
     
-    // If there's existing text in the Text Editor, prompt asking if it should be replaced (Again, default "window.confirm" for now...)
+    // If there's existing text in the Text Editor, prompt asking if it should be replaced (Again, default "window.confirm" for now... TO-DO: Something more professional later on).
     if(editorContent.trim() === "" || (editorContent.trim() !== "" && window.confirm("Replace existing content?"))) {
-      /* Now I want to read the contents of file and replace the actual Text Editor content with the file contents
-      (so I'm going to need to do an update() function or something like that here). */
-
-      // Reading file contents:
       const reader = new FileReader();
-      // Need to define the process here and then invoke it afterwards...
+      // Need to define the process here and then invoke it afterwards:
       reader.onload = () => {
         // This will get it.
         const text = reader.result;
-        // Inserting it into the Lexical Text Editor:
         editor.update(() => {
           const root = $getRoot();
           root.clear(); // gets rid of current existing text.
@@ -499,7 +243,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       const root = $getRoot();
       const textEditorContent = root.getTextContent();
       if(!textEditorContent.trim()) {
-        alert("The Text Editor is empty. Nothing to download at this moment!"); // NOTE:+DEBUG: I've a generic alert right now, but change this to something more formal later.
+        alert("The Text Editor is empty. Nothing to download at this moment!"); // TO-DO: I've a generic alert right now, but change this to something more formal later.
         return;
       }
 
@@ -517,48 +261,130 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
   };
 
+  // Function for sending the current cursor position within the Editor to the Socket.IO server (with throttling for a slight delay in the rendering):
   const sendCursorToServer = throttle((cursorPos, username) => {
     socket.emit("send-cursor-pos", cursorPos, socket.id, username);
-  }, 100); // <-- throttle causes a slight delay in the rendering (it'll trail behind the actual typing pos, but I think that's okay and good).
+  }, 100);
 
-  // "useEffect(()=>{...})" Hook #1 - "The original one", for client-instance text editor/state changes/emitting changes to server etc.
+  // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
+  const callLoadRoomUsers = async(roomId) => {
+    const usersData = await loadRoomUsers(roomId);
+
+    /* When this list of Users is exported, it takes "user_id" from my table user_rooms (for linking users to rooms).
+    To prevent naming inconsistency headaches with setting state var "usersList" w/ usersData, I'm going to slightly
+    tweak the returned array so that its user_id item is renamed to userId (and same w/ room_id => roomId): */
+    const tweakedArr = usersData.map(user => ({
+      userId: user.user_id,
+      username: user.username,
+      displayname: user.displayname,
+      role: user.role,
+      roomId: user.room_id,
+    }));
+    setUsersList(tweakedArr);
+  };
+  useEffect(() => {
+    callLoadRoomUsers(roomId);
+  }, []);
+
+  // useEffect Hook #1: Listens for emits from the Socket.IO server:
+  useEffect(()=> {
+    // Handle notifications:
+    const handleNotif = (notif) => {
+      // Changing the colour of the Notifications Bar Icon to let the user know that they've received a notification:
+      let notifBarCheck = document.getElementById('notification-bar');
+
+      if(!notifBarCheck) {
+        let notifsBtn = document.getElementById('notifs-button');
+        notifsBtn.style.backgroundColor = 'red';
+      }
+
+      const id = uuidv4();
+      const newNotif = { id, message: notif.message || notif, timestamp: Date.now(), };
+      const stored = localStorage.getItem("notifications");
+      const prev = stored ? JSON.parse(stored) : [];
+      const updated = [...prev, newNotif];
+      localStorage.setItem("notifications", JSON.stringify(updated));
+    }
+    socket.on("notification", handleNotif);
+
+    // Listen to see if the current user gets kicked from the editing room:
+    socket.on("you-have-been-kicked", () => {
+      setKicked(true);
+    });
+
+    // Listen for an updated list of Active Users:
+    socket.on("active-users-list", (activeUsers) => {
+      setActiveUsersList(activeUsers);
+    });
+
+    // Loading a pre-existing document state for this Editor Room from the PostgreSQL backend (or just checking to see if loading is necessary):
+    socket.on("load-existing", () => {
+      if(hasLoadedRef.current) return;
+
+      editor.update(() => {
+        try {
+          editor.setEditorState(
+            editor.parseEditorState(loadContent)  // I'm just parsing a JSON string of the saved Lexical state (NOTE: For now, since I can't figure out the Yjs-Lexical sync).
+          );
+        } catch(err) {
+          console.error("ERROR: Failed to load pre-existing document state from the backend database. This may simply be because it was empty (if so, there is no problem) => ", err);
+        }
+        hasLoadedRef.current = true;
+      });
+    });
+
+    // Stuff to be done if the user exits the Editor Room (to the Dashboard or just closes the tab or browser):
+    const handleBeforeUnload = () => {
+      if(hasLoadedRef.current) {
+        editor.update(() => {
+          const editorState = editor.getEditorState();          
+          const jsonString = JSON.stringify(editorState); 
+          // send copy of the latest Lexical editor document state:
+          socket.emit("send-latest-doc", roomId, jsonString, token);
+          socket.off("active-cursors");
+          socket.off("update-cursors");
+          hasJoinedRef.current = false;
+        });
+        socket.emit("leave-room", roomId, userData.id);
+      }
+    };
+    window.addEventListener("beforeunload", handleBeforeUnload);
+
+    return () => {
+      socket.off("notification", handleNotif);
+      socket.off("you-have-been-kicked");
+      socket.off("active-users-list");
+      socket.off("load-existing");
+      socket.off("notification", handleNotif);
+
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      handleBeforeUnload(); // If user navigates away within SPA, still save.
+    };
+  }, []);
+
+  // useEffect Hook #2 - For client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
     const unregister = editor.registerUpdateListener(({ editorState }) => {
       editorState.read(() => {
-        /* From the Lexical documentation:
-        "There is only ever a single RootNode in an EditorState and it is always at the top and it represents the contenteditable itself. 
-        This means that the RootNode does not have a parent or siblings. To get the text content of the entire editor, you should use 
-        rootNode.getTextContent()." <-- and by "using rootNode", seems like I'd have to invoke "$getRoot()" */
         const textContent = $getRoot().getTextContent();
-
-        // NOTE: The stuff below is for the text editor line counter...
-        const lines = textContent.split("\n").length;
+        const lines = textContent.split("\n").length; // Count total editor lines.
         setLineCount(lines);
-        //console.log("Current line count in text editor: ", lines);
 
-        // Okay and now I'm going to write some code to detect the current line of the Text Editor!
+        // Detecting current line of the Text Editor (that the cursor is positioned on):
         const paraNodes = $getRoot().getChildren();
         const selection = $getSelection();
-
-        if(!selection) return;  // Originally added this line to prevent errors with a scrapped feature. Keeping it for good practice!
-
+        if(!selection) return;        
         let {anchor} = selection;
         let anchorNode = anchor.getNode();
         let anchorOffset = anchor.offset;
         let absoluteCursorPos = findCursorPos(paraNodes, anchorNode, anchorOffset); // let's see!
         cursorPos.current = absoluteCursorPos;
-
-        //console.log("DEBUG: The value of cursorPos.current is = ", cursorPos.current);
-
         let textContentTrunc = textContent.slice(0, absoluteCursorPos);
         let currentLine = textContentTrunc.split("\n").length;
-        //console.log("DEBUG: The current line is: ", currentLine);
         setCurrentLine(currentLine);
+        sendCursorToServer(cursorPos.current, userData.username); // Let the Socket.IO server know this client's cursor position (important for my custom foreign cursor rendering).
 
-        sendCursorToServer(cursorPos.current, userData.username); // emit current Text Editor cursor pos to the server (in external function so throttling can be applied).
-
-        // NOTE: The stuff below is for the Markdown renderer... 
-        setEditorContent(textContent);
+        setEditorContent(textContent);  // This and the one below are for the Markdown renderer.
         setParsedContent(parseMarkdown(textContent));
       });
     });
@@ -569,93 +395,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
   }, [editor]);
 
-  // "useEffect(()=>{...})" Hook #2 - For clientCursors updates (letting us know when to update the RemoteCursorOverlay rendering):
+  // useEffect Hook #3 - For clientCursors updates (letting us know when to update the RemoteCursorOverlay rendering):
   useEffect(() => {
     // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
     socket.on("update-cursors", (cursors) => {
-      //console.log("DEBUG: Received clientCursors update! cursors = [", cursors, "]");
-      //console.log("Debug: Also btw the value of socket.id is: ", socket.id);
       setOtherCursors(cursors.filter(cursor => cursor.id !== socket.id)); // The "=> cursor.id !== socket.id" part is for not including *this* client's ID.
-      /* otherCursors won't automatically update to "cursors" immediately, will need to wait for the next time
-      the Editor renders (which I can catch with another useEffect hook dedicated to detecting when otherCursors changes). */  
-
     });
     return () => {
       socket.off("update-cursors");
     };
   }, []);
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
-  const debugFunction = (editor, id, color, label, offset) => {
-    editor.update(() => {
-      console.log("DEBUG: ************************************************************");
-      console.log("DEBUG: debugFunction entered...");
-      console.log("DEBUG: ************************************************************");
-
-      console.log("The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
-
-      //console.log("Debug: The value of activeUsersList => [", activeUsersList, "]");
-      /*const editorState = editor.getEditorState();
-      const jsonString = JSON.stringify(editorState); 
-      console.log("The value of jsonString => [", jsonString, "]");
-      saveRoomData(roomId, jsonString);*/
-
-      console.log("DEBUG: ************************************************************");
-      console.log("DEBUG: debugFunction exited...");
-      console.log("DEBUG: ************************************************************");
-    });
-  }
-  // NOTE: THIS ABOVE IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
 
   // The three following const functions are for the "draggable" divider line between the Text Editor and Preview Panel:
   const handleMouseDown = () => {
@@ -665,9 +414,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   };
   const handleMouseMove = (event) => {
     if (isResizing.current) {
-      const newWidth = (event.clientX / window.innerWidth) * 100; // debug: Convert px to %
+      const newWidth = (event.clientX / window.innerWidth) * 100;
       const clampedWidth = Math.max(30, Math.min(70, newWidth));
-      setEditorWidth(clampedWidth); // debug: Clamp width between 30% - 70%
+      setEditorWidth(clampedWidth);
     }
   };
   const handleMouseUp = () => {
@@ -675,15 +424,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     document.removeEventListener("mousemove", handleMouseMove);
     document.removeEventListener("mouseup", handleMouseUp);
   };
-
-
-
-
-
-
-
-
-
 
   // Configuring event listeners for certain keys:
   const handleKeyInput = (event) => {
@@ -706,7 +446,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     /* Special handling needed for "Enter" relating to Quote, Generic List, Numbered List, 
     and Check List formatting (i.e., Making sure if I click enter after line "1. something", the next line begins with "2. "): */
     if (event.key === "Enter") {
-      event.preventDefault(); // DEBUG: <-- does not seem to do anything lol 
+      event.preventDefault();
       editor.update(() => {
         const selection = $getSelection();
         const {anchor} = selection;
@@ -755,7 +495,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                   }
                 } else if(startsWNumber && extractStart2 === ". " ) {
                   if(paraChild.getTextContent().trim().length === 2) {
-                    // nuke that line's text content:
                     paraChild.setTextContent("");
                   } else {
                     // There's something here past the prefix, so I need to make sure the current line has "{this line's # + 1} " prepended to it: 
@@ -785,11 +524,33 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       });
     }
   }
+
+
+
+
+
+
+  // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
+  const debugFunction = (editor, id, color, label, offset) => {
+    editor.update(() => {
+      console.log("DEBUG: ************************************************************");
+      console.log("DEBUG: debugFunction entered...");
+      console.log("DEBUG: ************************************************************");
+
+      console.log("The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
+
+      console.log("DEBUG: ************************************************************");
+      console.log("DEBUG: debugFunction exited...");
+      console.log("DEBUG: ************************************************************");
+    });
+  }
+  // NOTE: THIS ABOVE IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
+
+
+
+
   return(
-
-
     <div id="the-editor-wrapper" className="editor-wrapper">
-
       {/* Going to have something loaded here that boots the user when they get kicked: 
       [1] - Dark overlay background (clicking anywhere on it returns you to the Dashboard).
       [2] - <div> centered in the middle of screen with a "You have been kicked" notice. */}
@@ -826,11 +587,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }} onClick={()=>{goToDashboard();}}>
           YOU HAVE BEEN KICKED.
         </div>
-      )}
+      )} {/* "Main" return code below: */}
 
       {/* The horizontal bar at the top of the webpage (where the site title is, "Text Editor|Split|Preview Panel" toggles are, etc): */}
       <div className="editor-preview-overhead">
-        
         {/* The "Upload File" (.md) and "Download File" (.md) buttons: */}
         <div className="editor-upload-download">
           {/* The Upload .md File Button: */}
@@ -849,7 +609,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           <button onClick={()=> handleViewChange("split")} disabled={viewMode==="split"}>Split-View</button>
           <button onClick={()=> handleViewChange("preview-only")} disabled={viewMode==="preview-only"}>Preview Panel</button>
         </div>
-        {/*<h1>HACKMD CLONE!!!</h1>*/}  {/* DEBUG:+NOTE: Change this to something proper eventually... */}
 
         {/* NOTE: Added this parent <div> for the stuff inbetween to add in-between spacing... */}
         <div style={{display:"flex", flexDirection:"row", gap:"5px"}}>
@@ -881,7 +640,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           </div>
 
         </div>
-
       </div>
 
       {/* The <div> below will encase the "main body" of the webpage (the Text Editor and Preview Panel, or just one of them isolated).
@@ -944,19 +702,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
           </div>
           
-          {/* "main-text-editor" is basically the wrapping for the actual editable text editor -- it exists mostly so that the line numbers 
-          can align with the rows of the text editor (style=flex). 
-          NOTE:+DEBUG: ^ Make note of this when determining if I keep or get rid of the horizontal line numbers (might be too difficult
-          to incorporate the what happens when you type one continous line of text thing)... */}
           <div className="main-text-editor" style={{fontFamily: editorFont}}>
-
-            {/* The block of code below was for the "Line Numbers" column to the left of the Text Editor: */}
-            {/*<div className="line-numbers">
-              {Array.from({length: lineCount}, (_,i) => (
-                <div key={i+1}>{i + 1}</div>
-              ))}
-            </div>*/}
-
             {/* The actual Text Editor + configurations so I can drag and drop .md files... */}
             <div className={`editor-container ${isDraggingMD ? "dragging" : ""}`} 
             onDragOver={(e) => {e.preventDefault(); setIsDraggingMD(true);}} 
@@ -968,101 +714,42 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 will be dynamically rendered when multiple people are editing the same editor. I want it to be the same dimensions and
                 everything as the contentEditable (which is why it has the same class), just want it to positioned relatively instead, which
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
-
                 <div className={'content-editable'} style={{position:"relative"}}> 
 
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
-
-                      //const doc = docRef.current;
-                      
-
-                      /*console.log("CPlugin-DEBUG: The value of shouldBootstrap => [", shouldBootstrap, "]");
-                      console.log("CPlugin-DEBUG: The value of doc => [", doc, "]");
-                      let buffer = doc.get('root', Y.XmlText);
-                      console.log("CPlugin-DEBUG: The value of doc.get('root', Y.XmlText); => [", buffer, "]");
-                      console.log("CPlugin-DEBUG: The value of [doc.get('root', Y.XmlText)].toString() => [", buffer.toString(), "]");
-                      const root = doc.share.get('root');*/
-
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
-                      //docRef.current = doc;
 
                       provider.on('status', (event) => { 
-                        console.log('DEBUG: WebSocket status:', event.status);
+                        console.log('WebSocket status:', event.status);
 
                         if(event.status === "connected") {
                           hasLoadedRef.current = true;
-
                           socket.emit("ready-for-load", roomId);
-
-                          // DEBUG: Trying to have it here instead...
 
                           // NOTE: Originally had this in the first UseEffect hook in the <Editor> area... (better here, guarantees <UsersListBar> will be filled):
                           console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
                           // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
                           socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
-
-
-
-
-                          // ^ YEAH THIS IS MUCH BETTER
-
                         }
                       }) 
-                      
-                      
-                      
-                      
-                      
-                      // DEBUG:
-                      //provider.on('sync', (isSynced) => console.log(`DEBUG: Doc synced? => ${isSynced} and Y.Doc keys => ${doc.share.keys()}`)) // DEBUG:
-                      /*provider.on('sync', (isSynced) => {
-                        console.log(`sync-DEBUG: isSynced = ${isSynced}, shouldBootstrap = ${shouldBootstrap}`);
-                        const keys = [...doc.share.keys()];
-                        console.log(`sync-DEBUG: Doc synced? => ${isSynced} and Y.Doc keys =>`, keys);
-
-                        if (isSynced) {
-                          console.log("About to isLexicalREady");
-                          const isLexicalReady = root instanceof Y.XmlText;
-                          console.log("Lexical Ready? => [", isLexicalReady, "]");
-                          if(isLexicalReady) {
-                            console.log("YEAH IT IS READY!!!");
-                          }
-                        }
-
-                        if (isSynced && shouldBootstrap) {
-                          console.log("sync-DEBUG: isSynced && shouldBootstrap ENTERED!!!");
-                          const root = doc.get('root');
-                          if(root instanceof Y.XmlText) {
-                            console.log("sync-DEBUG: Lexical has populated the document with XmlText.");
-                            const binary = Y.encodeStateAsUpdate(doc);
-                            saveRoomData(roomId, binary);
-                          } else {
-                            console.warn("sync-DEBUG: Lexical has not finished populating the document. Delaying save.");
-                          }
-                          //const binary = Y.encodeStateAsUpdate(doc);
-                          //saveRoomData(roomId, binary); // persist it to PostgreSQL
-                        }
-                      });*/
                       
                       return provider;
                     }}
                     shouldBootstrap={false}
-                    //shouldBootstrap={shouldBootstrap}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) */
-                    // ^ looking like I need it temporarily (for Yjs).
+                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
+                    (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
                   />
 
-                  {/* NOTE-TO-SELF: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
+                  {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
-
-                  {/* Need to wrap the ContentEditable inside the PlainTextPlugin (I didn't do this originally, that's why the Placeholder wasn't working). */}
+                  
                   <PlainTextPlugin
                     contentEditable={
                       <ContentEditable className={`content-editable black-outline ${isDraggingMD ? "dragging" : ""}`} onKeyDown={handleKeyInput} 
@@ -1075,15 +762,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     placeholder={<div className="placeholder">Write your Markdown here...</div>}
                     ErrorBoundary={LexicalErrorBoundary}
                   />
-                  <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> {/* <-- PHASE-3-DEBUG: Testing some stuff... 
-
-                  {/*<HistoryPlugin/>**/} {/* <-- Needed for Undo/Redo functionality in the Toolbar... (enables tracking or smth) */}
-                  {/* UPDATE: ^ Seems like <HistoryPlugin/> is something I should NOT use in conjunction with <CollaborationPlugin/> acc to the Lexical documentation! */}
+                  <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> 
                 </div>
                 
                 <div>Line Count: {lineCount} | Current Line: {currentLine}</div>
             </div>
-
           </div>
         </div>)}
 
@@ -1145,12 +828,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
       </div>
     </div>
-
   );
 }
 
+/* Laying down some groundwork in Editor(...): */
 function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData }) {
-  // DEBUG: Maybe it'd be better to have the fetch previous document function over here???
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const docRef = useRef(null);
   const [fetchedDoc, setFetchedDoc] = useState(false);
@@ -1159,7 +841,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   const [token, setToken] = useState(null);
 
   const initialConfig = {
-    editorState: null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state). <-- yeah def need this or my collab editing thing is done.
+    editorState: null, // According to Lexical doc, this line is critical for CollaborationPlugin (lets it know CollabPlug will set the defualt state).
     namespace: 'BaseMarkdownEditor',
     sampleTheme,
     onError: (error) => {
@@ -1174,6 +856,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     roomId = useParams().roomId;
   }
 
+  // Editor() useEffect Hook #0: For getting userData on mount if I don't have it:
   useEffect(() => {
     if(!userData) {
       const storedUser = localStorage.getItem("userData");
@@ -1186,43 +869,16 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     }
   }, []);
 
-  // useEffect Hook #0: Another one I want to run on mount (sending Active User status to the Socket.IO server). Listener in there too:
+  /* Editor() useEffect Hook #1: For sending Active User status to the Socket.IO server and also retrieving the
+  pre-existing document state for this Editor Room (if it exists). (NOTE: Original plan was to have Yjs-Lexical sync
+  in a way that Yjs and <CollaborationPlugin> would take care of loading and saving document states, but I just couldn't
+  get it to work for somereason -- that's also why all of this here is in the Editor() function instead of EditorContent). */
   useEffect(() => {
     // Guard against React 18 Strict Mode making this useEffect run twice:
     if(hasJoinedRef.current) return;
     hasJoinedRef.current = true;
     setToken(localStorage.getItem("token"));
 
-    // OLD: Function to grab any pre-existing document state from the backend.
-    /*const fetchAndInit = async() => {
-      //const doc = new Y.Doc();
-      try {
-        const result = await getRoomData(roomId);
-        const binaryData = result.docData.data;
-        if(result.success && result.docData) {
-          const uint8 = new Uint8Array(binaryData);
-          Y.applyUpdate(doc, uint8);
-          setTestUint8(uint8);
-
-          console.log("fetchAndInit-DEBUG: Yeah. The value of doc => [", doc, "]");
-          console.log("fetchAndInit-DEBUG: The value of xmlText => [", doc.get('root', Y.XmlText), "]");
-          let buffer = doc.get('root', Y.XmlText);
-          console.log("fetchAndInit-DEBUG: The value of xmlText.toString() => [", buffer.toString(), "]");
-          console.log("fetchAndInit-DEBUG: The value of doc.share.has('root') => [", doc.share.has('root'), "]");
-          
-          setShouldBootstrap(false);
-          const keys = [...doc.share.keys()];
-          console.log("Doc keys after applyUpdate:", keys);
-        }
-      } catch(err) {
-        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
-        setShouldBootstrap(true);
-      }
-      docRef.current = doc;
-      setFetchedDoc(true);  // condition for <CollaborationPlugin> to render.
-    };*/
-
-    // new fetchAndInit() -- keeping the old so I can search for a solution at some point in the future:
     const fetchAndInit = async() => {
       try {
         const result = await getRoomData(roomId);
@@ -1236,12 +892,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     };
     fetchAndInit();
 
-    //console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
-    // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
-    //socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
-
   }, [userData]);
-  // DEBUG:[ABOVE] Maybe it'd be better to have the fetch previous document function over here???
 
   return (
     <LexicalComposer initialConfig={initialConfig}>

@@ -63,27 +63,34 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   max-height:100%;
 }
 
+
+
+
+
+
+
+/* ---------------------------------------------------------------------------------------- */
+/* Styling below mostly relates to the Horizontal bar at the top of the Text Editor webpage
+(where the site title is, "Text Editor|Split|Preview Panel" toggles are, etc):  */
 .editor-preview-overhead {
   height:auto;
   max-height:60px;
   display: flex;
+  flex-direction:row;
+  justify-content: space-between;
+  align-items:center;
 }
-
 .editor-overhead {
   position:relative;
 }
-
-/* This ".editor-preview-toggle" class is for the <div> container holding the side-by-side
+/* This ".editor-preview-toggle" class is for the <div> container holding the actual side-by-side
 "Text-Editor|Split-View|Preview-Panel" buttons in the header space at the top of the webpage. */
 .editor-preview-toggle {
-  margin:auto;
-  /*margin-left:25%;*/
   padding:3px;
   background-color:darkgray;
 }
-
+/* The three below all relate to the "Upload Markdown File"|"Download as .md" section: */
 .editor-upload-download {
-  margin: auto;
   background-color:darkgray;
   padding:10px;
   display:flex;
@@ -109,6 +116,34 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   outline: 2.5px solid black;
   cursor:pointer;
 }
+/* ---------------------------------------------------------------------------------------- */
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 /* DEBUG: Everything BELOW is for making the LHS/RHS, Text Editor, Preview Panel 50/50 thing work: */
 .editor-layout {
