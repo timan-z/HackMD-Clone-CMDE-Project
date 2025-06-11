@@ -39,13 +39,20 @@ function Toolbar() {
 
 
 
-    // Function for inserting the "Bold", "Italics", "Strikethrough", and "Create Link" Markdown formatting:
-    /* With the toolbar I create for the text entry area, I don't want the "bold", "italic", "strikethrough", and "create link"
+
+
+
+
+
+
+
+
+
+    // Function for inserting the [B]"Bold", [I]"Italics", [S]"Strikethrough", [C]"Code" and [L]"Create Link" Markdown formatting:
+    /* With the toolbar I create for the text entry area, I don't want the "bold", "italic", "strikethrough", "code", and "create link"
     buttons to apply the styling directly over the text being typed, instead I want the Markdown formatting for those
     stylings to be applied over the space. This function does that: */ 
-
-    // Redoing this function (modeling it after applyMarkdownFormatCode -- which seems to be the best "model" here):
-    const applyMarkdownFormatBISC = (wrapper1, wrapper2) => {
+    const applyMarkdownFormatBISCL = (wrapper1, wrapper2) => {
         editor.update(() => {
             let selection = $getSelection();
             if (!$isRangeSelection(selection)) return;  // $isRangeSelection(...) is a type-checking function, ensuring "selection" (cursor area) exists within the editor.
@@ -55,8 +62,12 @@ function Toolbar() {
                 reposValue = 2;
             } else if (wrapper2 === "*") {
                 reposValue = 1;
-            } else {
+            } else if (wrapper1 === "[") {
                 reposValue = 11;
+            } else {
+                if(wrapper1 === "```\n") {
+                    reposValue = 4;
+                }
             }
 
             // DEBUG: Beginning to mimic applyMarkdownFormatcode here.
@@ -92,7 +103,6 @@ function Toolbar() {
                 updatedAnchorNode = updatedSelection.anchor.getNode();
                 updatedSelectedText = String(updatedAnchorNode.getTextContent());
                 newEditorTextFull = $getRoot().getTextContent();
-                let sStrIndices = null;
 
                 if(selectedText === "") {
                     /* NOTE: These subsequent two lines, while they may appear redundant, are necessary for the empty string scenario.
@@ -121,6 +131,13 @@ function Toolbar() {
                 }
             } else {
                 // This "else" branch will catch all scenarios where the line is NOT empty.
+
+                if(wrapper1 === "```\n" && wrapper2 === "\n```") {
+                    // Adjustments need to be made for the Code format here:
+                    wrapper1 = "`";
+                    wrapper2 = "`";
+                    reposValue = 1;
+                }
 
                 if(selectedText !== "") {
                     // Scenario 2. There is highlighted text ->{wrapper1}highlighted_text{wrapper2} (also NOTE: cursor would be moved prior to the second wrapper):
@@ -248,9 +265,12 @@ function Toolbar() {
 
 
 
+
+
+
+
     // Sep Function for applying "Code" since it also works differently (appends ```\n{text}\n``` or `{text}` depending on the situation):
     const applyMarkdownFormatCode = (editor) => {
-
         editor.update(() => {
             const selection = $getSelection();
             if($isRangeSelection(selection)) return; // $isRangeSelection(...) is a type-checking function, ensuring "selection" (cursor area) exists within the editor.
@@ -275,10 +295,6 @@ function Toolbar() {
             let cursorPosChar = editorTextFull.charAt(Math.max(absoluteCursorPos-1, 0)); 
             let newCursorPos = null;
             let newSelection = null;
-
-
-
-
 
             if(selectedText.includes("\n") || (selectedText === "" && (selectedText === editorTextFull || cursorPosChar === "\n" || absoluteCursorPos === 0))) {
                 // Scenario 1. If the current line is empty -> {```\n}cursor{\n```} OR multi-line text highlighted -> {```\n}text{\n```}: 
@@ -332,13 +348,17 @@ function Toolbar() {
                 // Since the "else" branch deals with single-line scenarios, anchor.offset *will* refer to the cursor position (within the line).
                 newCursorPos = selection.anchor.offset - 1;
             }
-
             newSelection = $createRangeSelection();
             newSelection.setTextNodeRange(anchorNode, newCursorPos, anchorNode, newCursorPos);
             $setSelection(newSelection);
-        
         })
     };
+
+
+
+
+
+
 
 
 
@@ -641,15 +661,15 @@ function Toolbar() {
         {/*--------------------------------------------------------- */}
         {/* Creating the button that responds to "bold" */}
         <button onClick={()=>{
-            applyMarkdownFormatBISC("**","**")
+            applyMarkdownFormatBISCL("**","**")
         }}>B</button>
         {/* Creating the button that responds to "italic" */}
         <button onClick={()=>{
-            applyMarkdownFormatBISC("*","*")
+            applyMarkdownFormatBISCL("*","*")
         }}>I</button>
         {/* Creating the button that responds to "strikethrough" */}
         <button onClick={()=>{
-            applyMarkdownFormatBISC("~~","~~")
+            applyMarkdownFormatBISCL("~~","~~")
         }}>S</button>
 
         {/* Creating the button that responds to "header" (will require a separate function than those above) */}
@@ -659,7 +679,8 @@ function Toolbar() {
 
         {/* Creating the button that responds to "code" (adding the ```code``` etc block thing, which will require a seperate function) */}
         <button onClick={()=>{
-            applyMarkdownFormatCode(editor)
+            //applyMarkdownFormatCode(editor)
+            applyMarkdownFormatBISCL("```\n", "\n```");
         }}>&#60;/&#62;</button>
 
         {/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -692,7 +713,7 @@ function Toolbar() {
 
         {/* Creating the button that responds to "create link" */}
         <button onClick={()=> {
-            applyMarkdownFormatBISC("[", "](https://)")
+            applyMarkdownFormatBISCL("[", "](https://)")
         }}>LINK</button>
 
         {/* Creating the button that responds to "insert table" */}
