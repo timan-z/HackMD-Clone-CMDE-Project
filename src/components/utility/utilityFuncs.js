@@ -94,25 +94,3 @@ export function findCursorPos(paraNodes, anchorNode, anchorOffset) {
     //console.log("~~~Code Button Clicked (CBC) console.log statements END~~~");
     return absolutePosition;
 }
-
-// **************************************************************************************
-// Functions for persisting Chat Message history (per browser session) -- NOTE: These would be front-end:
-// DEBUG: Should probably remove all of this later...
-export const loadChatHistory = (currentUserId) => {
-  const key = `${currentUserId}_chatHistory`;
-  const raw = localStorage.getItem(key);
-  return raw ? JSON.parse(raw) : {};
-};
-
-export const saveChatHistory = (currentUserId, history) => {
-  const key = `${currentUserId}_chatHistory`;
-  localStorage.setItem(key, JSON.stringify(history));
-};
-
-export const appendMessageToHistory = (currentUserId, targetUserId, message) => {
-  const history = loadChatHistory(currentUserId);
-  if (!history[targetUserId]) history[targetUserId] = [];
-  history[targetUserId].push(message);
-  saveChatHistory(currentUserId, history);
-};
-// DEBUG: ^ Probably should remove all of this later...

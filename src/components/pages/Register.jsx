@@ -1,25 +1,8 @@
-// REGISTER PAGE (will be pretty similar structurally to Login.jsx):
-/* NOTE: ^ Maybe I can change the design afterwards when all the core functionality is finished. Similar to how
-the Github Registration page is super fancy compared to the Login one...*/
-
-// ^ Yeah, I'm going to base the design here off of GitHub's Registration page. So the "Sign Up" stuff will all be on the right-hand side of the webpage
-
 import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import {register} from "../utility/api.js";
 
-/* 
-
-DON'T FORGET: Solve this stupid problem: 
-"Uncaught SyntaxError: The requested module '/src/components/pages/Register.jsx?t=1747099488268' does not provide an export named 'default' (at App.jsx:5:8)"
-^ HAS SOMETHING TO DO WITH CACHING -- TOO TIRED TO FIGURE IT OUT TONIGHT.
-
-*/
-
-
-
 function Register() {
-
     const emailInputRef = useRef(null);
     const pwordInputRef = useRef(null);
     const unameInputRef = useRef(null);
@@ -27,7 +10,6 @@ function Register() {
     /* NOTE: For now, upon successful Registry, let's re-route to the Login page. But when this is more fleshed out, let's make it so
     that there's some sort of animated pop-up that says "Registration successful! Would you like to login now?" (with option to click login). */
     const navigate = useNavigate(); // For re-directing to Login page on successful Registration. DEBUG: FOR NOW!!!
-
 
     // Pre-register button that ensures all forms are filled:
     const checkFormsFilled = () => {
@@ -45,8 +27,6 @@ function Register() {
             return true;
         }
     };
-
-
 
     return(
         /* The contents of the outermost <div> will be two primary inner <div> elements equally partitioned
@@ -72,12 +52,6 @@ function Register() {
                 style={{height:"75%", width:"65%", display:"flex", flexDirection:"column", alignItems:"center", marginTop:"90px", 
                 borderStyle:"solid" }} >
                     <h1>Sign up to HackMD Clone</h1>
-
-
-
-
-
-
 
                     <form style={{height:"100%", width:"100%", display:"flex", flexDirection:"column", alignItems:"center"}} onSubmit={ async (e) => {
                         e.preventDefault();  // The Register logic only occurs if all Register forms are completed (none empty).
@@ -130,7 +104,6 @@ function Register() {
                         style={{fontSize:"20px", fontWeight:"bold", height:"60px", width:"40%", color:"white", border:"none", borderRadius:"8px", backgroundColor:"green", cursor:"pointer"
                         }}>REGISTER</button>
                     </form>
-
 
                 </div>
             </div>

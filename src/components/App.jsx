@@ -1,25 +1,20 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { getCurrentUser, getRoomUsers, saveRoomDoc, getRoomDoc } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
-// The three main webpages of the application (in order of appearance):
+// The four main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
 import Dashboard from "./pages/Dashboard.jsx";
 import Editor from "./pages/Editor.jsx";
-import PrivateRoute from "./core-features/PrivateRoute.jsx"; // For preventing unauthorized access to certain pages...
-import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx"; // ^ More of the same but for more minor purposes.
+// For preventing unauthroized access to certain pages (security stuff):
+import PrivateRoute from "./core-features/PrivateRoute.jsx";
+import PrivateRouteMisc from "./core-features/PrivateRouteMisc.jsx";
 import PrivateRouteEditor from "./core-features/PrivateRouteEditor.jsx";
 
-//import * as Y from 'yjs'; // DEBUG!
-//import { XmlFragment, XmlElement, XmlText } from 'yjs'; // DEBUG!
-
-// NOTE-TO-SELF: This "App" function serves as our root.
 function App() {
   const [user, setUser] = useState(null);
-  const [token, setToken] = useState(localStorage.getItem("token"));  // Token signifying current user will be stored in localStorage.
+  const [token, setToken] = useState(localStorage.getItem("token"));
   const [roomId, setRoomID] = useState(null);
-
-  // test:
   const [username, setUsername] = useState(null);
   const [userId, setUserId] = useState(null);
 
@@ -36,25 +31,22 @@ function App() {
     setRoomID(roomId);
   };
 
-  // Function for sending Editor document data (Yjs doc content) to the PostgreSQL server:
+  // Function for sending Editor document data to the PostgreSQL server:
   const saveRoomData = async(roomId, docData) => {
     if(token) {
       try {
-        const result = await saveRoomDoc(roomId, docData, token);
-        console.log("Debug: The value of result => [", result, "]");
-
+        await saveRoomDoc(roomId, docData, token);
       } catch(err) {
         console.error(`ERROR: Failed to save Editor document data for Room ID:(${roomId}) to the PostgreSQL backend.`);
       }
     }
   }
 
-  // Function for retrieving Editor document data (Yjs doc content) from the PostgreSQL server:
+  // Function for retrieving Editor document data from the PostgreSQL server:
   const getRoomData = async(roomId) => {
     if(token) {
       try {
         const result = await getRoomDoc(roomId, token);
-
         return result;
       } catch(err) {
         console.error(`ERROR: Failed to retrieve Editor document data for Room ID:(${roomId}) from the PostgreSQL backend.`);
@@ -69,9 +61,7 @@ function App() {
       try {
         const userData = await getCurrentUser(token);
         setUser(userData);
-
         localStorage.setItem("userData", JSON.stringify(userData));
-
         setUsername(userData.username);
         setUserId(userData.id);
       } catch(err) {
@@ -87,7 +77,7 @@ function App() {
       loadUser();
     }
   }, [token]);
-
+  
   // Function for handling retrieval of all Users associated with a particular Room:
   const loadRoomUsers = async(roomId) => {
     if(token) {
@@ -103,33 +93,24 @@ function App() {
   return (
     <Router>
       <Routes>
-
         {/* BELOW ARE THE PUBLIC ROUTES (PAGES) -- THOSE THAT DO NOT NEED AUTHROIZATION TO ACCESS: */}
 
-        {/* Default home-page (DEBUG:+NOTE: will switch between /Login and /Dashboard depending on if the user is logged in or not). */}
+        {/* Default home-page (will switch between /Login and /Dashboard depending on if the user is logged in or not): */}
         <Route path="/" element={<Navigate to="/Login" replace/>} />
         {/* 1. Login and Authenticate Page. (Homepage if **not** logged in): */}
         <Route path="/login" element={localStorage.getItem("token") ? <Navigate to="/dashboard" replace/> : <Login setUser={setUser} setToken={setToken} />} /> {/* Need setUser={...} etc so I can set the App.jsx state variables from within Login.jsx. */}
-        {/* 2. Registration Page. */}
+        {/* 2. Registration Page: */}
         <Route path="/register" element={<Register />} />
 
         {/* BELOW ARE THE PROTECTED ROUTES (PAGES) -- NEED AUTHORIZATION TO ACCESS THEM!: */}
         
         {/* 3. Editing Session Dashboard Page. (Homepage **if** logged in): */}
         <Route path="/dashboard" element={<PrivateRoute><Dashboard loadUser={loadUser} loadRoomUsers={loadRoomUsers} logout={handleLogout} sendRoomID={handleRoomJoin} userData={user} setUser={setUser} /></PrivateRoute>} />
-
         {/* 4. Editing Session. (Actual collaborative editor webpage, my Editor.jsx file): */}
         <Route path="/editor/:roomId" element={<PrivateRouteEditor token={token} roomId={roomId}><Editor loadUser={loadUser} loadRoomUsers={loadRoomUsers} userData={user} setUser={setUser} username={username} userId={userId} roomId={roomId} saveRoomData={saveRoomData} getRoomData={getRoomData} /></PrivateRouteEditor>} /> {/* <-- DEBUG: For now, when just developing, I can type whatever for the ":roomId" stuff, it's just a placeholder... */}
 
-
-
-
-        {/* TO-DO: Want to make it so that if the user is logged in, 
-        - any un-defined URL routes just re-map to the Dashboard page.
-        If they are NOT logged in,
-        - any un-defined URL routes just re-map to the Login page. */}
+        {/* Below ensures any undefined URL routes just re-map to the Dashboard page or Login page (depending on logged-in status). */}
         <Route path="*" element={<PrivateRouteMisc><Login /></PrivateRouteMisc>} />
-  
       </Routes>
     </Router>
   );

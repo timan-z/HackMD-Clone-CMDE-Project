@@ -1,6 +1,6 @@
 // Frontend API utilities (for handling API requests sent from the frontend -- basically my Postman tests through JS):
 
-const API_BASE = "http://localhost:5000/api"; // Backend express server.
+const API_BASE = "http://localhost:5000/api"; // My backend express server.
 
 // 1. USER-RELATED UTILITIES:
 // 1.1. Register:
@@ -41,7 +41,7 @@ export const createNewEdRoom = async (edRoomName, token) => {
         method: "POST",
         headers: { 
             "Content-type": "application/json",
-            Authorization: `Bearer ${token}`,   // Need this to map user-to-room (creation).
+            Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify({ edRoomName }),
     });
@@ -65,7 +65,7 @@ export const checkRoomAccess = async(roomId, token) => {
        },
     });
     if(!result.ok) throw new Error("Editor Room access check failed.");
-    return result.json();   // Returns { access: true/false }
+    return result.json();
 };
 
 // 2.4. For generating invite links:
@@ -78,7 +78,7 @@ export const generateInvLink = async(roomId, token, expiresInMinutes = 60) => {
         },
         body: JSON.stringify({ expiresInMinutes })
     });
-    return result.json(); // Returns { inviteURL: {the_url} }
+    return result.json();
 };
 
 // 2.5. For using invite links:
@@ -170,11 +170,6 @@ export const getRoomDoc = async(roomId, token) => {
 // 5. REAL-TIME INTERACTION (MESSAGING MAINLY):
 // 5.1. For sending messages:
 export const sendMessage = async(roomId, from_user, to_user, message, token) => {
-
-
-    console.log("DEBUG: Something going on?");
-
-
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/message`, {
         method:"POST",
         headers: {

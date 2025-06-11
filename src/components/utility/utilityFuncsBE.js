@@ -28,17 +28,9 @@ export const verifyToken = (req, res, next) => {
 
 // Moving this function from App.jsx over to here since I want to invoke it in socketIOServer.js now...
 export const saveRoomData = async(roomId, docData, token) => {
-
-    console.log("DEBUG: saveRoomData from utilityFuncsBE.js has been entered!!!!!");
-    console.log("Debug: Yup that's the one...");
-    console.log("Debug: The value of token => [", token, "]");
-
     if(token) {
         try {
-            console.log("Function saveRoomDoc is about to be entered...");
-
-            const result = await saveRoomDoc(roomId, docData, token);
-            console.log("Debug: The value of result => [", result, "]");
+            await saveRoomDoc(roomId, docData, token);
         } catch(err) {
             console.error(`ERROR: Failed to save Editor document data for Room ID:(${roomId}) to the PostgreSQL backend.`);
         }

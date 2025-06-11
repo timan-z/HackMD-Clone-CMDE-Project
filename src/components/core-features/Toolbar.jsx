@@ -1,10 +1,8 @@
-
-// The reference point for this toolbar is just the exact same one HackMD uses...
-
+// Toolbar.jsx, the file for defining the Editor's Toolbar (modeled after the one HackMD uses):
 import React, { useState } from 'react';
 import cloudinary from "cloudinary-core";
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $createRangeSelection, $getSelection, $isRangeSelection, $setSelection, $isTextNode, $createTextNode, $createLineBreakNode, $getRoot, COMMAND_PRIORITY_CRITICAL, $isParagraphNode } from "lexical";
+import { $createRangeSelection, $getSelection, $isRangeSelection, $setSelection, $isTextNode, $createLineBreakNode, $getRoot } from "lexical";
 import {UNDO_COMMAND, REDO_COMMAND} from "lexical"; // For the "UNDO" and "REDO" functionality of the site.
 import { findCursorPos } from '../utility/utilityFuncs.js';
 

@@ -1,18 +1,7 @@
-// Login page goes here (default page if not logged in).
-//<h1>LOGIN GOES HERE!!!</h1>
-
 import React, {useState, useEffect, useRef} from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
 import { useNavigate } from "react-router-dom";
 import {login, getCurrentUser} from "../utility/api.js";
-
-/* 
-
-DON'T FORGET: Solve this stupid problem: 
-"Uncaught SyntaxError: The requested module '/src/components/pages/Register.jsx?t=1747099488268' does not provide an export named 'default' (at App.jsx:5:8)"
-^ HAS SOMETHING TO DO WITH CACHING -- TOO TIRED TO FIGURE IT OUT TONIGHT.
-
-*/
 
 function Login({ setUser, setToken }) {
     const unEmailInputRef = useRef(null);
@@ -84,10 +73,6 @@ function Login({ setUser, setToken }) {
                             const password = pwordInputRef.current.value;
 
                             try {
-                                console.log("DEBUG: ATTEMPTING LOGIN POST-if(formsFilled){...} STATEMENT.");
-                                console.log("debug: The value of email is => [", email, "]");
-                                console.log("debug: The value of password is => [", password, "]");
-
                                 const result = await login({email, password});
                                 
                                 if(result.token) {
@@ -110,17 +95,15 @@ function Login({ setUser, setToken }) {
                             }
                         }
                     }}>
-
                         {/* 2.1 - Section for inputting the username or email address for login: */}
                         <div id="login-username-div" style={{width:"90%", padding:"3.75%", marginTop:"2.5%"}}>
                             <div style={{fontSize:"18px"}}>Username or email address</div>
                             <input id="loginp-unemail-input" style={{width:"97.25%"}} type="text" ref={unEmailInputRef}/>
                         </div>
 
-                        {/* 2.2 - Section for inputting th epassword for login (or for resetting password if needed): */}
+                        {/* 2.2 - Section for inputting the password for login (or for resetting password if needed): */}
                         <div id="login-pword-div" style={{width:"90%", padding:"3.75%"}}>
                             
-                            {/*<p>Password  Forget Password?</p>*/}
                             <div style={{display:"flex", flexDirection:"row", justifyContent:"space-between"}}>
                                 <div style={{fontSize:"18px"}}>Password</div>
                                 <a href="INSERT LINK TO RESET PASSWORD" style={{fontSize:"18px", textDecoration:"none"}}>Forgot Password?</a>
@@ -131,20 +114,13 @@ function Login({ setUser, setToken }) {
 
                         {/* 2.3 - Sign-in Button: */}
                         <button id="loginp-signin-btn" type="submit" style={{marginTop:"2.25%"}} ref={signInBtnRef} >SIGN IN</button>
-
                     </form>
-
                 </div>
                 {/* [3/3] - The box beneath the Username/Email and Password login box for switching to the Registration page: */}
                 <div id="login-new-acc" style={{fontSize:"17px", display:"flex", justifyContent:"center", alignItems:"center"}}>
                     <div style={{marginRight:"10px"}}>New to HackMD Clone?</div><a href="Register" style={{textDecoration:"none"}}>Create an account.</a>
                 </div>
             </div>
-
-            
-            {/* What I want here is a button that takes you to a Test Editor Room... */}
-
-
 
         </div>
     );
