@@ -236,33 +236,6 @@ function Toolbar() {
         });  
     };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // Sep Function for applying "Quote", "Generic List", "Numbered List", or "Check List" (just adds "[symbol] " to the start of the current line)...
     // NOTE: What separates the "Heading" function from this one is that the symbols will "stack" in the "Heading" function (unlike here).
     const applyMarkdownFormatQGNC = (editor, whichOne) => {
@@ -324,22 +297,36 @@ function Toolbar() {
         }
 
         editor.update(() => {
-            const selection = $getSelection();
-            const selectedText = selection.getTextContent();
-            const paraNodes = $getRoot().getChildren();
+            let selection = $getSelection();
+            if(!$isRangeSelection(selection)) return;
+
+            let selectedText = selection.getTextContent();
             let {anchor} = selection;
             let anchorNode = anchor.getNode();
+
+            // EDIT: Need this if-branch below because of adjustments I made to the <CollaborationPlugin> setup that kind of bricked things!!!
+            if($isRootNode(anchorNode)) {
+                const root = $getRoot();
+                root.clear();
+                const paragraph = $createParagraphNode();
+                root.append(paragraph);
+                anchorNode = paragraph;
+                // update these:
+                selection = $getSelection();
+                selectedText = selection.getTextContent();
+                anchor = selection.anchor;
+            }
             let anchorNodeKey = anchorNode.getKey();
+            let anchorOffset = anchor.offset;
+
+            const paraNodes = $getRoot().getChildren();
             let lineText = null;
             let updatedLineT = null;
             let wrappedText = null;
-
-            if(!$isRangeSelection(selection)) {
-                return;
-            }
-
+            let absoluteCursorPos = findCursorPos(paraNodes, anchorNode, anchorOffset);
+            
             // NOTE: Must use "==" here for the equivalence when using anchorNodeKey.
-            if(anchorNodeKey == 2 && selectedText === "") {
+            if(absoluteCursorPos == 0 && selectedText === "") {
                 // Scenario 1. When the Quote button is invoked for a single empty line (getKey value will always be 2):
                 if(whichOne === "quote") {
                     wrappedText = `${"> "}${selectedText}`;
@@ -366,11 +353,7 @@ function Toolbar() {
                                 
                             if($isTextNode(paraChild)) {
                                 if(anchorNodeKey === paraChild.getKey()) {
-                                    console.log("DEBUG: LET'S SEE WHAT WE FOUND!!!");
-                                    console.log("debug: The value of paraChild.getTextContent() is: [", paraChild.getTextContent(), "]");
-
                                     lineText = paraChild.getTextContent(); 
-
                                     break;
                                 }
                             }
@@ -400,7 +383,6 @@ function Toolbar() {
                 }
 
                 selection.insertText(updatedLineT);
-
             } else {
                 // Scenario 3. When the Quote button is invoked for a multi-line selection...
                
@@ -417,6 +399,28 @@ function Toolbar() {
             }
         })
     };
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
     // Sep Function for applying the Horizontal Line insertion:
     const applyMarkdownFormatHLine = (editor) => {
