@@ -31,6 +31,20 @@ function Toolbar() {
         return null;
     }
 
+    // Function for applying the UNDO functionality:
+    const applyMarkdownFormatUndo = (editor) => {
+        editor.update(() => {
+            editor.dispatchCommand(UNDO_COMMAND, undefined);
+        });
+    };
+
+    // Function for applying the REDO functionality:
+    const applyMarkdownFormatRedo = (editor) => {
+        editor.update(()=> {
+            editor.dispatchCommand(REDO_COMMAND, undefined);
+        });
+    };
+
     // Function for inserting the [B]"Bold", [I]"Italics", [S]"Strikethrough", [C]"Code" and [L]"Create Link" Markdown formatting:
     /* With the toolbar I create for the text entry area, I don't want the "bold", "italic", "strikethrough", "code", and "create link"
     buttons to apply the styling directly over the text being typed, instead I want the Markdown formatting for those
@@ -400,28 +414,6 @@ function Toolbar() {
         })
     };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // Sep Function for applying the Horizontal Line insertion:
     const applyMarkdownFormatHLine = (editor) => {
 
@@ -447,7 +439,6 @@ function Toolbar() {
     }
 
     // Sep Function for applying the Image insertion:
-    // NOTE: Worry about optimization and that other stuff yourself later... (probably just some extra stuff to add to the cloudName: cloudName area tbh).
     const applyMarkdownFormatImage = (editor) => {    
         // So I'm using Cloudinary here. I'll be uploading files to the server via their widget...
         window.cloudinary.openUploadWidget(
@@ -462,16 +453,11 @@ function Toolbar() {
                 if(result && result.event === "success") {
                     // When the upload is successful, handle the result:
                     const uploadedImageURL = result.info.secure_url;
-                    console.log("DEBUG: IMAGE HAS BEEN SENT TO THE CLOUDINARY SERVER!!!");
+                    console.log("IMAGE HAS BEEN SUCCESSFULLY SENT TO THE CLOUDINARY SERVER!!!");
 
                     // Adding the uploaded image URL into the Text Editor space:
                     editor.update(() => {
-
-                        console.log("INSIDE-DEBUG: IS THIS PART BEING ENTERED?");
-
                         const selection = $getSelection();
-
-                        console.log("INSIDE-DEBUG: The value of selection is [", selection, "]");
 
                         if(!$isRangeSelection(selection)) {
                             return;
@@ -480,33 +466,38 @@ function Toolbar() {
                         const imageMDFormat = `![Image](${uploadedImageURL})`;
                         selection.insertText(`${selectionText}${imageMDFormat}`);
 
+                        console.log("IMAGE SUCCESSFULLY INSERTED INTO THE EDITOR!!!");
+
                         // Add a line break after the image
                         const updatedSelection = $getSelection();
                         const lineBreakNode = $createLineBreakNode();
                         updatedSelection.insertNodes([lineBreakNode]);
                     });
                 } else {
-                    console.error("Upload Failed: ", error);
+                    // console.error will trigger here even if the upload is successful with an undefined error, so only log if it's intelligible. 
+                    if(error) {
+                        console.error("ERROR: Upload Failed => ", error);
+                    }
                 }
             }
         );
-        // Triggering the file input click event that starts everything above:
-        //inputFile.click();
     };
 
-    // Sep Function for applying the UNDO functionality:
-    const applyMarkdownFormatUndo = (editor) => {
-        editor.update(() => {
-            editor.dispatchCommand(UNDO_COMMAND, undefined);
-        });
-    };
 
-    // Sep Function for applying the REDO functionality:
-    const applyMarkdownFormatRedo = (editor) => {
-        editor.update(()=> {
-            editor.dispatchCommand(REDO_COMMAND, undefined);
-        });
-    };
+
+
+
+
+
+
+
+
+
+
+
+
+
+    
 
     // NOTE: Decided to drop this feature below as of 3/12/2025 -- might come back to it later if I can think of a better approach...
     // Sep Function for applying the Table insertion:
