@@ -31,23 +31,6 @@ function Toolbar() {
         return null;
     }
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // Function for inserting the [B]"Bold", [I]"Italics", [S]"Strikethrough", [C]"Code" and [L]"Create Link" Markdown formatting:
     /* With the toolbar I create for the text entry area, I don't want the "bold", "italic", "strikethrough", "code", and "create link"
     buttons to apply the styling directly over the text being typed, instead I want the Markdown formatting for those
@@ -170,35 +153,32 @@ function Toolbar() {
         });
     };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
     // Sep Function for applying "Heading" since it works differently than the others (prepends a "# " string and "builds" on repeated clicks):
     const applyMarkdownFormatHead = (editor) => {
-
         editor.update(() => {
             const selection = $getSelection();
-            // invalid selection (cursor not present in the text editor space):
-            if(!$isRangeSelection(selection)) {
-                return;
+            if(!$isRangeSelection(selection)) return;
+           
+            let {anchor} = selection;
+            let anchorNode = anchor.getNode();
+            console.log("DEBUG: the value of anchorNode => [", anchorNode, "]");
+
+            // EDIT: These two if-conditions below were added after tweaks to my <CollaborationPlugin> setup kind of bricked the function.
+            if($isRootNode(anchorNode)) {
+                const root = $getRoot();
+                root.clear();
+                const paragraph = $createParagraphNode();
+                root.append(paragraph);
+                anchorNode = paragraph;
+            }
+            if($isParagraphNode(anchorNode)) {
+                const textNode = $createTextNode();
+                anchorNode.append(textNode);
+                anchorNode = textNode;
             }
 
             const selectedText = selection.getTextContent(); 
             const selectionNodes = selection.getNodes();
-            let {anchor} = selection;
-            let anchorNode = anchor.getNode();
             let anchorNodeKey = anchorNode.getKey();
             let wrappedText = null;
             let currentLineT = null;
@@ -213,10 +193,9 @@ function Toolbar() {
                 selection.insertText(wrappedText);
             } else {
                 // Scenario 2. When the Header button is invoked for single or multi-line highlighted selection.
-
                 selectionNodes.forEach((sNode) => {
-                    if($isTextNode(sNode)) {
 
+                    if($isTextNode(sNode)) {
                         // For applying the actual "Header" format insertion:
                         /* So I want to count the number of "#" characters at the start of this line.
                         And I only want to truly consider them if the substring of # characters is followed by a whitespace.
@@ -269,90 +248,8 @@ function Toolbar() {
 
 
 
-    // Sep Function for applying "Code" since it also works differently (appends ```\n{text}\n``` or `{text}` depending on the situation):
-    const applyMarkdownFormatCode = (editor) => {
-        editor.update(() => {
-            const selection = $getSelection();
-            if($isRangeSelection(selection)) return; // $isRangeSelection(...) is a type-checking function, ensuring "selection" (cursor area) exists within the editor.
 
-            const selectedText = selection.getTextContent();
-            let {anchor, focus} = selection;
-            let anchorNode = anchor.getNode();
-            let editorTextFull = $getRoot().getTextContent();
-            let editorTextLength = editorTextFull.length;
-            let editorTextLastChar = editorTextFull.charAt(Math.max(editorTextLength-1, 0));
-            let anchorOffset = anchor.offset;
-            let wrappedText = null;
-            let updatedSelection = null;
-            let updatedSelectedText = null;
 
-            /* NOTE: Calculating the current editor cursor position, at the time that this .update(...) function was invoked, is tricky.
-            Despite what some sources online will say, anchor.offset *alone* won't cut it if multiple \n characters are present in your 
-            text editor or if the cursor position is on an empty line. (This has to do with how Lexical partitions its text-editor text
-            into seperate nodes, see more in function "findCursorPos"). */
-            const paraNodes = $getRoot().getChildren(); 
-            let absoluteCursorPos = findCursorPos(paraNodes, anchorNode, anchorOffset); // This var is mainly relevant if cursor selection is "" (empty).
-            let cursorPosChar = editorTextFull.charAt(Math.max(absoluteCursorPos-1, 0)); 
-            let newCursorPos = null;
-            let newSelection = null;
-
-            if(selectedText.includes("\n") || (selectedText === "" && (selectedText === editorTextFull || cursorPosChar === "\n" || absoluteCursorPos === 0))) {
-                // Scenario 1. If the current line is empty -> {```\n}cursor{\n```} OR multi-line text highlighted -> {```\n}text{\n```}: 
-                wrappedText = `${"```\n"}${selectedText}${"\n```"}`;
-                selection.insertText(wrappedText);
-
-                updatedSelection = $getSelection();
-                anchorNode = updatedSelection.anchor.getNode();
-                updatedSelectedText = String(anchorNode.getTextContent());
-                let newEditorTextFull = $getRoot().getTextContent();
-                let sStrIndices = null;
-
-                if(selectedText === "") {
-                    /* NOTE: These subsequent two lines, while they may appear redundant, are necessary for the empty string scenario.
-                    Otherwise, I will face the "Lexical Error: TypeError: anchorNode.selectionTransform is not a function" error. Despite
-                    what I've read on the internet about not being able to "refresh" the editor content until the update function finishes,
-                    the three steps below (mostly the first two) will infact "re-get" the selection content post-insertText(). */
-                    
-                    if(updatedSelectedText === "```\n\n```") {
-                        newCursorPos = updatedSelectedText.length - 4;
-                    } else {
-                        /* Repositioning the cursor index when the insertText is invoked on a line that is *not* the latest empty line
-                        in the text editor is tricky. My solution is verbose but works: The text editor content is broken up into nodes 
-                        (the full text content is partitioned) and I need to reposition the cursor within the specific node that is being
-                        dealt with. I can do this by finding the start and end indices of said node's string within the complete editor text,
-                        figuring out if it's correct via absoluteCursorPosition, and then repositioning the cursor based on those values alone. */
-                        // EDIT: ^ I re-use this a few times, so created an external function for it... [subStringIndices(...)]
-
-                        sStrIndices = subStrIndices(absoluteCursorPos, newEditorTextFull, updatedSelectedText);
-                        newCursorPos = (absoluteCursorPos + 4) - sStrIndices.startIndexFinal;
-                    }
-                } else {
-                    // Scenario 1b (multi-line highlighted):
-                    let absCursorPosAdjust = absoluteCursorPos + 4;
-
-                    sStrIndices = subStrIndices(absCursorPosAdjust, newEditorTextFull, updatedSelectedText);
-                    newCursorPos = absCursorPosAdjust - sStrIndices.startIndexFinal + 1;
-                }
-            } else {
-                // This "else" branch will catch all scenarios where the line is NOT empty.
-
-                if(selectedText !== "") {
-                    // Scenario 2. There is highlighted text ->{`}highlighted_text{`} (also NOTE: cursor would be moved prior to the second {`}):
-                    wrappedText = `${"`"}${selectedText}${"`"}`;  
-                } else {
-                    // Scenario 3. No highlighted text but the line is NOT empty (and cursor is not at the start) -> existing_line{`cursor_pos`}:
-                    wrappedText = `${selectedText}${"``"}`;
-                }
-                selection.insertText(wrappedText);
-
-                // Since the "else" branch deals with single-line scenarios, anchor.offset *will* refer to the cursor position (within the line).
-                newCursorPos = selection.anchor.offset - 1;
-            }
-            newSelection = $createRangeSelection();
-            newSelection.setTextNodeRange(anchorNode, newCursorPos, anchorNode, newCursorPos);
-            $setSelection(newSelection);
-        })
-    };
 
 
 
