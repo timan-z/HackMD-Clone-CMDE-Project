@@ -344,18 +344,18 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 
 
 /* Styling for the vertical scrollbar of the NotificationBar(.jsx): */
-#notification-bar::-webkit-scrollbar {
+#notifications-area::-webkit-scrollbar {
   width:10px;
 }
-#notification-bar::-webkit-scrollbar-track {
+#notifications-area::-webkit-scrollbar-track {
   background: #0D0208;
 }
-#notification-bar::-webkit-scrollbar-thumb {
+#notifications-area::-webkit-scrollbar-thumb {
   background-color: #06e83f;
   border-radius: 6px;
   border: 2px solid #0D0208;
 }
-#notification-bar::-webkit-scrollbar-thumb:hover {
+#notifications-area::-webkit-scrollbar-thumb:hover {
   background-color: #00cc33;
 }
 

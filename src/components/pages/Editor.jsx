@@ -326,7 +326,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       }
 
       const id = uuidv4();
-      const newNotif = { id, message: notif.message || notif, timestamp: Date.now(), };
+      const newNotif = { id, message: notif.message || notif, timestamp: Date(), };
       const stored = localStorage.getItem("notifications");
       const prev = stored ? JSON.parse(stored) : [];
       const updated = [...prev, newNotif];

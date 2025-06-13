@@ -15,6 +15,8 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     // Function for clearing the contents of state variable "notifications":
     const clearNotifs = () => {
         setNotifications([]);
+        // TO-DO: Need to make it so that clearing notifications **also** wipes the localStorage history:
+        localStorage.removeItem("notifications");
     };
 
     // Function for handling receiving notifications is in this useEffect.
@@ -31,10 +33,6 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
             }
 
             setNotifications((prev) => [...prev, notif]);
-            // Removal after 1 hour:
-            setTimeout(() => {
-                setNotifications((prev) => prev.filter(n => n.id !== notif));
-            }, oneHour); // Lasts for a day.
         };
 
         socket.on("notification", handleNotif);
@@ -89,7 +87,7 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     }, []);
 
     const notifBar = (
-        /* Uses the same type of styling as the Users List Container: */
+
         <div id="notification-bar"
         ref={notifBarRef}
         style={{
@@ -104,21 +102,33 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
             border: '2px solid #00FF41',
             borderRadius: '8px',
             boxShadow: '0 0 10px #00FF41',
-            padding: '10px',
+            padding:'10px',
             zIndex: 99997,
-            overflowY: 'auto',  // In index.css, there will be styling to make the scroll bar match the <div> styling...
+            display: 'flex',
+            flexDirection: 'column',
         }}>
-            {/* Draggable header for the Notifications panel: */}
-            <NotificationBarHeader dragHandleRef={dragHandleRef} onClose={onClose} clearNotifs={clearNotifs} />
+            {/* "Draggable" header: */}
+            <div ref={dragHandleRef}
+            style={{
+                flexShrink:0,
+                userSelect: 'none',
+            }}>
+                {/*<NotificationBarHeader dragHandleRef={dragHandleRef} onClose={onClose} clearNotifs={clearNotifs} />*/}
+                <NotificationBarHeader onClose={onClose} clearNotifs={clearNotifs} />
+            </div>
 
             {/* Where Notification Items are dynamically loaded: */}
-            {notifications.map((n, idx) => (
-                <div key={idx} className="notif-bullet">
-                    {n.message}
-                    <hr/>
-                </div>
-            ))}
+            <div id="notifications-area" style={{flexGrow:1, overflowY:'auto'}}>
+                {notifications.map((n, idx) => (
+                    <div key={idx} className="notif-bullet">
+                        {n.message}<br/><br/>
+                        {n.timestamp}
+                        <hr/>
+                    </div>
+                ))}
+            </div>
         </div>
+  
     );
 
     return createPortal(notifBar, document.body); // append notifBar to document.body of the webpage.
