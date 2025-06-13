@@ -483,61 +483,6 @@ function Toolbar() {
         );
     };
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    
-
-    // NOTE: Decided to drop this feature below as of 3/12/2025 -- might come back to it later if I can think of a better approach...
-    // Sep Function for applying the Table insertion:
-    /* NOTE: ^ There is a lot more to this function compared to the others, but I think I will have to return to that stuff *after* (still far off):
-    DEBUG: This function will insert a "default table format", but after that -- when the user hovers over the table in the editor space, there's meant to be
-    options and stuff (like "add another column") in a bar that replaces the current one (maybe I can change this to a popup or something).
-    ^ It's a specific strict structure too -- if you add like a random character infront of one of the "|" characters or something, it breaks and the
-    options dissapear and also the visualization within the rendering panel... 
-
-    ^ Granted, I think all of this is stuff is handled externally and this function just inserts the "default table format": */
-    /* EDIT: + NOTE: ^ So I think what I can do here is like, have buttons for "add rows" or "add columns" and these will be buttons that appear
-    within the Toolbar -- but they'll be grayed out to imply they cannot be used unless your cursor is within the Table structure in the
-    text editor. Maybe when the cursor is inside of the table structure, the non-table related buttons in the Toolbar are grayed out? (Maybe!) */
-    const applyMarkdownFormatTable = (editor) => {
-        editor.update(() => {
-            const selection = $getSelection();
-            // invalid selection (cursor not present in the text editor space):
-            if(!$isRangeSelection(selection)) {
-                return;
-            }
-            let selectionText = selection.getTextContent();
-            let wrappedText = null;
-
-            // This is the "default table format":
-            const firstLine = "\n\n| Column 1 | Column 2 | Column 3 |\n";
-            const secondLine = "| -------- | -------- | -------- |\n";
-            const thirdLine = "| Text     | Text     | Text     |";
-
-            wrappedText = `${selectionText}${firstLine}${secondLine}${thirdLine}`;
-            selection.insertText(wrappedText);
-
-            /* thirdLine should end with a \n but ending the insertion text with "\n" causes strange behavior,
-            so a manual linebreak will have to do here: */
-            const updatedSelection = $getSelection();
-            const lineBreakNode = $createLineBreakNode();
-            updatedSelection.insertNodes([lineBreakNode]);
-        });
-    }
-    // NOTE: Decided to drop this feature above as of 3/12/2025 -- might come back to it later if I can think of a better approach...
-
     return (<div>
         {/* NOTE: Added these two buttons below (UNDO and REDO) well after finishing the ones below... */}
         {/* UNDO BUTTON: */}

@@ -266,6 +266,33 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     socket.emit("send-cursor-pos", cursorPos, socket.id, username);
   }, 100);
 
+
+
+
+  // Function for manually saving the Text Editor document state to the backend server:
+  const saveDocState = () => {
+    let docData = null;
+
+
+
+
+
+      /*editor.update(() => {
+        const editorState = editor.getEditorState();          
+        const jsonString = JSON.stringify(editorState); 
+        // send copy of the latest Lexical editor document state:
+        socket.emit("send-latest-doc", roomId, jsonString, token);
+        socket.off("active-cursors");
+        socket.off("update-cursors");
+        hasJoinedRef.current = false;
+      });
+      socket.emit("leave-room", roomId, userData.id);*/
+
+  };
+
+
+
+
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadRoomUsers = async(roomId) => {
     const usersData = await loadRoomUsers(roomId);
@@ -526,30 +553,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
   }
 
-
-
-
-
-
-  // NOTE: THIS BELOW IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
-  const debugFunction = (editor, id, color, label, offset) => {
-    editor.update(() => {
-      console.log("DEBUG: ************************************************************");
-      console.log("DEBUG: debugFunction entered...");
-      console.log("DEBUG: ************************************************************");
-
-      console.log("The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
-
-      console.log("DEBUG: ************************************************************");
-      console.log("DEBUG: debugFunction exited...");
-      console.log("DEBUG: ************************************************************");
-    });
-  }
-  // NOTE: THIS ABOVE IS MY DEBUG BUTTON <-- DEBUG: Should have it removed when I'm finished everything else in the site.
-
-
-
-
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
       {/* Going to have something loaded here that boots the user when they get kicked: 
@@ -698,8 +701,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
               </select>
             </label>
 
-            {/* PHASE-3-DEBUG: Test button below for inserting DecoratorNode. */}
-            <button onClick={() => debugFunction(editor)}>DEBUG BUTTON</button>
+
+            {/* 5. Button manually save the state of the Editor document to the backend server: */}
+            <button>SAVE DOC</button>
 
           </div>
           
