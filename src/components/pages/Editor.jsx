@@ -271,27 +271,27 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // Function for manually saving the Text Editor document state to the backend server:
   const saveDocState = () => {
+
+    console.log("saveDocState-DEBUG: saveDocState function has been entered!!!");
+
     let docData = null;
+    if(!token) {
+      console.log("saveDocState-DEBUG: Token is invalid, it seems!"); // debug.
+      return;
+    }
 
+    editor.update(() => {
+      const editorState = editor.getEditorState();
+      docData = JSON.stringify(editorState);
+      socket.emit("send-latest-doc", roomId, docData, token); // good practice?
+    });
 
-
-
-
-      /*editor.update(() => {
-        const editorState = editor.getEditorState();          
-        const jsonString = JSON.stringify(editorState); 
-        // send copy of the latest Lexical editor document state:
-        socket.emit("send-latest-doc", roomId, jsonString, token);
-        socket.off("active-cursors");
-        socket.off("update-cursors");
-        hasJoinedRef.current = false;
-      });
-      socket.emit("leave-room", roomId, userData.id);*/
-
+    if(!docData) {
+      console.log("saveDocState-DEBUG: docData is invalid, it seems!"); // debug.
+      return;
+    }
+    saveRoomData(roomId, docData, token);
   };
-
-
-
 
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadRoomUsers = async(roomId) => {
@@ -346,12 +346,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     // Loading a pre-existing document state for this Editor Room from the PostgreSQL backend (or just checking to see if loading is necessary):
     socket.on("load-existing", () => {
+
+      console.log("DEBUG: The socket.on(\"load-existing\", ()=>{...}) function was entered...");
+      console.log("DEBUG: The value of hasLoadedRef.current => [", hasLoadedRef.current, "]");
+
       if(hasLoadedRef.current) return;
 
       editor.update(() => {
         try {
           editor.setEditorState(
-            editor.parseEditorState(loadContent)  // I'm just parsing a JSON string of the saved Lexical state (NOTE: For now, since I can't figure out the Yjs-Lexical sync).
+            editor.parseEditorState(loadContent.current)  // I'm just parsing a JSON string of the saved Lexical state (NOTE: For now, since I can't figure out the Yjs-Lexical sync).
           );
 
         } catch(err) {
@@ -701,9 +705,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
               </select>
             </label>
 
-
             {/* 5. Button manually save the state of the Editor document to the backend server: */}
-            <button>SAVE DOC</button>
+            <button onClick={()=> saveDocState()}>SAVE DOC</button>
 
           </div>
           
@@ -842,7 +845,9 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   const docRef = useRef(null);
   const [fetchedDoc, setFetchedDoc] = useState(false);
   const [shouldBootstrap, setShouldBootstrap] = useState(false);
-  const [loadContent, setLoadContent] = useState(null);
+  //const [loadContent, setLoadContent] = useState(null);
+  const loadContent = useRef(null);
+  
   const [token, setToken] = useState(null);
 
   const initialConfig = {
@@ -880,15 +885,34 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   get it to work for somereason -- that's also why all of this here is in the Editor() function instead of EditorContent). */
   useEffect(() => {
     // Guard against React 18 Strict Mode making this useEffect run twice:
+
+
+    console.log("DEBUG: The value of hasJoinedRef.current => [", hasJoinedRef.current, "]");
+    console.log("Debug: The value of loadContent.current => [", loadContent.current, "]");
+
+
     if(hasJoinedRef.current) return;
+    if(loadContent.current) return; // debug:
+
     hasJoinedRef.current = true;
     setToken(localStorage.getItem("token"));
 
     const fetchAndInit = async() => {
       try {
+
+        console.log("DEBUG: The try-block of the original useEffect is entered...");
+
         const result = await getRoomData(roomId);
+
+        console.log("Debug: The value of result.docData => [", result.docData, "]");
+        console.log("Debug: The value of result.success => [", result.success, "]");
+
         if(result.success && result.docData) {
-          setLoadContent(result.docData);
+
+          console.log("Debug: The \"if(result.success && result.docData) {\" if-branch has been entered...");
+
+          loadContent.current = result.docData; // debug:
+          //setLoadContent(result.docData);
         }
       } catch(err) {
         console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);

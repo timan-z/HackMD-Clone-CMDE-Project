@@ -44,8 +44,16 @@ function App() {
 
   // Function for retrieving Editor document data from the PostgreSQL server:
   const getRoomData = async(roomId) => {
+
+
+    console.log("getRoomData-DEBUG: Function entered.");
+
+
     if(token) {
       try {
+
+        console.log("getRoomData-DEBUG: try-block entered...");
+
         const result = await getRoomDoc(roomId, token);
         return result;
       } catch(err) {

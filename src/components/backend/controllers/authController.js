@@ -281,11 +281,6 @@ export const getEdRoomUsers = async(req, res) => {
             JOIN users u ON ur.user_id = u.id
             WHERE ur.room_id = $1
         `, [roomId]);
-
-
-
-        console.log("DEBUG rows:", usersData.rows);
-        
         
         res.json(usersData.rows);
     } catch(err) {
@@ -370,6 +365,7 @@ export const saveEdRoomDoc = async(req, res) => {
 export const getEdRoomDoc = async(req, res) => {        
     const {roomId} = req.params;
 
+    console.log("getEdRoomDoc-DEBUG: Function entered...");
     console.log("getEdRoomDoc-DEBUG: The value of roomId => [", roomId, "]");
 
     try {
@@ -377,7 +373,9 @@ export const getEdRoomDoc = async(req, res) => {
             `SELECT content FROM ydocs WHERE room_id = $1`, [roomId]
         );
 
-        console.log("The value of content => [", content, "]");
+        
+        console.log("getEdRoomDoc-DEBUG: The value of content.rows[0].content => [", content.rows[0].content, "]");
+
 
         res.status(201).json({ success: true, docData: content.rows[0].content});
     } catch(err) {
@@ -386,22 +384,11 @@ export const getEdRoomDoc = async(req, res) => {
     }
 };
 
-
-
-
-
-
-
-
 // 5. REAL-TIME INTERACTION (MESSAGING MAINLY):
 // 5.1. For sending messages:
 export const sendEdRoomMessage = async(req, res) => {
     const {roomId} = req.params;
     const {from_user, to_user, message} = req.body;
-
-    console.log("DEBUG: Value of from_user => ", from_user);
-    console.log("DEBUG: Value of to_user => ", to_user);
-    console.log("DEBUG: Value of message => ", message);
 
     try {
         await pool.query(
@@ -415,15 +402,6 @@ export const sendEdRoomMessage = async(req, res) => {
         res.status(500).json({ success: false, error: "Database insert of message(s) failed" });
     }
 };
-
-
-
-
-
-
-
-
-
 
 // 5.2. For getting messages:
 export const getEdRoomMessages = async(req, res) => {
