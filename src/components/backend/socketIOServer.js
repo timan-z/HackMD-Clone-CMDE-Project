@@ -63,24 +63,15 @@ io.on("connection", (socket) => {
         // I want to track this user's "activity" status for this Room:
         if(!connectedUsers[roomId]) connectedUsers[roomId] = [];
 
-        console.log("DEBUG: The value of userId => [", userId, "]");
-        console.log("DEBUG: The value of username => [", username, "]");
-        console.log("DEBUG: The value of roomId => [", roomId, "]");
-        console.log("Debug(pre-add): The value of connectedUsers[roomId] => [", connectedUsers[roomId], "]");
-
         const alreadyExists = connectedUsers[roomId].some(
             (user) => user.userId === userId
         );
-
-        console.log("Debug: The value of alreadyExists => [", alreadyExists, "]");
 
         if(!alreadyExists) {
             connectedUsers[roomId].push({
                 socketId: socket.id, userId, username
             });
         }
-
-        console.log("Debug(post-add): The value of connectedUsers[roomId] => [", connectedUsers[roomId], "]");
 
         // Emit updated list (of Active Users) to the Editor Room:
         io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
@@ -100,25 +91,12 @@ io.on("connection", (socket) => {
 
     // socket to receive latest documents of the text editor doc for a specific room:
     socket.on("send-latest-doc", (roomId, jsonString, token) => {
-
-        console.log("send-latest-doc: The value of roomId => [", roomId, "]");
-        console.log("send-latest-doc: The value of jsonString => [", jsonString, "]");
-        console.log("send-latest-doc: The value of token => [", token, "]");
-
         latestEdDocs.set(roomId, jsonString);
         latestEdTokens.set(roomId, token);
-
-        /*if(!latestEdDocs.has(roomId)) {
-            latestEdDocs.set(roomId, jsonString);
-            latestEdTokens.set(roomId, token);
-        }*/
     });
 
     // Handle notifications from the client-side:
     socket.on("notification", (data) => {
-        
-        console.log("DEBUG: socket.on(\"notification\") HAS BEEN ENTERED!!!");
-
         // This notification is from Dashboard.jsx -- it's for when a User decides to leave the Room (resigning access):
         if(data.type === "leave-room") {
             socket.to(data.roomId).emit("notification", {
@@ -143,17 +121,9 @@ io.on("connection", (socket) => {
                 timestamp: Date.now(),
             });
 
-            console.log("DEBUG: The for-loop I'm expecting to run is about to run...");
-            console.log("DEBUG: The value of data.userId => [", data.userId, "]");
-
             // Loop through all connected sockets to see if the kicked user is connected (if so, they are booted in real-time):
             for(const [socketId, userData] of io.sockets.sockets) {
-
-                console.log("Debug: The value of socketId => [", socketId, "]");
-                console.log("Debug: The value of userData.userId => [", userData.userId, "]");
-
                 if(userData.userId === data.userId) {
-                    console.log("Debug: Sending the emit I expect to be emitted!");
                     // Emit a event to the target socket:
                     io.to(socketId).emit("you-have-been-kicked", {
                         roomId: data.roomId,
@@ -181,10 +151,6 @@ io.on("connection", (socket) => {
         }
     })
 
-
-
-
-    
     // Handle client sending private messages:
     socket.on('private-message', ({from, to, text}) => {
         for(const [socketId, userData] of io.sockets.sockets.entries()) {
@@ -202,10 +168,6 @@ io.on("connection", (socket) => {
         }
     });
 
-
-
-
-
     // Wrapping an emit.broadcast of clientCursors with a throttle to (try to) prevent race conditions:
     const broadcastCursors = throttle(() => {
         socket.broadcast.emit("update-cursors", clientCursors);
@@ -213,9 +175,6 @@ io.on("connection", (socket) => {
 
     // Handle client sending their cursor position within the Text Editor (*will happen frequently*). Needed for foreign cursor rendering!!!: 
     socket.on("send-cursor-pos", (absCursorPos, clientId, clientUsername) => {
-        console.log("DEBUG: The client sending their cursor position: [", clientId, "]");
-        console.log("DEBUG: The client sending their username: [", clientUsername, "]");
-        console.log("DEBUG: Their cursor position: ", absCursorPos);
         const clientCursor = {cursorPos: absCursorPos, id:clientId, username: clientUsername};
         const isItAlrThere = clientCursors.findIndex(item => item.id === clientId); // Check if there's already an obj in clientCursors rep'ing this socket.        
 
@@ -226,7 +185,6 @@ io.on("connection", (socket) => {
             // Not present, so we can push it in:
             clientCursors.push(clientCursor);
         }
-        console.log("DEBUG: Current state of clientCursors: ", clientCursors);
         // Broadcasting the state of clientCursors:
         broadcastCursors();
     });
@@ -234,7 +192,6 @@ io.on("connection", (socket) => {
     // socket "disconnect" and "leave-room" are handled the same way:
     const discLeaveHandler = (socket) => {
         console.log("User disconnected:", socket.id);
-        console.log("DEBUG: [clientCursors Pre-Splice] => ", clientCursors);
 
         // After disconnection, I need to remove the recently-disconnected socket from array clientCursors too:
         let targetIndex = 0;
@@ -246,18 +203,12 @@ io.on("connection", (socket) => {
             }
             targetIndex += 1; 
         });
-        console.log("DEBUG: [clientCursors Post-Splice] => ", clientCursors);
         broadcastCursors();
 
         // UPDATE: NEW ADDITIONS (REMOVING Socket FROM connectedUsers):
         const {userId, roomId, username} = socket;
 
-        console.log("That branch I have is about to run!!!");
-        console.log("The value of roomId => [", roomId, "]");
-        console.log("connectedUsers[roomId] => [", connectedUsers[roomId], "]");
-        console.log("connectedUsers[roomId]?.length => [", connectedUsers[roomId]?.length, "]");
         if(connectedUsers[roomId]?.length === 0) {
-            console.log("DEBUG: The \"if(connectedUsers[roomId]?.length === 0) {\" branch was entered...");
             firstUserJoined.delete(roomId);
         }
 
@@ -269,8 +220,6 @@ io.on("connection", (socket) => {
             // Notify remaining users in the room:
             io.to(roomId).emit("active-users-list", connectedUsers[roomId]);
             // Clean up empty rooms (if applicable):
-
-            console.log("debug: The value of connectedUsers[roomId] => [", connectedUsers[roomId], "]");
 
             if(connectedUsers[roomId].length === 0) {
                 console.log("DEBUG: About to call saveRoomData!!!");

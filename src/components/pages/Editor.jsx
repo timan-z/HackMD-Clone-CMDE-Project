@@ -102,7 +102,7 @@ const sampleTheme = {
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
 function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {  
   // "Main" state variables:
-  const hasLoadedRef = useState(false);
+  const hasLoadedRef = useRef(false);
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1);
   const [currentLine, setCurrentLine] = useState(1);
@@ -266,30 +266,21 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     socket.emit("send-cursor-pos", cursorPos, socket.id, username);
   }, 100);
 
-
-
-
   // Function for manually saving the Text Editor document state to the backend server:
   const saveDocState = () => {
-
-    console.log("saveDocState-DEBUG: saveDocState function has been entered!!!");
+    //console.log("TEMPORARY DEBUG FUNCTION!!!");
+    //return;
 
     let docData = null;
-    if(!token) {
-      console.log("saveDocState-DEBUG: Token is invalid, it seems!"); // debug.
-      return;
-    }
+    if(!token) return;
 
     editor.update(() => {
       const editorState = editor.getEditorState();
       docData = JSON.stringify(editorState);
-      socket.emit("send-latest-doc", roomId, docData, token); // good practice?
+      socket.emit("send-latest-doc", roomId, docData, token);
     });
 
-    if(!docData) {
-      console.log("saveDocState-DEBUG: docData is invalid, it seems!"); // debug.
-      return;
-    }
+    if(!docData) return;
     saveRoomData(roomId, docData, token);
   };
 
@@ -349,20 +340,39 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
       console.log("DEBUG: The socket.on(\"load-existing\", ()=>{...}) function was entered...");
       console.log("DEBUG: The value of hasLoadedRef.current => [", hasLoadedRef.current, "]");
+      console.log("DEBUG: The value of loadContent.current => [", loadContent.current, "]");
 
       if(hasLoadedRef.current) return;
+      if(!loadContent.current) return;
 
-      editor.update(() => {
+
+
+      /*const sendCursorToServer = throttle((cursorPos, username) => {
+        socket.emit("send-cursor-pos", cursorPos, socket.id, username);
+      }, 100);*/
+
+      console.log("DEBUG: Added a throttle function!!! Did it work???");
+
+      // maybe I can add a timer here???
+      editor.update(throttle(() => {
+
+
+        console.log("Debug: The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
+
+
         try {
           editor.setEditorState(
             editor.parseEditorState(loadContent.current)  // I'm just parsing a JSON string of the saved Lexical state (NOTE: For now, since I can't figure out the Yjs-Lexical sync).
           );
-
+          hasLoadedRef.current = true;
+          console.log("DEBUG: Just before the [hasLoadedRef.current = true] statement...");
         } catch(err) {
           console.error("ERROR: Failed to load pre-existing document state from the backend database. This may simply be because it was empty (if so, there is no problem) => ", err);
         }
         hasLoadedRef.current = true;
-      });
+
+
+      }), 1000);
     });
 
     // Stuff to be done if the user exits the Editor Room (to the Dashboard or just closes the tab or browser):
@@ -731,11 +741,27 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
 
+
+
+
+
+
+
+                      // DEBUG: (BELOW)
+                      provider.on('synced', isSynced => {
+                        console.log("Debug: The \"provider.on('synced', isSynced => {\" branch was entered...");
+                      });
+                      // DEBUG: (ABOVE)
+ 
                       provider.on('status', (event) => { 
                         console.log('WebSocket status:', event.status);
 
+                        const ytext = doc.getText();
+                        const text = ytext.toString();
+                        console.log("CollaborationPlugin-DEBUG: The value of text => [", text, "]");
+
                         if(event.status === "connected") {
-                          hasLoadedRef.current = true;
+                          //hasJoinedRef.current = true;  // debug: commenting this out... seems redundant?
                           socket.emit("ready-for-load", roomId);
 
                           // NOTE: Originally had this in the first UseEffect hook in the <Editor> area... (better here, guarantees <UsersListBar> will be filled):
@@ -744,6 +770,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                           socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
                         }
                       })
+
+
+                      
+
+
+
+
                       
                       return provider;
                     }}
@@ -886,10 +919,8 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   useEffect(() => {
     // Guard against React 18 Strict Mode making this useEffect run twice:
 
-
     console.log("DEBUG: The value of hasJoinedRef.current => [", hasJoinedRef.current, "]");
     console.log("Debug: The value of loadContent.current => [", loadContent.current, "]");
-
 
     if(hasJoinedRef.current) return;
     if(loadContent.current) return; // debug:
@@ -912,6 +943,11 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
           console.log("Debug: The \"if(result.success && result.docData) {\" if-branch has been entered...");
 
           loadContent.current = result.docData; // debug:
+
+
+          console.log("Debug: The value of loadContent.current => [", loadContent.current, "]");
+
+
           //setLoadContent(result.docData);
         }
       } catch(err) {
