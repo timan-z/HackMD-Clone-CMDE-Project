@@ -103,6 +103,8 @@ const sampleTheme = {
 function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {  
   // "Main" state variables:
   const hasLoadedRef = useRef(false);
+  const hasConnectedRef = useRef(false);  // This and the one below also relate to the pre-existing doc state loading...
+  const hasSyncedRef = useRef(false);
   const [editor] = useLexicalComposerContext();
   const [lineCount, setLineCount] = useState(1);
   const [currentLine, setCurrentLine] = useState(1);
@@ -129,18 +131,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [activeUsersList, setActiveUsersList] = useState([]);
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
-
-
-
-  // DEBUG: State variables keeping track of Provider connection and sync status -- maybe move this inside Editor()? [BELOW]:
-  const hasConnectedRef = useRef(false);
-  const hasSyncedRef = useRef(false);
-  // DEBUG: ^
-
-
-
-
-
 
   // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
   const navigate = useNavigate();
@@ -280,9 +270,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // Function for manually saving the Text Editor document state to the backend server:
   const saveDocState = () => {
-    //console.log("TEMPORARY DEBUG FUNCTION!!!");
-    //return;
-
     let docData = null;
     if(!token) return;
 
@@ -349,42 +336,20 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     // Loading a pre-existing document state for this Editor Room from the PostgreSQL backend (or just checking to see if loading is necessary):
     socket.on("load-existing", () => {
-
-      console.log("DEBUG: The socket.on(\"load-existing\", ()=>{...}) function was entered...");
-      console.log("DEBUG: The value of hasLoadedRef.current => [", hasLoadedRef.current, "]");
-      console.log("DEBUG: The value of loadContent.current => [", loadContent.current, "]");
-
       if(hasLoadedRef.current) return;
       if(!loadContent.current) return;
 
-
-
-      /*const sendCursorToServer = throttle((cursorPos, username) => {
-        socket.emit("send-cursor-pos", cursorPos, socket.id, username);
-      }, 100);*/
-
-      console.log("DEBUG: Added a throttle function!!! Did it work???");
-
-      // maybe I can add a timer here???
-      editor.update(throttle(() => {
-
-
-        console.log("Debug: The value of $getRoot().getTextContent() => [", $getRoot().getTextContent(), "]");
-
-
+      editor.update(() => {
         try {
           editor.setEditorState(
             editor.parseEditorState(loadContent.current)  // I'm just parsing a JSON string of the saved Lexical state (NOTE: For now, since I can't figure out the Yjs-Lexical sync).
           );
           hasLoadedRef.current = true;
-          console.log("DEBUG: Just before the [hasLoadedRef.current = true] statement...");
         } catch(err) {
           console.error("ERROR: Failed to load pre-existing document state from the backend database. This may simply be because it was empty (if so, there is no problem) => ", err);
         }
-        hasLoadedRef.current = true;
-
-
-      }), 1000);
+        hasLoadedRef.current = true;  // DEBUG: come back and check on this later (i know this is redundant but i spent a while fixing the loading doc thing and im terrified getting rid of this might do something bad).
+      });
     });
 
     // Stuff to be done if the user exits the Editor Room (to the Dashboard or just closes the tab or browser):
@@ -924,37 +889,18 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   get it to work for somereason -- that's also why all of this here is in the Editor() function instead of EditorContent). */
   useEffect(() => {
     // Guard against React 18 Strict Mode making this useEffect run twice:
-
-    console.log("DEBUG: The value of hasJoinedRef.current => [", hasJoinedRef.current, "]");
-    console.log("Debug: The value of loadContent.current => [", loadContent.current, "]");
-
     if(hasJoinedRef.current) return;
-    if(loadContent.current) return; // debug:
+    if(loadContent.current) return;
 
     hasJoinedRef.current = true;
     setToken(localStorage.getItem("token"));
 
     const fetchAndInit = async() => {
       try {
-
-        console.log("DEBUG: The try-block of the original useEffect is entered...");
-
         const result = await getRoomData(roomId);
 
-        console.log("Debug: The value of result.docData => [", result.docData, "]");
-        console.log("Debug: The value of result.success => [", result.success, "]");
-
         if(result.success && result.docData) {
-
-          console.log("Debug: The \"if(result.success && result.docData) {\" if-branch has been entered...");
-
-          loadContent.current = result.docData; // debug:
-
-
-          console.log("Debug: The value of loadContent.current => [", loadContent.current, "]");
-
-
-          //setLoadContent(result.docData);
+          loadContent.current = result.docData;
         }
       } catch(err) {
         console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
