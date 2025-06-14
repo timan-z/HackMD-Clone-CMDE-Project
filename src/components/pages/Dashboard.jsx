@@ -125,16 +125,47 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
     }, []);
 
     return(
-        <div>
-            <h1>DASHBOARD</h1>
+        <div style={{
+            minHeight: '100vh',
+            backgroundColor: '#000',
+            color: '#00FF41',
+            fontFamily: 'monospace',
+            padding: '20px',
+        }} >
+            <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>DASHBOARD</h1>
 
-            <button onClick={handleLogout} >LOG OUT</button>
+            <button 
+            onClick={handleLogout}
+            style={{
+                backgroundColor: '#0D0208',
+                color: '#00FF41',
+                border: '2px solid #00FF41',
+                borderRadius: '6px',
+                padding: '8px 12px',
+                cursor: 'pointer',
+                boxShadow: '0 0 6px #00FF41',
+                marginBottom: '20px',
+            }}>LOG OUT</button>
 
-            <div style={{display:"flex", gap:"25px"}}>
+
+
+
+
+            <div style={{display:"flex", gap:"25px", marginBottom: '30px'}}>
 
                 {/* Want a button that goes here for CREATING a new room... */}
-                <div style={{borderStyle:"solid", borderColor:"red", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
-                    <h4>DEBUG: CREATE ROOM BUTTON</h4>    
+                <div style={{
+                    borderStyle:"solid",
+                    borderColor:"red",
+                    display:"flex",
+                    flexDirection:"column",
+                    justifyContent: 'space-between',
+                    width:"300px",
+                    height:"150px",
+                    padding: '10px',
+                    boxShadow: '0 0 10px red',
+                }}>
+                    <h4>Create New Room</h4>    
 
                     <form onSubmit={ async (e) => {
                         e.preventDefault();
@@ -149,6 +180,11 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                         <button>CLICK TO CREATE ROOM</button>
                     </form>
                 </div>
+
+
+
+
+
 
                 {/* Want a button here and a form with it for JOINING a new room... */}
                 <div style={{borderStyle:"solid", borderColor:"blue", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
