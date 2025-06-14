@@ -130,6 +130,18 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
 
+
+
+  // DEBUG: State variables keeping track of Provider connection and sync status -- maybe move this inside Editor()? [BELOW]:
+  const hasConnectedRef = useRef(false);
+  const hasSyncedRef = useRef(false);
+  // DEBUG: ^
+
+
+
+
+
+
   // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
   const navigate = useNavigate();
   const goToDashboard = () => {
@@ -741,43 +753,37 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       yjsDocMap.set(id, doc);
                       const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
 
+                      // start-up function (runs once yjs syncs up, websocket connects, etc):
+                      const roomStartUp = () => {
+                        socket.emit("ready-for-load", roomId);
+                        // NOTE: Originally had this in the first UseEffect hook in the <Editor> area... (better here, guarantees <UsersListBar> will be filled):
+                        console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
+                        // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
+                        socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+                      }
 
-
-
-
-
-
-                      // DEBUG: (BELOW)
-                      provider.on('synced', isSynced => {
-                        console.log("Debug: The \"provider.on('synced', isSynced => {\" branch was entered...");
-                      });
-                      // DEBUG: (ABOVE)
- 
-                      provider.on('status', (event) => { 
+                      // 1. provider listener for when the WebSocket connects:
+                      provider.on('status', (event) => {
                         console.log('WebSocket status:', event.status);
-
-                        const ytext = doc.getText();
-                        const text = ytext.toString();
-                        console.log("CollaborationPlugin-DEBUG: The value of text => [", text, "]");
-
                         if(event.status === "connected") {
-                          //hasJoinedRef.current = true;  // debug: commenting this out... seems redundant?
-                          socket.emit("ready-for-load", roomId);
-
-                          // NOTE: Originally had this in the first UseEffect hook in the <Editor> area... (better here, guarantees <UsersListBar> will be filled):
-                          console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
-                          // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
-                          socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+                          hasConnectedRef.current = true;
+                          if(hasSyncedRef.current) {
+                            roomStartUp();
+                          }
                         }
-                      })
+                      });
 
+                      // 2. provider listener for when the WebSocket syncs:
+                      provider.on('synced', isSynced => {
+                        console.log("Provider synced: ", isSynced);
+                        if(isSynced) {
+                          hasSyncedRef.current = true;
+                          if(hasConnectedRef.current) {
+                            roomStartUp();
+                          }
+                        }
+                      });
 
-                      
-
-
-
-
-                      
                       return provider;
                     }}
                     shouldBootstrap={false}
