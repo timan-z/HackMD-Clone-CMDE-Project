@@ -112,11 +112,6 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
     useEffect(() => {
         const fetchRooms = async() => {
             const token = localStorage.getItem("token");
-
-
-            console.log("DEBUG: The value of token => [", token, "]");
-
-            
             if(!token) return;
 
             try {
@@ -129,10 +124,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
         fetchRooms();
     }, []);
 
-
-
-
-    // DEBUG: BELOW.
+    // This styling is for the buttons in the return(...) statement below...
     const btnStyle = {
         backgroundColor: '#000',
         color: '#00FF41',
@@ -142,19 +134,17 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
         boxShadow: '0 0 4px #00FF41',
         cursor: 'pointer',
     };
-    // DEBUG: ABOVE.
-
-
 
     return(
         <div style={{
-            /*minHeight: '100vh',*/
             height:'100%',
             width:'100%',
+            overflowX: 'hidden',
+            boxSizing: 'border-box',
+            padding: '20px',
             backgroundColor: '#000',
             color: '#00FF41',
             fontFamily: 'monospace',
-            padding: '20px',
         }} >
             <h1 style={{ fontSize: '2rem', marginBottom: '10px' }}>DASHBOARD</h1>
 
@@ -190,7 +180,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
                     {/* Twin Peaks gif lol. [1] */}
                     <div>
-                        <img style={{ maxWidth:"200px", borderRadius:"25px", boxShadow: '0 0 10px red' }} src="../../gifs/join-room-fwwm.gif"></img>
+                        <img style={{ maxWidth:"200px", width:"100%", borderRadius:"25px", boxShadow: '0 0 10px red' }} src="../../gifs/join-room-fwwm.gif"></img>
                     </div>
 
                     <form onSubmit={ async (e) => {
@@ -245,7 +235,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
                     {/* Twin Peaks gif lol. [2] */}
                     <div>
-                        <img style={{ maxWidth:"275px", borderRadius:"25px", boxShadow: '0 0 10px white' }} src="../../gifs/create-room-fwwm.gif"></img>
+                        <img style={{ maxWidth:"275px", width:"100%", borderRadius:"25px", boxShadow: '0 0 10px white' }} src="../../gifs/create-room-fwwm.gif"></img>
                     </div>
 
                     {/* The form for calling the right functions for joining a new room: */}
