@@ -112,6 +112,11 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
     useEffect(() => {
         const fetchRooms = async() => {
             const token = localStorage.getItem("token");
+
+
+            console.log("DEBUG: The value of token => [", token, "]");
+
+            
             if(!token) return;
 
             try {
@@ -124,9 +129,28 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
         fetchRooms();
     }, []);
 
+
+
+
+    // DEBUG: BELOW.
+    const btnStyle = {
+        backgroundColor: '#000',
+        color: '#00FF41',
+        border: '1px solid #00FF41',
+        borderRadius: '4px',
+        padding: '6px 10px',
+        boxShadow: '0 0 4px #00FF41',
+        cursor: 'pointer',
+    };
+    // DEBUG: ABOVE.
+
+
+
     return(
         <div style={{
-            minHeight: '100vh',
+            /*minHeight: '100vh',*/
+            height:'100%',
+            width:'100%',
             backgroundColor: '#000',
             color: '#00FF41',
             fontFamily: 'monospace',
@@ -146,26 +170,28 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                 boxShadow: '0 0 6px #00FF41',
                 marginBottom: '20px',
             }}>LOG OUT</button>
-
-
-
-
-
+            
+            {/* <div> for the area with the Create New Room & Join New Room "cards": */}
             <div style={{display:"flex", gap:"25px", marginBottom: '30px'}}>
-
-                {/* Want a button that goes here for CREATING a new room... */}
+                {/* Button for CREATING a New Room <div>: */}
                 <div style={{
-                    borderStyle:"solid",
-                    borderColor:"red",
-                    display:"flex",
-                    flexDirection:"column",
-                    justifyContent: 'space-between',
-                    width:"300px",
-                    height:"150px",
-                    padding: '10px',
+                    backgroundColor: '#0D0208',
+                    border: '2px solid red',
+                    borderRadius: '25px',
+                    width: '300px',
+                    height: '275px',
+                    padding:'10px',
                     boxShadow: '0 0 10px red',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
                 }}>
-                    <h4>Create New Room</h4>    
+                    <h4 style={{color:"red"}}>CREATE NEW ROOM</h4>    
+
+                    {/* Twin Peaks gif lol. [1] */}
+                    <div>
+                        <img style={{ maxWidth:"200px", borderRadius:"25px", boxShadow: '0 0 10px red' }} src="../../gifs/join-room-fwwm.gif"></img>
+                    </div>
 
                     <form onSubmit={ async (e) => {
                         e.preventDefault();
@@ -173,22 +199,54 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                         const token = localStorage.getItem("token");
                         await createNewEdRoom(edRoomName, token);
                     }}>
-                        <div style={{width:"100%"}}>
-                            Give room a name (optional).
-                            <input id="createEdRoomName" type="text" ref={newEdRoomNameRef} style={{width:"100%"}}></input>
+                        <div style={{color:"red", width:"100%"}}>
+                            <input id="createEdRoomName" type="text" ref={newEdRoomNameRef} placeholder="Room Name (Optional):"
+                            style={{
+                                width:"97%",
+                                backgroundColor:"#000",
+                                color:'red',
+                                border: '1px solid red',
+                                borderRadius: '4px',
+                                padding: '4px',
+                                marginTop: '5px',
+                            }}/>
                         </div>
-                        <button>CLICK TO CREATE ROOM</button>
+                        
+                        <button style={{
+                            marginTop: '8px',
+                            padding: '6px',
+                            width: '100%',
+                            backgroundColor: '#000',
+                            color: 'red',
+                            border: '1px solid red',
+                            borderRadius: '4px',
+                            boxShadow: '0 0 4px red',
+                            cursor: 'pointer'
+                        }}>
+                            Create Room
+                        </button>
                     </form>
                 </div>
 
+                {/* Button for JOINING a New Room <div>: */}
+                <div style={{
+                    backgroundColor: '#0D0208',
+                    border: '2px solid white',
+                    borderRadius: '25px',
+                    width: '300px',
+                    height: '275px',
+                    padding:'10px',
+                    boxShadow: '0 0 10px white',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                }}>
+                    <h4 style={{color:"white"}}>JOIN NEW ROOM (WITH INVITE LINK)</h4>
 
-
-
-
-
-                {/* Want a button here and a form with it for JOINING a new room... */}
-                <div style={{borderStyle:"solid", borderColor:"blue", display:"flex", flexDirection:"column",width:"300px",height:"150px"}}>
-                    Here's where I'll have the stuff for JOINING a new room.
+                    {/* Twin Peaks gif lol. [2] */}
+                    <div>
+                        <img style={{ maxWidth:"275px", borderRadius:"25px", boxShadow: '0 0 10px white' }} src="../../gifs/create-room-fwwm.gif"></img>
+                    </div>
 
                     {/* The form for calling the right functions for joining a new room: */}
                     <form onSubmit={ async(e) => {
@@ -198,7 +256,6 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
                         try {
                             const data = await joinRoomViaInv(token, edRoomLink);
-                            console.log("DEBUG: The value of data => [", data, "]");
                             if(data.success) {
                                 navigate("/dashboard");
                             } else {
@@ -208,51 +265,90 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                             console.error(`ERROR: Failed to join Editor Room via invite. The reason: ${err}`);
                         }
                     }}>
-                        <button>JOIN NEW ROOM</button>
-                        <input id="join-room-link" ref={joinEdRoomLink} type="text"/>
+                        <input
+                            id="join-room-link"
+                            ref={joinEdRoomLink}
+                            type="text"
+                            placeholder="Paste invite link here"
+                            style={{
+                                width: '100%',
+                                backgroundColor: '#000',
+                                color: 'white',
+                                border: '1px solid white',
+                                borderRadius: '4px',
+                                padding: '4px',
+                                marginBottom: '6px',
+                                marginTop: '5px'
+                            }}
+                        />
+                        <button style={{
+                            padding: '6px',
+                            width: '100%',
+                            backgroundColor: '#000',
+                            color: 'white',
+                            border: '1px solid white',
+                            borderRadius: '4px',
+                            boxShadow: '0 0 4px white',
+                            cursor: 'pointer'
+                        }}>
+                            Join Room
+                        </button>
                     </form>
                 </div>
             </div>
 
-            {/* EVERYTHING BELOW IS WHERE THE "ROOM LOADING" STATIC CODE IS -- REMEMBER THAT FOR LATER WHEN REORGANIZING!!! */}
-            <h4>YOUR EDITOR ROOMS:</h4>
-            <div style={{borderStyle:"solid", borderColor:"purple"}}>
+            <h4 style={{fontSize: '1.5rem', marginBottom: '10px'}}>YOUR EDITOR ROOMS:</h4>
+            {/* <div> for loading the List of Rooms (that the user has access to): */}
+            <div style={{display: 'flex', flexDirection: 'column', gap: '15px'}}>
                 {rooms.map((room) => {
                     return(
-                        <div key={room.user_room_id} style={{borderStyle:"solid"}}>
-                            <div>
-                                <p>{room.room_name}</p>
-                                <p>ID: {room.room_id} </p>
-                                <p>Role: {room.role}</p>
-                            </div>
-                            
-                            {/* Join Room Button: */}
-                            <button onClick={()=> handleJoin(room.room_id)} >
-                                JOIN ROOM
-                            </button>
-
-                            {/* Generate Invite Link Button: */}
-                            <div style={{display:"flex", flexDirection:"row", alignItems:"center"}}>
-                                <button onClick={()=> generateInvite(room.room_id)}>GET INVITE</button>
-                                Your Invite Link: <p style={{ borderStyle:"solid", height:"20px", width:"500px" }}>{invLinks[room.room_id]}</p>
-                                <button onClick={()=> navigator.clipboard.writeText(invLinks[room.room_id] || "") }>COPY LINK</button>
+                        <div key={room.user_room_id} style={{
+                            border: '1px solid #00FF41',
+                            borderRadius: '8px',
+                            backgroundColor: '#0D0208',
+                            padding: '10px',
+                            boxShadow: '0 0 6px #00FF41',
+                        }}>
+                            <div style={{ marginBottom: '8px' }}>
+                                <p><b>{room.room_name}</b></p>
+                                <p><b>ID:</b> {room.room_id} </p>
+                                <p><b>Role:</b> {room.role}</p>
                             </div>
 
-                            {/* Want a button here that lets you LEAVE the room (which you can NOT do if you're the owner/"king"). */}
-                            {room.role === 'member' && (
-                                <>
-                                    <button onClick={()=>handleLeave(room.room_id)}>
-                                        LEAVE ROOM
-                                    </button>
-                                </>
-                            )}
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+                                {/* Join Room Button: */}
+                                <button onClick={()=> handleJoin(room.room_id)} style={btnStyle}>JOIN</button>
+                                <button onClick={() => generateInvite(room.room_id)} style={btnStyle}>GET INVITE</button>
+                                <button onClick={() => navigator.clipboard.writeText(invLinks[room.room_id] || "")} style={btnStyle}>COPY LINK</button>
 
-                            {/* Buttons for deleting the Room and managing its users (kicking them/transferring ownership) -- for the "Owner" only: */}
-                            {room.role === 'king' && (
-                                <>
-                                    <button onClick={()=>handleDelete(room.room_id)}>DELETE ROOM</button>
-                                    <button onClick={()=>handleManageUsers(room.room_id)}>MANAGE USERS</button>
-                                </>
+                                {/* Want a button here that lets you LEAVE the room (which you can NOT do if you're the owner/"king"). */}
+                                {room.role === 'member' && (
+                                    <>
+                                        <button onClick={()=>handleLeave(room.room_id)} style={btnStyle}>LEAVE ROOM</button>
+                                    </>
+                                )}
+
+                                {/* Buttons for deleting the Room and managing its users (kicking them/transferring ownership) -- for the "Owner" only: */}
+                                {room.role === 'king' && (
+                                    <>
+                                        <button style={btnStyle} onClick={()=>handleDelete(room.room_id)}>DELETE ROOM</button>
+                                        <button style={btnStyle} onClick={()=>handleManageUsers(room.room_id)}>MANAGE USERS</button>
+                                    </>
+                                )}
+                            </div>
+
+                            {/* Invite Display */}
+                            {invLinks[room.room_id] && (
+                                <div style={{
+                                    marginTop: '10px',
+                                    backgroundColor: '#000',
+                                    padding: '5px',
+                                    border: '1px dashed #00FF41',
+                                    borderRadius: '4px',
+                                    overflowWrap: 'break-word'
+                                }}>
+                                    {invLinks[room.room_id]}
+                                </div>
                             )}
 
                             {/* Code below is for adding a "shadowed" background when the Manage Users component appears (should come before): */}
