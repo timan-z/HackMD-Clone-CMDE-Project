@@ -35,11 +35,6 @@ function Login({ setUser, setToken }) {
         ^ I'm not going to worry about doing any of that fancy stuff for now. */
         const handleEnterKey = (e) => {
             if(e.key === 'Enter') {
-                /*console.log("DEBUG: ENTER key was pressed!!!");
-                console.log("DEBUG: The value of unEmailInputRef.current => [", unEmailInputRef.current, "]");
-                console.log("DEBUG: The value of pwordInputRef.current => [", pwordInputRef.current, "]");
-                console.log("DEBUG: =>", unEmailInputRef.current.value);
-                console.log("DEBUG: =>", pwordInputRef.current.value);*/
                 signInBtnRef.current.click();
             }
         };
@@ -55,75 +50,180 @@ function Login({ setUser, setToken }) {
         };
     }, []);
 
-    return(
-        <div id="loginp-outermost-div">
+    return (
+        <div
+            id="loginp-outermost-div"
+            style={{
+                minHeight: "100vh",
+                width: "100%",
+                backgroundColor: "#000",
+                display: "flex",
+                justifyContent: "center",
+                alignItems: "center",
+                fontFamily: "monospace",
+                color: "#00FF41",
+            }}
+        >
             {/* [1/3] - Outer-most <div> element containing the "Sign in to HackMD Clone" box. Should be centered in the middle of the screen. */} 
-            <div id="login-outermost-box">
-                <h1>Sign in to HackMD Clone</h1>
+            <div
+                id="login-outermost-box"
+                style={{
+                    width: "400px",
+                    padding: "30px",
+                    backgroundColor: "#0D0208",
+                    border: "2px solid #00FF41",
+                    borderRadius: "12px",
+                    boxShadow: "0 0 10px #00FF41",
+                    display: "flex",
+                    flexDirection: "column",
+                    alignItems: "center",
+                    gap: "20px",
+                }}
+            >
+                <h1 style={{ marginBottom: "0px", fontSize: "1.5rem" }}>
+                    Sign in to HackMD Clone
+                </h1>
+
                 {/* [2/3] - The box for entering the Username/Email and Password login (and resetting password with "Forget Password"). Also login button: */} 
-                <div id="login-username-pword">
+                <div id="login-username-pword" style={{ width: "100%" }}>
+                    <form
+                        style={{
+                            width: "100%",
+                            display: "flex",
+                            flexDirection: "column",
+                            alignItems: "center",
+                        }}
+                        onSubmit={async (e) => {
+                            e.preventDefault(); // The sign-in logic only occurs if all login forms are completed (none empty).
 
-                    <form style={{width:"100%",height:"100%", display:"flex", flexDirection:"column", alignItems:"center",}} onSubmit={ async (e) => {
-                        e.preventDefault(); // The sign-in logic only occurs if all login forms are completed (none empty).
+                            const formsFilled = checkFormsFilled(); // Ensure all the login forms are filled (nothing empty).
 
-                        const formsFilled = checkFormsFilled(); // Ensure all the login forms are filled (nothing empty).
+                            if (formsFilled) {
+                                const email = unEmailInputRef.current.value;
+                                const password = pwordInputRef.current.value;
 
-                        if(formsFilled) {
-                            const email = unEmailInputRef.current.value;
-                            const password = pwordInputRef.current.value;
+                                try {
+                                    const result = await login({ email, password });
 
-                            try {
-                                const result = await login({email, password});
-                                
-                                if(result.token) {
-                                    localStorage.setItem("token", result.token);
-                                    setToken(result.token);
+                                    if (result.token) {
+                                        localStorage.setItem("token", result.token);
+                                        setToken(result.token);
 
-                                    const userData = await getCurrentUser(result.token);
-                                    setUser(userData);
+                                        const userData = await getCurrentUser(result.token);
+                                        setUser(userData);
 
-                                    console.log("DEBUG: LOGIN SUCCESSFUL!!!: ", userData);
-                                    // NOTE:+DEBUG: After login success I'm supposed to re-direct the user to the dashboard. (DEBUG: COME BACK HERE):
-                                    navigate('/dashboard');
-                                } else {
-                                    console.error("Login failed: ", result.message || result);
-                                    alert("DEBUG: LOGIN FAILED. PLEASE CHECK YOUR CREDENTIALS!");
+                                        console.log("DEBUG: LOGIN SUCCESSFUL!!!: ", userData);
+                                        // NOTE:+DEBUG: After login success I'm supposed to re-direct the user to the dashboard. (DEBUG: COME BACK HERE):
+                                        navigate('/dashboard');
+                                    } else {
+                                        console.error("Login failed: ", result.message || result);
+                                        alert("DEBUG: LOGIN FAILED. PLEASE CHECK YOUR CREDENTIALS!");
+                                    }
+                                } catch (err) {
+                                    console.error("Login error: ", err);
+                                    alert("DEBUG: ERROR OCCURRED DURING LOGIN!");
                                 }
-                            } catch (err) {
-                                console.error("Login error: ", err);
-                                alert("DEBUG: ERROR OCCURRED DURING LOGIN!");
                             }
-                        }
-                    }}>
+                        }}
+                    >
                         {/* 2.1 - Section for inputting the username or email address for login: */}
-                        <div id="login-username-div" style={{width:"90%", padding:"3.75%", marginTop:"2.5%"}}>
-                            <div style={{fontSize:"18px"}}>Username or email address</div>
-                            <input id="loginp-unemail-input" style={{width:"97.25%"}} type="text" ref={unEmailInputRef}/>
+                        <div id="login-username-div" style={{ width: "90%", padding: "3.75%", marginTop: "2.5%" }}>
+                            <div style={{ fontSize: "18px" }}>Username or email address</div>
+                            <input
+                                id="loginp-unemail-input"
+                                type="text"
+                                ref={unEmailInputRef}
+                                style={{
+                                    width: "97.25%",
+                                    padding: "8px",
+                                    backgroundColor: "#000",
+                                    color: "#00FF41",
+                                    border: "1px solid #00FF41",
+                                    borderRadius: "4px",
+                                }}
+                            />
                         </div>
 
                         {/* 2.2 - Section for inputting the password for login (or for resetting password if needed): */}
-                        <div id="login-pword-div" style={{width:"90%", padding:"3.75%"}}>
-                            
-                            <div style={{display:"flex", flexDirection:"row", justifyContent:"space-between"}}>
-                                <div style={{fontSize:"18px"}}>Password</div>
-                                <a href="INSERT LINK TO RESET PASSWORD" style={{fontSize:"18px", textDecoration:"none"}}>Forgot Password?</a>
+                        <div id="login-pword-div" style={{ width: "90%", padding: "3.75%" }}>
+                            <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
+                                <div style={{ fontSize: "18px" }}>Password</div>
+                                <a
+                                    href="INSERT LINK TO RESET PASSWORD"
+                                    style={{
+                                        fontSize: "18px",
+                                        textDecoration: "none",
+                                        color: "#00FF41",
+                                    }}
+                                >
+                                    Forgot Password?
+                                </a>
                             </div>
-
-                            <input id="loginp-pword-input" style={{width:"97.25%"}} type="password" ref={pwordInputRef}/>
+                            <input
+                                id="loginp-pword-input"
+                                type="password"
+                                ref={pwordInputRef}
+                                style={{
+                                    width: "97.25%",
+                                    padding: "8px",
+                                    backgroundColor: "#000",
+                                    color: "#00FF41",
+                                    border: "1px solid #00FF41",
+                                    borderRadius: "4px",
+                                }}
+                            />
                         </div>
 
                         {/* 2.3 - Sign-in Button: */}
-                        <button id="loginp-signin-btn" type="submit" style={{marginTop:"2.25%"}} ref={signInBtnRef} >SIGN IN</button>
+                        <button
+                            id="loginp-signin-btn"
+                            type="submit"
+                            ref={signInBtnRef}
+                            style={{
+                                marginTop: "2.25%",
+                                padding: "10px 20px",
+                                width: "95%",
+                                backgroundColor: "#000",
+                                color: "#00FF41",
+                                border: "1px solid #00FF41",
+                                borderRadius: "6px",
+                                boxShadow: "0 0 6px #00FF41",
+                                cursor: "pointer",
+                                fontWeight: "bold",
+                                letterSpacing: "1px",
+                            }}
+                        >
+                            SIGN IN
+                        </button>
                     </form>
                 </div>
+
                 {/* [3/3] - The box beneath the Username/Email and Password login box for switching to the Registration page: */}
-                <div id="login-new-acc" style={{fontSize:"17px", display:"flex", justifyContent:"center", alignItems:"center"}}>
-                    <div style={{marginRight:"10px"}}>New to HackMD Clone?</div><a href="Register" style={{textDecoration:"none"}}>Create an account.</a>
+                <div
+                    id="login-new-acc"
+                    style={{
+                        fontSize: "17px",
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                    }}
+                >
+                    <div style={{ marginLeft: "10px" }}>New to HackMD Clone?</div>
+                    <a
+                        href="Register"
+                        style={{
+                            textDecoration: "underline",
+                            color: "#00FF41",
+                            fontWeight: "bold",
+                        }}
+                    >
+                        Create an account.
+                    </a>
                 </div>
             </div>
-
         </div>
     );
+
 }
 
 export default Login;

@@ -290,27 +290,39 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   display:flex;
   justify-content:center;
   align-items:center;
+  height:100%;
+  width:100%;
+  font-family:monospace;
+  color:"#00FF41";
+  background-color:"#000";
 }
 /* Styling for the main "Sign in to HackMD Clone" box in the Login.jsx page and everything inside it: */
 #login-outermost-box {
   height:425px;
   width:400px;
-  border-style:solid;
+  border:2px solid #00FF41;
+  border-radius:12px;
+  box-shadow: "0 0 10px #00FF41";
   display:flex;
   flex-direction:column;
   align-items:center;
   justify-content:space-evenly;
-  margin-top:100px;
+  gap:20px;
 }
 #login-username-pword {
   display:flex;
   flex-direction:column;
   align-items:center;
-  margin-top:-20px;
+  margin-top:-30px;
   height:50%;
   width:90%;
-  border-style:solid;
 }
+
+
+
+
+
+
 #loginp-signin-btn {
   font-size:20px;
   font-weight:bold;
