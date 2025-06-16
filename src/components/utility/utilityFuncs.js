@@ -94,3 +94,24 @@ export function findCursorPos(paraNodes, anchorNode, anchorOffset) {
     //console.log("~~~Code Button Clicked (CBC) console.log statements END~~~");
     return absolutePosition;
 }
+
+// Only have these here instead of index.css because for whatever reason it just won't apply in real-time (probably something to do with browser caching).
+// 1. For Dashboard.jsx (want them a little fatter):
+export const btnStyleDB = {
+  backgroundColor: '#000',
+  color: '#00FF41',
+  border: '1px solid #00FF41',
+  borderRadius: '4px',
+  padding: '6px 10px',
+  boxShadow: '0 0 4px #00FF41',
+  cursor: 'pointer',
+};
+
+// 2. For Editor.jsx (want them a little thinner):
+export const btnStyleEd = {
+  backgroundColor: '#000',
+  color: '#00FF41',
+  border: '1px solid #00FF41',
+  boxShadow: '0 0 4px #00FF41',
+  cursor: 'pointer',
+};

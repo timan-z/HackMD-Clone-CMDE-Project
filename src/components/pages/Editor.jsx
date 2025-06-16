@@ -9,6 +9,7 @@ import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
 import { $getRoot, $getSelection, $isRangeSelection, $isTextNode} from 'lexical';
 // custom imports:
+import { btnStyleEd } from "../utility/utilityFuncs.js";
 import { parseMarkdown } from "../core-features/MDParser.jsx";
 import { findCursorPos } from '../utility/utilityFuncs.js';
 import { RemoteCursorOverlay } from '../core-features/RemoteCursorOverlay.jsx';
@@ -123,8 +124,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [previewFont, setPreviewFont] = useState("Arial");
   const [edFontSize, setEdFontSize] = useState(16);
   const [prevFontSize, setPrevFontSize] = useState(16);
-  const [editorBColour, setEditorBColour] = useState("#d3d3d3");
-  const [previewBColour, setPreviewBColour] = useState("#b0c4de");
+  const [editorBColour, setEditorBColour] = useState("#FFFFFF");
+  const [previewBColour, setPreviewBColour] = useState("#FFFFFF");
   const [editorTColour, setEditorTColour] = useState("#000000");
   const [previewTColour, setPreviewTColour] = useState("#000000");
   const [usersList, setUsersList] = useState([]);
@@ -544,6 +545,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
   }
 
+
+
+
+
+
+
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
       {/* Going to have something loaded here that boots the user when they get kicked: 
@@ -595,7 +602,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           </label>
 
           {/* The Download Text Editor Content -> .md File Button: */}
-          <button onClick={handleDownloadMD} className="download-md-button">Download as .md</button>
+          <button onClick={handleDownloadMD} className="download-md-button" style={{fontFamily:"monospace"}}>Download as .md</button>
         </div>
 
         {/* The "Text Editor|Split|Preview Panel" toggles: */}
@@ -606,7 +613,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         </div>
 
         {/* NOTE: Added this parent <div> for the stuff inbetween to add in-between spacing... */}
-        <div style={{display:"flex", flexDirection:"row", gap:"5px"}}>
+        <div style={{display:"flex", flexDirection:"row", gap:"5px", padding:"10px", paddingLeft:"15px", paddingRight:"15px", backgroundColor:"#003B00", borderRadius:"10px", marginTop:"15px"}}>
 
           {/* This will be the "Notifications" button on the top-right of the T.E. room webpage (will be extremely primitive): */}
           <div id="notifs-button" onClick={()=> toggleNotifs()} >
@@ -648,10 +655,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
           {/* "editor-overhead" <div> is for the horizontal bar above the Text Editor (and Toolbar) where customization options
           will be (mainly dropboxes for letting the user choose font, font-size, background-color etc): */}
-          <div className="editor-overhead">
+          <div className="editor-overhead" style={{gap:"5px"}}>
             {/* 1. Font: */}
             <label>Editor Font:
-              <select onChange={(e) => setEditorFont(e.target.value)} value={editorFont}>
+              <select style={{fontFamily:"monospace", fontSize:"12px"}} onChange={(e) => setEditorFont(e.target.value)} value={editorFont}>
                 <option value="Arial">Arial</option>
                 <option value="Brush Script MT">Brush Script MT</option>
                 <option value="Courier New">Courier New</option>
@@ -665,14 +672,14 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
             </label>
 
             {/* 2. Zoom Controls (for Text Editor) */}
-            <button onClick={() => setEdFontSize((prev) => prev + 2)}>Zoom In</button>
-            <button onClick={() => setEdFontSize((prev) => Math.max(prev - 2, 12))}>Zoom Out</button>
+            <button style={btnStyleEd} onClick={() => setEdFontSize((prev) => prev + 2)}>Zoom In</button>
+            <button style={btnStyleEd} onClick={() => setEdFontSize((prev) => Math.max(prev - 2, 12))}>Zoom Out</button>
 
             {/* 3. Adding controls for changing Background Colour: */}
             <label>Background:
-              <select onChange={(e) => setEditorBColour(e.target.value)} value={editorBColour}>
-                <option value="#d3d3d3">Light Gray</option>
+              <select style={{fontFamily:"monospace", fontSize:"12px"}} onChange={(e) => setEditorBColour(e.target.value)} value={editorBColour}>
                 <option value="#FFFFFF">White</option>
+                <option value="#d3d3d3">Light Gray</option>
                 <option value="#1E1E1E">Soft Black</option>
                 <option value="#F5E1C0">Paper-like</option>
                 <option value="#2E3B4E">Midnight Blue</option>
@@ -682,7 +689,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
             {/* 4. Adding controls for changing Text Colour: */}
             <label>Text:
-              <select onChange={(e) => setEditorTColour(e.target.value)} value={editorTColour}>
+              <select style={{fontFamily:"monospace", fontSize:"12px"}} onChange={(e) => setEditorTColour(e.target.value)} value={editorTColour}>
                 <option value="#000000">Black</option>
                 <option value="#D4D4D4">Light Gray</option>
                 <option value="#5B4636">Deep Brown</option>
@@ -693,7 +700,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
             </label>
 
             {/* 5. Button manually save the state of the Editor document to the backend server: */}
-            <button onClick={()=> saveDocState()}>SAVE DOC</button>
+            <button style={btnStyleEd} onClick={()=> saveDocState()}>SAVE</button>
 
           </div>
           
@@ -777,7 +784,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> 
                 </div>
                 
-                <div>Line Count: {lineCount} | Current Line: {currentLine}</div>
+                <div style={{paddingTop:'6px',fontSize:'16px',fontWeight:'bold', color:'#00FF41', backgroundColor:'black', border:'2px solid #00FF41' }} >Line Count: {lineCount} | Current Line: {currentLine}</div>
             </div>
           </div>
         </div>)}
@@ -789,10 +796,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         {(viewMode === "split" || viewMode === "preview-only") && (<div id="preview-panel-space" className="preview-panel-space-split" style={{ width: `${100 - editorWidth}%`}}>
           <h3>Preview</h3>
           {/* Customization bar for the Preview Panel (same as what's offered with the Text Editor): */}
-          <div className="preview-overhead">
+          <div className="preview-overhead" style={{gap:"5px"}}>
             {/* 1. For the user to toggle font selection for the Preview Panel: */}
             <label>Preview Font:
-              <select onChange={(e) => setPreviewFont(e.target.value)} value={previewFont}>
+              <select style={{fontFamily:"monospace", fontSize:"12px"}} onChange={(e) => setPreviewFont(e.target.value)} value={previewFont}>
                 <option value="Arial">Arial</option>
                 <option value="Brush Script MT">Brush Script MT</option>
                 <option value="Courier New">Courier New</option>
@@ -806,13 +813,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
             </label>
 
             {/* 2. Zoom Controls (for Preview Panel) */}
-            <button onClick={() => setPrevFontSize((prev) => prev + 2)}>Zoom In</button>
-            <button onClick={() => setPrevFontSize((prev) => Math.max(prev - 2, 12))}>Zoom Out</button>
+            <button style={btnStyleEd} onClick={() => setPrevFontSize((prev) => prev + 2)}>Zoom In</button>
+            <button style={btnStyleEd} onClick={() => setPrevFontSize((prev) => Math.max(prev - 2, 12))}>Zoom Out</button>
             {/* 3. Background Colour:*/}
             <label>Background:
-              <select onChange={(e) => setPreviewBColour(e.target.value)} value={previewBColour}>
-                <option value="#d3d3d3">Light Gray</option>
+              <select style={{fontFamily:"monospace", fontSize:"12px"}} onChange={(e) => setPreviewBColour(e.target.value)} value={previewBColour}>
                 <option value="#FFFFFF">White</option>
+                <option value="#d3d3d3">Light Gray</option>
                 <option value="#1E1E1E">Soft Black</option>
                 <option value="#F5E1C0">Paper-like</option>
                 <option value="#2E3B4E">Midnight Blue</option>
@@ -821,7 +828,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
             </label>
             {/* 4. Text Colour: */}
             <label>Text:
-              <select onChange={(e) => setPreviewTColour(e.target.value)} value={previewTColour}>
+              <select style={{fontFamily:"monospace", fontSize:"12px"}} onChange={(e) => setPreviewTColour(e.target.value)} value={previewTColour}>
                 <option value="#000000">Black</option>
                 <option value="#D4D4D4">Light Gray</option>
                 <option value="#5B4636">Deep Brown</option>

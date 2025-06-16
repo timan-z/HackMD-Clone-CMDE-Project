@@ -2,7 +2,9 @@ import {useEffect, useState, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import { createNewEdRoom, getAllRooms, generateInvLink, joinRoomViaInv, leaveRoom, deleteRoom } from "../utility/api.js";
 import { io } from "socket.io-client";
+import { btnStyleDB } from "../utility/utilityFuncs.js";
 import ManageUsersSection from "../misc-features/ManageUsersSection.jsx";
+
 const socket = io("http://localhost:4000");
 
 function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setUser }) {
@@ -123,17 +125,6 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
         };
         fetchRooms();
     }, []);
-
-    // This styling is for the buttons in the return(...) statement below...
-    const btnStyle = {
-        backgroundColor: '#000',
-        color: '#00FF41',
-        border: '1px solid #00FF41',
-        borderRadius: '4px',
-        padding: '6px 10px',
-        boxShadow: '0 0 4px #00FF41',
-        cursor: 'pointer',
-    };
 
     return(
         <div style={{
@@ -307,22 +298,22 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
                             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
                                 {/* Join Room Button: */}
-                                <button onClick={()=> handleJoin(room.room_id)} style={btnStyle}>JOIN</button>
-                                <button onClick={() => generateInvite(room.room_id)} style={btnStyle}>GET INVITE</button>
-                                <button onClick={() => navigator.clipboard.writeText(invLinks[room.room_id] || "")} style={btnStyle}>COPY LINK</button>
+                                <button onClick={()=> handleJoin(room.room_id)} style={btnStyleDB}>JOIN</button>
+                                <button onClick={() => generateInvite(room.room_id)} style={btnStyleDB}>GET INVITE</button>
+                                <button onClick={() => navigator.clipboard.writeText(invLinks[room.room_id] || "")} style={btnStyleDB}>COPY LINK</button>
 
                                 {/* Want a button here that lets you LEAVE the room (which you can NOT do if you're the owner/"king"). */}
                                 {room.role === 'member' && (
                                     <>
-                                        <button onClick={()=>handleLeave(room.room_id)} style={btnStyle}>LEAVE ROOM</button>
+                                        <button onClick={()=>handleLeave(room.room_id)} style={btnStyleDB}>LEAVE ROOM</button>
                                     </>
                                 )}
 
                                 {/* Buttons for deleting the Room and managing its users (kicking them/transferring ownership) -- for the "Owner" only: */}
                                 {room.role === 'king' && (
                                     <>
-                                        <button style={btnStyle} onClick={()=>handleDelete(room.room_id)}>DELETE ROOM</button>
-                                        <button style={btnStyle} onClick={()=>handleManageUsers(room.room_id)}>MANAGE USERS</button>
+                                        <button style={btnStyleDB} onClick={()=>handleDelete(room.room_id)}>DELETE ROOM</button>
+                                        <button style={btnStyleDB} onClick={()=>handleManageUsers(room.room_id)}>MANAGE USERS</button>
                                     </>
                                 )}
                             </div>

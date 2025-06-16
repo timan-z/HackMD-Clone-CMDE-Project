@@ -5,6 +5,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $createRangeSelection, $getSelection, $isRangeSelection, $setSelection, $isTextNode, $isRootNode, $createLineBreakNode, $getRoot, $createTextNode, $isParagraphNode, $createParagraphNode } from "lexical";
 import {UNDO_COMMAND, REDO_COMMAND} from "lexical"; // For the "UNDO" and "REDO" functionality of the site.
 import { findCursorPos } from '../utility/utilityFuncs.js';
+import { btnStyleEd } from '../utility/utilityFuncs.js';
 
 // The following three consts are for the "Insert Image" functionality (using Cloudinary as a server to store uploads):
 const cloudName = import.meta.env.VITE_CLOUDINARY_CLOUD_NAME;
@@ -483,39 +484,39 @@ function Toolbar() {
         );
     };
 
-    return (<div>
+    return (<div style={{backgroundColor:"#003B00"}}>
         {/* NOTE: Added these two buttons below (UNDO and REDO) well after finishing the ones below... */}
         {/* UNDO BUTTON: */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             applyMarkdownFormatUndo(editor);
         }}>UNDO</button>
 
         {/* REDO BUTTON: */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             applyMarkdownFormatRedo(editor);
         }}>REDO</button>
 
         {/*--------------------------------------------------------- */}
         {/* Creating the button that responds to "bold" */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             applyMarkdownFormatBISCL("**","**")
         }}>B</button>
         {/* Creating the button that responds to "italic" */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             applyMarkdownFormatBISCL("*","*")
         }}>I</button>
         {/* Creating the button that responds to "strikethrough" */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             applyMarkdownFormatBISCL("~~","~~")
         }}>S</button>
 
         {/* Creating the button that responds to "header" (will require a separate function than those above) */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             applyMarkdownFormatHead(editor)
         }}>H</button>
 
         {/* Creating the button that responds to "code" (adding the ```code``` etc block thing, which will require a seperate function) */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             //applyMarkdownFormatCode(editor)
             applyMarkdownFormatBISCL("```\n", "\n```");
         }}>&#60;/&#62;</button>
@@ -525,46 +526,46 @@ function Toolbar() {
         THAT IS PROBABLY TO BE WRITTEN OUTSIDE OF THIS Toolbar.jsx FILE. (SEE DEBUG COMMENT BELOW THEM). */}
 
         {/* #1 - Creating the button that responds to "quote" */}
-        <button onClick={()=>{
+        <button style={btnStyleEd} onClick={()=>{
             const applyQuote = "quote";
             applyMarkdownFormatQGNC(editor, applyQuote)
         }}>" "</button>
 
         {/* #2 - Creating the button that responds to "generic" */}
-        <button onClick={()=> {
+        <button style={btnStyleEd} onClick={()=> {
             const applyGeneric = "generic";
             applyMarkdownFormatQGNC(editor, applyGeneric)
         }}>*</button>
 
         {/* #3 - Creating the button that responds to "numbered list" */}
-        <button onClick={()=> {
+        <button style={btnStyleEd} onClick={()=> {
             const applyNumbered = "numbered";
             applyMarkdownFormatQGNC(editor, applyNumbered)
         }}>1.</button>
 
         {/* #4 - Creating the button that responds to "check list" */}
-        <button onClick={()=> {
+        <button style={btnStyleEd} onClick={()=> {
             const applyCheckList = "checkList";
             applyMarkdownFormatQGNC(editor, applyCheckList)
         }}>-[]</button>
 
         {/* Creating the button that responds to "create link" */}
-        <button onClick={()=> {
+        <button style={btnStyleEd} onClick={()=> {
             applyMarkdownFormatBISCL("[", "](https://)")
         }}>LINK</button>
 
         {/* Creating the button that responds to "insert table" */}
-        <button onClick={()=> {
+        <button style={btnStyleEd} onClick={()=> {
             applyMarkdownFormatTable(editor)
         }}>TABLE</button>
 
         {/* Creating the button that responds to "insert horizontal line" */}
-        <button onClick={()=> {
+        <button style={btnStyleEd} onClick={()=> {
             applyMarkdownFormatHLine(editor)
         }}>LINE</button>
 
         {/* Creating the button that responds to "Insert image" */}
-        <button onClick={()=> {
+        <button style={btnStyleEd} onClick={()=> {
             applyMarkdownFormatImage(editor)
         }}>IMAGE</button>
 
