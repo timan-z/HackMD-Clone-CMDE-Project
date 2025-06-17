@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from "react";
 import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
-import { getCurrentUser, getRoomUsers, saveRoomDoc, getRoomDoc } from "./utility/api.js" // Determines site home page (depending on if the user is logged in or not).
+import { getCurrentUser, getRoomUsers, saveRoomDoc, getRoomDoc } from "./utility/api.js"
 // The four main webpages of the application (in order of appearance):
 import Login from "./pages/Login.jsx";
 import Register from "./pages/Register.jsx";
@@ -44,16 +44,8 @@ function App() {
 
   // Function for retrieving Editor document data from the PostgreSQL server:
   const getRoomData = async(roomId) => {
-
-
-    console.log("getRoomData-DEBUG: Function entered.");
-
-
     if(token) {
       try {
-
-        console.log("getRoomData-DEBUG: try-block entered...");
-
         const result = await getRoomDoc(roomId, token);
         return result;
       } catch(err) {

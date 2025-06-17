@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import pg from "pg";
-
+import {checkValidEmail} from "../../utility/utilityFuncs.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 /* NOTE:
@@ -10,17 +10,9 @@ import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 AND since it's my primary key in the database anyways, PostgreSQL will automatically reject duplicates for me. 
 */
 
-
-
-
-
 dotenv.config({ path:'./.env'});
 const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 const JWT_SECRET = process.env.JWT_SECRET;
-
-
-console.log("DEBUG: REFRESH STUFF!!! THE VALUE OF process.env.VITE_CLOUDINARY_CLOUD_NAME => [", process.env.VITE_CLOUDINARY_CLOUD_NAME, "]");
-
 
 // 1. USER-RELATED:
 // 1.1. Function for User Registration:
@@ -51,34 +43,32 @@ export const registerUser = async(req, res) => {
 
 // 1.2. Function for User Login:
 export const loginUser = async(req, res) => {
-    const { email, username, password } = req.body;
+    const { unEmail, password } = req.body;
+    const unEmailCheck = checkValidEmail(unEmail);
 
     try {
         // You can login with email OR username, which of which will be discerned below (with email being prioritized):
-        const loginRes = email ? await pool.query("SELECT * FROM users WHERE email = $1", [email]) // see if valid email.
-            : await pool.query("SELECT * FROM users WHERE username = $1", [username]); // see if valid username.
+        const loginRes = unEmailCheck ? await pool.query("SELECT * FROM users WHERE email = $1", [unEmail]) // see if valid email.
+            : await pool.query("SELECT * FROM users WHERE username = $1", [unEmail]); // see if valid username.
 
         const user = loginRes.rows[0];
         
-        console.log("DEBUG: SOMETHING NEW HERE!!!");
-
-        if(!user) {
-            return res.status(401).json({error: "Invalid login credentials - no account with that email or username exists! AHHHHHHH"});
-        }
+        if(!user) return res.status(401).json({error: "Invalid login credentials - no account with that email or username exists!"});
 
         const match = await bcrypt.compare(password, user.password);
 
-        if(!match) {
-            return res.status(401).json({ error: "Invalid login credentials - incorrect password!" });
-        }
+        if(!match) return res.status(401).json({ error: "Invalid login credentials - incorrect password!" });
 
-        const token = jwt.sign({ id: user.id }, JWT_SECRET, { expiresIn: "10d" });
+        const token = jwt.sign({ id: user.id }, JWT_SECRET); // , { expiresIn: "10d" }); <-- removing this, just don't really see the point of it tbh.
         // Return user info to the front-end and the memory token:
         res.json({ user: { id: user.id, username: user.username, email: user.email }, token });
     } catch(err) {
         res.status(500).json({ error: "Couldn't login - Internal server error, probably."});
     }
 };
+
+
+
 
 // 1.3. Function for retrieving Current User:
 export const getCurrentUser = async(req, res) => {
@@ -329,16 +319,6 @@ export const transferEdRoomOwn = async(req, res) => {
         res.status(500).json({ success:false, error: "Failed to transfer ownership"});
     }
 };
-
-
-
-
-
-
-
-
-
-
 
 // 4.1. To save Editor Room document data on the PostgreSQL backend server:
 export const saveEdRoomDoc = async(req, res) => {

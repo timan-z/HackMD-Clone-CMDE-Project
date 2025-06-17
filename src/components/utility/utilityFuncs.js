@@ -115,3 +115,10 @@ export const btnStyleEd = {
   boxShadow: '0 0 4px #00FF41',
   cursor: 'pointer',
 };
+
+// For Login.jsx and Register.jsx:
+// NOTE: Not doing anything extensive when it comes to error-checking the email (not the main point of this project, would take way too long).
+export const checkValidEmail = (email) => {
+    const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/i;
+    return EMAIL_REGEX.test(email);
+};

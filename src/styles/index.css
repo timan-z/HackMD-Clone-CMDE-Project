@@ -1,5 +1,10 @@
 
 
+html, body {
+  background-color:black;
+}
+
+
 /* This .placeholder styling is for the "placeholder text" that appears within the Text Editor pre-typing. */
 .placeholder {
   position:absolute;

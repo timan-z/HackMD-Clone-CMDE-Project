@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { createNewEdRoom, getAllRooms, generateInvLink, joinRoomViaInv, leaveRoom, deleteRoom } from "../utility/api.js";
 import { io } from "socket.io-client";
 import { btnStyleDB } from "../utility/utilityFuncs.js";
+
 import ManageUsersSection from "../misc-features/ManageUsersSection.jsx";
 
 const socket = io("http://localhost:4000");
@@ -178,19 +179,23 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                         e.preventDefault();
                         const edRoomName = newEdRoomNameRef.current.value;
                         const token = localStorage.getItem("token");
-                        await createNewEdRoom(edRoomName, token);
+                        try {
+                            await createNewEdRoom(edRoomName, token);
+                            window.location.reload();
+                        } catch(err) {
+                            console.error(`ERROR: There was an error when attempting to create a new room => ${err}}`);
+                        }
                     }}>
                         <div style={{color:"red", width:"100%"}}>
                             <input id="createEdRoomName" type="text" ref={newEdRoomNameRef} placeholder="Room Name (Optional):"
                             style={{
                                 width:"97%",
                                 backgroundColor:"#000",
-                                color:'red',
                                 border: '1px solid red',
                                 borderRadius: '4px',
+                                color:'red',
                                 padding: '4px',
-                                marginTop: '5px',
-                            }}/>
+                                marginTop: '5px',}}/>
                         </div>
                         
                         <button style={{

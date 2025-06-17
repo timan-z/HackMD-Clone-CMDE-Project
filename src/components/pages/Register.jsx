@@ -1,5 +1,6 @@
 import React, {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
+import {checkValidEmail} from "../utility/utilityFuncs.js";
 import {register} from "../utility/api.js";
 
 function Register() {
@@ -7,20 +8,27 @@ function Register() {
     const pwordInputRef = useRef(null);
     const unameInputRef = useRef(null);
 
+    const [emailError, setEmailError] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
+    const [usernameError, setUsernameError] = useState(false);
+
     /* NOTE: For now, upon successful Registry, let's re-route to the Login page. But when this is more fleshed out, let's make it so
     that there's some sort of animated pop-up that says "Registration successful! Would you like to login now?" (with option to click login). */
     const navigate = useNavigate(); // For re-directing to Login page on successful Registration. DEBUG: FOR NOW!!!
 
     // Pre-register button that ensures all forms are filled:
     const checkFormsFilled = () => {
-        if(emailInputRef.current.value === "") {
-            console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN EMAIL FORM FIRST\"]");
+        if(!checkValidEmail(emailInputRef.current.value)) {
+            setEmailError(true);
+            setTimeout(()=> setEmailError(false), 2500);
             return false;
-        } else if(pwordInputRef.current.value === "") {
-            console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN PASSWORD FORM FIRST\"]");
+        } else if(pwordInputRef.current.value === "" || !(pwordInputRef.current.value.length > 7)) {
+            setPasswordError(true);
+            setTimeout(()=> setPasswordError(false), 2500);
             return false;
-        } else if(unameInputRef.current.value === "") {
-            console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN USERNAME FORM FIRST\"]");
+        } else if(unameInputRef.current.value === "" || !(unameInputRef.current.value.length > 7)) {
+            setUsernameError(true);
+            setTimeout(()=> setUsernameError(false), 2500);
             return false;
         } else {
             // Allow register attempt:
@@ -33,21 +41,18 @@ function Register() {
         to the left and right (just like the GitHub Registration webpage as of 5/7/25). In the <div> below, there will
         be some sort of design and interactive Text advertising the site -- while, the actual Registration form will be to its right. */
 
-        <div
-            id="registerp-outermost-div"
+        <div id="registerp-outermost-div"
             style={{
                 display: "flex",
-                height: "100vh",
-                width: "100vw",
+                height:"100%",
+                width:"100%",
                 backgroundColor: "#000",
                 fontFamily: "monospace",
                 color: "#00FF41",
                 overflow: "hidden",
             }}
         >
-            {/* 2. RHS: */}
-            <div
-                id="registerp-rhs"
+            <div id="registerp" 
                 style={{
                     height: "100%",
                     width: "100%",
@@ -57,31 +62,15 @@ function Register() {
                     padding: "20px",
                 }}
             >
-                {/* At the top row of the page's RHS will be a comment re-directing to the Login page. */}
-                <div
-                    style={{
-                        width: "100%",
-                        textAlign: "right",
-                        fontSize: "16px",
-                        marginBottom: "10px",
-                    }}
-                >
+                <div style={{width: "100%",textAlign: "right",fontSize: "16px",marginBottom: "10px",}}>
                     Already have an account?{" "}
-                    <a
-                        href="Login"
-                        style={{
-                            textDecoration: "underline",
-                            color: "#00FF41",
-                            fontWeight: "bold",
-                        }}
-                    >
+                    <a href="Login" style={{textDecoration: "underline",color: "#00FF41",fontWeight: "bold",}}>
                         Sign in →
                     </a>
                 </div>
 
                 {/* Beneath that is the much larger <div> element where the actual Registration form is: */}
-                <div
-                    id="register-outermost-box"
+                <div id="register-outermost-box"
                     style={{
                         height: "auto",
                         width: "450px",
@@ -115,7 +104,6 @@ function Register() {
                                 const email = emailInputRef.current.value;
                                 const password = pwordInputRef.current.value;
                                 const username = unameInputRef.current.value;
-
                                 const result = await register({ username, email, password });
 
                                 if (result.error) {
@@ -145,6 +133,13 @@ function Register() {
                                 <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "5px", display: "block" }}>
                                     Email*
                                 </label>
+
+                                {emailError && (
+                                    <div style={{color: "#FF4C4C",fontSize: "14px",marginBottom: "5px",animation: "fadeInOut 2.5s ease-in-out",}}>
+                                        ⚠ Please enter a valid email.
+                                    </div>
+                                )}
+
                                 <input
                                     id="registerp-email-input"
                                     ref={emailInputRef}
@@ -167,6 +162,13 @@ function Register() {
                                 <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "5px", display: "block" }}>
                                     Password*
                                 </label>
+                                
+                                {passwordError && (
+                                    <div style={{color: "#FF4C4C",fontSize: "14px",marginBottom: "5px",animation: "fadeInOut 2.5s ease-in-out",}}>
+                                        ⚠ Please enter a valid password.
+                                    </div>
+                                )}
+
                                 <input
                                     id="registerp-pword-input"
                                     ref={pwordInputRef}
@@ -192,6 +194,13 @@ function Register() {
                                 <label style={{ fontWeight: "bold", fontSize: "16px", marginBottom: "5px", display: "block" }}>
                                     Username*
                                 </label>
+                                
+                                {usernameError && (
+                                    <div style={{color: "#FF4C4C",fontSize: "14px",marginBottom: "5px",animation: "fadeInOut 2.5s ease-in-out",}}>
+                                        ⚠ Please enter a valid username.
+                                    </div>
+                                )}
+
                                 <input
                                     id="registerp-uname-input"
                                     ref={unameInputRef}

@@ -7,16 +7,21 @@ function Login({ setUser, setToken }) {
     const unEmailInputRef = useRef(null);
     const pwordInputRef = useRef(null);
     const signInBtnRef = useRef(null);
-
     const navigate = useNavigate(); // For re-directing to Dashboard page on successful login. 
+
+    const [emailError, setEmailError] = useState(false);
+    const [passwordError, setPasswordError] = useState(false);
 
     // Pre-login function that just ensures all forms are filled:
     const checkFormsFilled = () => {
+        // NOTE: Since this field accepts email OR username, I will allow for non-email regex inputs (they'll be caught in the actual Login attempt):
         if(unEmailInputRef.current.value === "") {
-            console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN USERNAME/EMAIL FORM FIRST\"]");
+            setEmailError(true);
+            setTimeout(()=> setEmailError(false), 2500);
             return false;
         } else if(pwordInputRef.current.value === "") {
-            console.log("debug: [INSERT CODE TO ADD POP-UP THAT SAYS \"FILL IN PASSWORD FORM FIRST\"]");
+            setPasswordError(true);
+            setTimeout(()=> setPasswordError(false), 2500);
             return false;
         } else {
             // Allow sign-in attempt:
@@ -54,7 +59,7 @@ function Login({ setUser, setToken }) {
         <div
             id="loginp-outermost-div"
             style={{
-                minHeight: "100vh",
+                height:"100%",
                 width: "100%",
                 backgroundColor: "#000",
                 display: "flex",
@@ -62,6 +67,8 @@ function Login({ setUser, setToken }) {
                 alignItems: "center",
                 fontFamily: "monospace",
                 color: "#00FF41",
+                overflow:"hidden",
+                marginTop:"10%",
             }}
         >
             {/* [1/3] - Outer-most <div> element containing the "Sign in to HackMD Clone" box. Should be centered in the middle of the screen. */} 
@@ -99,11 +106,11 @@ function Login({ setUser, setToken }) {
                             const formsFilled = checkFormsFilled(); // Ensure all the login forms are filled (nothing empty).
 
                             if (formsFilled) {
-                                const email = unEmailInputRef.current.value;
+                                const unEmail = unEmailInputRef.current.value;
                                 const password = pwordInputRef.current.value;
 
                                 try {
-                                    const result = await login({ email, password });
+                                    const result = await login({ unEmail, password });
 
                                     if (result.token) {
                                         localStorage.setItem("token", result.token);
@@ -129,6 +136,14 @@ function Login({ setUser, setToken }) {
                         {/* 2.1 - Section for inputting the username or email address for login: */}
                         <div id="login-username-div" style={{ width: "90%", padding: "3.75%", marginTop: "2.5%" }}>
                             <div style={{ fontSize: "18px" }}>Username or email address</div>
+
+                            {/* Disclaimer message for when the user attempts to Login w/out inputting email or username: */}
+                            {emailError && (
+                                <div style={{color: "#FF4C4C",fontSize: "14px",marginBottom: "5px",animation: "fadeInOut 2.5s ease-in-out",}}>
+                                    ⚠ Please enter your email or username.
+                                </div>
+                            )}
+
                             <input
                                 id="loginp-unemail-input"
                                 type="text"
@@ -148,17 +163,18 @@ function Login({ setUser, setToken }) {
                         <div id="login-pword-div" style={{ width: "90%", padding: "3.75%" }}>
                             <div style={{ display: "flex", flexDirection: "row", justifyContent: "space-between" }}>
                                 <div style={{ fontSize: "18px" }}>Password</div>
-                                <a
-                                    href="INSERT LINK TO RESET PASSWORD"
-                                    style={{
-                                        fontSize: "18px",
-                                        textDecoration: "none",
-                                        color: "#00FF41",
-                                    }}
-                                >
-                                    Forgot Password?
-                                </a>
+                                {/*<a href="INSERT LINK TO RESET PASSWORD" style={{fontSize: "18px",textDecoration: "none",color: "#00FF41",}}>
+                                    Forgot Password? 
+                                </a> // <-- Decided I won't be moving forward with this (not worth the time and effort for a minor feature). */}
                             </div>
+                                
+                            {/* Disclaimer message for when the user attempts to Login w/out inputting password: */}
+                            {passwordError && (
+                                <div style={{color: "#FF4C4C",fontSize: "14px",marginBottom: "5px",animation: "fadeInOut 2.5s ease-in-out"}}>
+                                    ⚠ Please enter your password.
+                                </div>
+                            )}
+
                             <input
                                 id="loginp-pword-input"
                                 type="password"
@@ -181,6 +197,7 @@ function Login({ setUser, setToken }) {
                             ref={signInBtnRef}
                             style={{
                                 marginTop: "2.25%",
+                                marginLeft: "2%",
                                 padding: "10px 20px",
                                 width: "95%",
                                 backgroundColor: "#000",

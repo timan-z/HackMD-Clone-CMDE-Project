@@ -27,9 +27,6 @@ app.use(cors({
   
 app.use(express.json()); // Parses incoming JSON requests. 
 
-console.log("1-DEBUG: The value of PORT is => [", PORT, "]");
-console.log("2-DEBUG: The value of process.env.DATABASE_URL is => [", process.env.DATABASE_URL, "]");
-
 // Connect to PostgreSQL:
 const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,

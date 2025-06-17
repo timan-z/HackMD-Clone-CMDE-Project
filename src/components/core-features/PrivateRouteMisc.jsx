@@ -6,8 +6,6 @@ import { Navigate } from "react-router-dom";
 const PrivateRouteMisc = ({children}) => {
     const token = localStorage.getItem("token");
 
-    console.log("DEBUG: Yeah this is working...");
-
     if(token) {
         return <Navigate to="/dashboard" replace/>;
     }
