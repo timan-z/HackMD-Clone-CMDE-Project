@@ -40,6 +40,7 @@ This is the file where the <b>Real-Time Collaborative Text Editor</b>, using <b>
 ### Features:
 #### 1. <b>Multiple Editor Views</b> (mimic'ing HackMD)
 - Supports toggling between <b>[1]</b> <b>Editor-only</b> mode, <b>[2]</b> <b>Preview-only</b> mode, and <b>[3]</b> <b>Split-view</b> mode (Editor _and_ Markdown Preview; this is the default state).
+- While in Split View, there is additionally a "draggable" line that lets you dynamically resize both the Text Editor and Preview Panel (much like HackMD allows you to do).
 
 #### 2. Markdown Support
 - Live Markdown rendering in the Preview Panel (featured on the right-hand side of the screen during Split View).
@@ -247,7 +248,7 @@ Handles three distinct types:
 3. `transfer-ownership` -> Notifies all room members of ownership change.
 #### 5. Live Cursor Broadcasting
 - Clients send cursor position via `send-cursor-pos()`
-- Server stores `clientCursors` and `throttles` broadcasts using Lodash’s `throttle()`
+- Server stores `clientCursors` and `throttles` broadcasts using Lodash’s `throttle()` (cursor broadcasting is directly tied to the foreign cursor rendering, and so `throttle` is here to prevent UI overload)
 - <b>Result</b>: Efficient rendering of foreign cursors in `RemoteCursorOverlay.jsx` (my custom foreign cursor markers)
 #### 6. Private Messaging + Notifications
 - Clients send `private-message` events
