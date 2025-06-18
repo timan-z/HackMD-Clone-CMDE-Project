@@ -50,7 +50,7 @@ CREATE TABLE ydocs(
 
 -- 6. messages table:
 CREATE TABLE messages(
-    id UUID PRIMARY KEY REFERENCES gen_random_uuid(),
+    id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
     room_id UUID REFERENCES rooms(id) ON DELETE CASCADE,
     from_user INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     to_user INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,

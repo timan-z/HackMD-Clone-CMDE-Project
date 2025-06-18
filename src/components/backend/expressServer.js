@@ -1,7 +1,7 @@
 /* This is my backend file for setting up an Express server. Here's where I'll have code for:
 0. Connect to PostgreSQL.
 1. Signing up / Registering users.
-2. Logging in w/Email + Password (DEBUG: When testing, just use one email and have the "+1", "+2" etc cheat for testing multiple accounts).
+2. Logging in w/Email + Password
 3. Authenticating users with JWT Tokens.
 4. Storing session Tokens in the frontend (browser localStorage).
 5. Storing user credentials securely in PostgreSQL w/ Hashed Passwords.
@@ -32,7 +32,6 @@ const pool = new pg.Pool({
     connectionString: process.env.DATABASE_URL,
 });
 
-// DEBUG: Test the DB connection.
 pool.connect((err, client, release) => {
 
     if(err) {

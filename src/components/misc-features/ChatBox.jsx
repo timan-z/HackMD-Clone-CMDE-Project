@@ -1,15 +1,10 @@
 // FOR THE CHAT MESSAGE BOX AREA!!! -- ChatBox.jsx
 import React, { useState, useEffect } from 'react';
-//import { loadChatHistory, appendMessageToHistory } from '../utility/utilityFuncs.js';   // <-- DEBUG: Probably should remove!
 import { getMessages, sendMessage } from '../utility/api.js';
-//import { loadChatHistory } from '../utility/utilityFuncs';
 
 const ChatBox = ({ currentUserId, targetUserId, onClose, socket, token, roomId }) => {
     const [messages, setMessages] = useState([]);   // LOCAL CHAT HISTORY. (SHOULD BE AN OBJECT WITH MESSAGES + WHO SENT THEM I THINK).
     const [newMessage, setNewMessage] = useState('');
-
-
-
 
     // On initial chat open, this useEffect will run and retrieve the chat log history:
     useEffect(() => {

@@ -8,7 +8,7 @@ const PrivateRoute = ({children}) => {
 
     // If no token, the user is not logged in -- there's no cached data about current user:
     if(!token) {
-        console.log("DEBUG: NUH UH BUSTER -- YOU NEED TO LOG IN FIRST.");
+        console.log("YOU NEED TO LOG IN FIRST.");
         return <Navigate to="/login" replace/>;
     }
     // If token exists, render the webpage:

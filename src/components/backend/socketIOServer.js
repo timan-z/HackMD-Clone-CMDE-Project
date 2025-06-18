@@ -79,9 +79,6 @@ io.on("connection", (socket) => {
 
     // socket to signal loading of prior document data (on mount):
     socket.on("ready-for-load", (roomId) => {
-
-        console.log("rDEBUG: The value of !firstUserJoined.has(roomId) => [", firstUserJoined.has(roomId), "]");
-
         if (!firstUserJoined.has(roomId)) {
             firstUserJoined.set(roomId, true);
             console.log("First client in room is ready, sending load-existing...");
@@ -196,8 +193,6 @@ io.on("connection", (socket) => {
         // After disconnection, I need to remove the recently-disconnected socket from array clientCursors too:
         let targetIndex = 0;
         clientCursors.forEach(client => {
-            /* NOTE:+DEBUG: Eventually I'm going to phase out "socket.id" as my foreign cursor identifier (what appears in the tag)
-            so *maybe* note I'll need to rework this (but ig I could keep "socket.id" and just use add another parameter for the display name). */
             if(client.id === socket.id) {
                 clientCursors.splice(targetIndex, 1);
             }
@@ -205,7 +200,6 @@ io.on("connection", (socket) => {
         });
         broadcastCursors();
 
-        // UPDATE: NEW ADDITIONS (REMOVING Socket FROM connectedUsers):
         const {userId, roomId, username} = socket;
 
         if(connectedUsers[roomId]?.length === 0) {
@@ -232,9 +226,7 @@ io.on("connection", (socket) => {
                 firstUserJoined.delete(roomId); // get rid of this too (flag that lets you know if prev-data should be loaded).
             }
         }
-        // ABOVE-UPDATE: SEEMS TO WORK QUITE GOOD SO FAR...
 
-        console.log("DEBUG: The value of firstUserJoined => [", firstUserJoined, "]");
         // NOW - EMIT A NOTIFICATION INDICATING THAT USER HAS LEFT THE ROOM:
         socket.to(roomId).emit("notification", {
             type:"leave-session",

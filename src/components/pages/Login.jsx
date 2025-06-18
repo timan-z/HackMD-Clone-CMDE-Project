@@ -119,16 +119,15 @@ function Login({ setUser, setToken }) {
                                         const userData = await getCurrentUser(result.token);
                                         setUser(userData);
 
-                                        console.log("DEBUG: LOGIN SUCCESSFUL!!!: ", userData);
-                                        // NOTE:+DEBUG: After login success I'm supposed to re-direct the user to the dashboard. (DEBUG: COME BACK HERE):
+                                        console.log("LOGIN SUCCESSFUL!!!: ", userData);
                                         navigate('/dashboard');
                                     } else {
                                         console.error("Login failed: ", result.message || result);
-                                        alert("DEBUG: LOGIN FAILED. PLEASE CHECK YOUR CREDENTIALS!");
+                                        alert("LOGIN FAILED. PLEASE CHECK YOUR CREDENTIALS!");
                                     }
                                 } catch (err) {
                                     console.error("Login error: ", err);
-                                    alert("DEBUG: ERROR OCCURRED DURING LOGIN!");
+                                    alert("ERROR: ERROR OCCURRED DURING LOGIN!");
                                 }
                             }
                         }}

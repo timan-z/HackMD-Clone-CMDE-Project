@@ -8,27 +8,16 @@ import ManageUsersListSection from './ManageUsersListSection.jsx';
 import { io } from "socket.io-client";
 const socket = io("http://localhost:4000");
 
-
 const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onClose, onTransfer }) => {
 
     // Function for kicking a User.
-    /* DEBUG:+TO-DO:
-    - Kicking a User should send a notification.
-    - Kicking a User -- while said User is active in the Editor Room -- will prompt a pop-up to appear on their screen letting them know.
-    - Kicking a User should force the <ManageUsersListSection> to re-render the members present in real-time. (Likely involves UseEffect)
-    */
     const handleKick = async(targetUsername, targetUserId, roomId) => {
         const token = localStorage.getItem("token");
         if(!token) return;
 
         try {
-            //const data = await kickUser(roomId, targetUserId);
-            // AFTER the function runs, I need to send a notification out from here.
-            // ALSO -- Check to see if said user is currently in that room! (Which I think I can do with Socket.IO!)
-            const data = await kickRoomUser(roomId, targetUserId, token);
-            console.log("handleKick-DEBUG: The value of data.success => [", data.success, "]");
+            await kickRoomUser(roomId, targetUserId, token);
 
-            // INSERT SOCKET.IO EMIT THING!!! <-- DEBUG:+TO-DO COME BACK HERE LATER!!!
             socket.emit("notification", {
                 type: "kick-user",
                 roomId: roomId,
@@ -37,25 +26,19 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
                 message:`${targetUsername} ID:${targetUserId} was kicked from the room.`,
                 timestamp: Date.now(),
             })
-
         } catch(err) {
             console.error("DEBUG: Error in attempting to kick User ID:(", targetUserId, ") from Room ID:(", roomId, ") => ", err);
         }
     };
 
     // Function for transferring ownership:
-    /* DEBUG:+TO-DO:
-    - Transferring ownership should send a notification (either "X user has become New Owner" or "YOU have become New Owner").
-    */
     const handleOwnTransfer = async(roomId, targetUserId, currentUserId, targetUsername) => {
         const token = localStorage.getItem("token");
         if(!token) return;
 
         try {
-            const data = await transferRoomOwn(roomId, targetUserId, currentUserId, token);
-            console.log("handleOwnTransfer-DEBUG: The value of data.success => [", data.success, "]");
+            await transferRoomOwn(roomId, targetUserId, currentUserId, token);
 
-            // INSERT SOCKET.IO EMIT THING!!! <--DEBUG:+TO-DO COME BACK HERE LATER!!!
             socket.emit("notification", {
                 type:"transfer-ownership",
                 roomId: roomId,
@@ -65,16 +48,11 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
                 message: `User ${targetUsername} ID:${targetUserId} was promoted to Owner of Editor Room [${roomId}]`,
                 timestamp: Date.now(),
             })
-        
         } catch(err) {
-            console.error("DEBUG: Error in attempting to transfer ownership of Room ID:(", roomId, ") from User ID:(", currentUserId, ") to User ID:(", targetUserId, ")");
+            console.error("ERROR: Error in attempting to transfer ownership of Room ID:(", roomId, ") from User ID:(", currentUserId, ") to User ID:(", targetUserId, ")");
         }
     };
     
-
-
-
-
     const ManageUsers = (
         <div id="manage-users-sect" style={{
             position: 'fixed',
@@ -109,11 +87,8 @@ const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onCl
 
             {/* Loading a list of the Users associated with this Room: */}
             <ManageUsersListSection roomId={roomId} roomName={roomName} users={roomMembers} currentUserId={currentUserId} onKick={handleKick} onTransfer={handleOwnTransfer} />
-
         </div>
     );
-
-
 
     return createPortal(ManageUsers, document.body); // Mimics "document.body.appendChild(ManageUsers);"
 };

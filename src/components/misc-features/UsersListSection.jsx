@@ -1,8 +1,7 @@
-// #2 -- THIS IS THE USERS LIST SECTION ("ACTIVE USERS" HEADER + ALL THE ROWS BELOW IT).
+// [UsersList #2] -- THIS IS THE USERS LIST SECTION ("ACTIVE USERS" HEADER + ALL THE ROWS BELOW IT).
 
 // BREAKING DOWN "UsersListContainer" - UsersListSection.jsx
 // So this will be the body of the Users List Container (the body for the "Active Users" and "Inactive Users" areas).
-
 import React from "react";
 import UsersListEntry from './UsersListEntry.jsx';
 

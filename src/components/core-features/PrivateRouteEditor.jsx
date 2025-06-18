@@ -16,7 +16,7 @@ const PrivateRouteEditor = ({ children }) => {
                 const data = await checkRoomAccess(roomId, token);
                 setIsAuthorized(data.access);
             } catch(err) {
-                console.error("DEBUG: Room Access Check failed: ", err);
+                console.error("Room Access Check failed: ", err);
                 setIsAuthorized(false);
             }
         };
@@ -29,7 +29,7 @@ const PrivateRouteEditor = ({ children }) => {
     }, [roomId, token]);
 
     if(!token) return <Navigate to="login" replace/>;
-    if(isAuthorized === null) return <h1>LOADING</h1>; // DEBUG: Style this afterwards so it's just a blank webpage with "LOADING" centered (with font and background colour that matches Editor scheme). <-- Add a green spinning wheel?
+    if(isAuthorized === null) return <h1>LOADING</h1>;
     if(!isAuthorized) return <Navigate to="/dashboard"/>
     // If all conditions are met, render the webpage:
     return children;

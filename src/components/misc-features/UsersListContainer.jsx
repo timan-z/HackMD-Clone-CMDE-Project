@@ -1,11 +1,6 @@
-// #0 -- THIS IS THE CONTAINER FOR THE WHOLE THING.
-
-// UPDATE: Better to break my original usersListBar.js (or translated UsersListBar.jsx) file into multiple modular pieces:
-// DEBUG: Don't forget to add back "shadowing" the Users Icon button at the top-right corner of the Editor.jsx page later on...
+// [UsersList #0] -- THIS IS THE CONTAINER FOR THE WHOLE THING.
 import React, { useEffect, useState, useRef } from 'react';
 import { createPortal } from 'react-dom'; // NOTE: Since I'm no longer injecting HTML into the DOM, createPortal will mimic my original appending to document.body
-
-// MODULARITY:
 import UsersListHeader from './UsersListHeader.jsx';
 import UsersListSection from './UsersListSection.jsx';
 import ChatBox from './ChatBox.jsx';

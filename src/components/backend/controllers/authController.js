@@ -18,11 +18,9 @@ const JWT_SECRET = process.env.JWT_SECRET;
 // 1.1. Function for User Registration:
 export const registerUser = async(req, res) => {
     const { username, email, password } = req.body;
-    console.log("DEBUG: Incoming registration => [", { username, email, password }, "]");
 
     try {
         const hashed = await bcrypt.hash(password, 10); // use bcrypt to hash the input password.
-        console.log("DEBUG: Hashed password => [", hashed, "]");
 
         // Registration attempt:
         const registerRes = await pool.query(
@@ -36,7 +34,7 @@ export const registerUser = async(req, res) => {
         res.json({ user, token });
     } catch (err) {
         // Upon failure, 400 response error is sent to the frontend.
-        console.error("DEBUG: Registration Error => [", err, "]");
+        console.error("ERROR: Registration Error => [", err, "]");
         res.status(400).json({ error: "ERROR: User registration failed! Username or email either already exists or input was invalid." });
     }
 };
@@ -132,7 +130,7 @@ export const getAllEdRooms = async (req, res) => {
 
         res.json(roomsRes.rows);
     } catch (err) {
-        console.error("DEBUG: FAILED TO RETRIEVE ROOMS => [", err, "]");
+        console.error("ERROR: FAILED TO RETRIEVE ROOMS => [", err, "]");
         res.status(500).json({error: "COULD NOT RETRIEVE EDITOR ROOMS."});
     }
 };
@@ -247,7 +245,6 @@ export const deleteEdRoom = async(req, res) => {
     }
 
     // Delete:
-    // DEBUG: Maybe I can't do multiple queries here...
     await pool.query(`
         DELETE FROM rooms WHERE id = $1; 
     `, [roomId]);   // NOTE: I should rework my user_rooms to have "room_id UUID REFERENCES rooms(id)" become "room_id UUID REFERENCES rooms(id) ON DELETE CASCADE"
@@ -345,18 +342,10 @@ export const saveEdRoomDoc = async(req, res) => {
 export const getEdRoomDoc = async(req, res) => {        
     const {roomId} = req.params;
 
-    console.log("getEdRoomDoc-DEBUG: Function entered...");
-    console.log("getEdRoomDoc-DEBUG: The value of roomId => [", roomId, "]");
-
     try {
         const content = await pool.query(
             `SELECT content FROM ydocs WHERE room_id = $1`, [roomId]
         );
-
-        
-        console.log("getEdRoomDoc-DEBUG: The value of content.rows[0].content => [", content.rows[0].content, "]");
-
-
         res.status(201).json({ success: true, docData: content.rows[0].content});
     } catch(err) {
         console.error("ERROR: Failed to retrieve document data from the backend.");

@@ -6,9 +6,6 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
     const overlayRef = useRef(null);
 
     useEffect(() => {
-        //console.log("DEBUG: OVERLAY MOUNTED (THIS IS WHERE FOREIGN CURSORS ARE RENDERED).");
-        //console.log("DEBUG: daaaaaaaaaaaaa - THE VALUE OF fontSize IS: [", fontSize, "]");
-
         if(!editor || !overlayRef.current) return;
 
         /* This "updateOverlay" function below will be what consistently refreshes with each update of otherCursors in Editor.jsx.
@@ -21,7 +18,6 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
             const overlay = overlayRef.current;
             overlay.innerHTML = ""; // Wipe current overlay state (get rid of current positioning if applicable).
             
-            //console.log("DEBUG: Running read() — attempting to insert dummy cursor...");            
             editor.getEditorState().read(()=> {
                 const dom = editorRoot.ownerDocument || document;
 
@@ -29,32 +25,8 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
                 otherCursors.forEach(cursor => {
                     const {cursorPos, id, username} = cursor; // GETTING THE CURSOR POSITION AND ID OF THIS CURSOR (LET'S KEEP IT SIMPLE, THAT'S ALL I WANT).
                     
-
-
-
-                    console.log("CURSOR-OVERLAY-DEBUG: THE VALUE OF username => [", username, "]");
-                    console.log("CURSOR-OVERLAY-DEBUG: The value of cursor is: => [", cursor, "]");
-
-
-
-                    // DEBUG: Have this here for testing purposes...
-                    /*let labelTextCtnt = null;
-                    if(!username) {
-                        labelTextCtnt = id;
-                    } else {
-                        labelTextCtnt = username;
-                    }*/
-                    // DEBUG: Have this here for testing purposes...
-
-
-
-
-
                     let dummyVal = 1.1;
-                    //console.log("DEBUG-1: The value of dummyVal is = ", dummyVal);
                     dummyVal += 1;
-                    //console.log("DEBUG-2: The value of dummyVal is = ", dummyVal);
-                    //console.log("DEBUG-3: The value of fontSize is = ", fontSize);
 
                     if(id !== null) {
                         const range = dom.createRange();
@@ -97,7 +69,7 @@ export function RemoteCursorOverlay({editor, otherCursors, fontSize}) {
                         cursorEl.style.zIndex = 10;
                         // This is the horizontal ID-tag that appears next to the vert line.
                         const label = document.createElement("div");
-                        label.textContent = username; // DEBUG: For now...
+                        label.textContent = username;
                         label.style.position = "absolute";
                         label.style.top = "-1.5em";
                         label.style.left = "4px";

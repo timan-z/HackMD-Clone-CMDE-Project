@@ -66,42 +66,53 @@
 
 ## Project Structure
 ```
-mde-part2/
+mde-part2
 ├─ .env
+├─ eslint.config.js
 ├─ index.html
+├─ package-lock.json
 ├─ package.json
-├─ vite.config.js
-├─ public/
-│  ├─ gifs/
+├─ public
+│  ├─ gifs
 │  │  ├─ create-room-fwwm.gif
 │  │  └─ join-room-fwwm.gif
-│  └─ images/
-│     ├─ house-icon.png
-│     ├─ notif-icon.png
-│     └─ users-icon.png
-├─ src/
-│  ├─ components/
+│  ├─ guide_gifs
+│  │  ├─ 1.Register&Sign-In.gif
+│  │  ├─ 2.Creating-new-room-and-inviting-another.gif
+│  │  ├─ 3.Notifs-and-Messaging.gif
+│  │  ├─ 4.Playing-w-Toolbar.gif
+│  │  ├─ 5.Playing-w-Toggle-View.gif
+│  │  ├─ 6.Kicked-in-Real-Time.gif
+│  │  ├─ 7.Upload-Image.gif
+│  │  ├─ 8.Download-and-Upload-md.gif
+│  │  └─ 9.Protected-Routes.gif
+│  ├─ images
+│  │  ├─ house-icon.png
+│  │  ├─ notif-icon.png
+│  │  └─ users-icon.png
+│  └─ vite.svg
+├─ README.md
+├─ README2.md
+├─ src
+│  ├─ components
 │  │  ├─ App.jsx
-│  │  ├─ main.jsx
-│  │  ├─ styles/
-│  │  │  └─ index.css
-│  │  ├─ backend/
+│  │  ├─ backend
+│  │  │  ├─ controllers
+│  │  │  │  └─ authController.js
 │  │  │  ├─ expressServer.js
-│  │  │  ├─ socketIOServer.js
-│  │  │  ├─ schema.sql
-│  │  │  ├─ routes/
+│  │  │  ├─ routes
 │  │  │  │  └─ auth.js
-│  │  │  └─ controllers/
-│  │  │     └─ authController.js
-│  │  ├─ core-features/
-│  │  │  ├─ Toolbar.jsx
+│  │  │  ├─ schema.sql
+│  │  │  ├─ schemaSetup.js
+│  │  │  └─ socketIOServer.js
+│  │  ├─ core-features
 │  │  │  ├─ MDParser.jsx
 │  │  │  ├─ PrivateRoute.jsx
 │  │  │  ├─ PrivateRouteEditor.jsx
 │  │  │  ├─ PrivateRouteMisc.jsx
 │  │  │  ├─ RemoteCursorOverlay.jsx
-│  │  │  └─ utilityFuncs.js
-│  │  ├─ misc-features/
+│  │  │  └─ Toolbar.jsx
+│  │  ├─ misc-features
 │  │  │  ├─ ChatBox.jsx
 │  │  │  ├─ ManageUsersListEntry.jsx
 │  │  │  ├─ ManageUsersListSection.jsx
@@ -112,15 +123,19 @@ mde-part2/
 │  │  │  ├─ UsersListEntry.jsx
 │  │  │  ├─ UsersListHeader.jsx
 │  │  │  └─ UsersListSection.jsx
-│  │  ├─ pages/
+│  │  ├─ pages
 │  │  │  ├─ Dashboard.jsx
 │  │  │  ├─ Editor.jsx
 │  │  │  ├─ Login.jsx
 │  │  │  └─ Register.jsx
-│  │  └─ utility/
+│  │  └─ utility
 │  │     ├─ api.js
 │  │     ├─ utilityFuncs.js
 │  │     └─ utilityFuncsBE.js
+│  ├─ main.jsx
+│  └─ styles
+│     └─ index.css
+└─ vite.config.js
 ```
 ## Architecture Overview (Mermaid Diagram)
 ```
@@ -200,6 +215,13 @@ VITE_CLOUDINARY_API_KEY=your_cloudinary_api_key
 VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
 JWT_SECRET=your_jwt_secret
 ```
+### Setting up the PostgreSQL backend with `schema.sql`
+I have written the file `schemaSetup.js` for the purpose of initializing a database with the tables relevant for this project. The reason this file is necessary rather than just running `schema.sql` alone is that permissions must be set for the user that will be interacting with the tables; this information can be found in `DATABASE_URL` within the `.env` file. (Can't be done in a `.sql` file since it's purely declarative).
+- You can run `schemaSetup.js` with the command:
+```
+node src/components/backend/schemaSetup.js
+```
+
 ### Startup Commands (across four separate terminals)
 ```
 npm run dev                                     # 1. Frontend (Vite)
@@ -246,6 +268,9 @@ Includes the following tables:
 - This is by far the most glaring omission from my project. I got way too hung up on miscellaneous features such as the Chat and Notification system when I definitely should have focused on more integral and technically impressive features like implementing Version Control. I let the scope of this project get far too wide and overcomplicated way too much.
 ### Thinking about tweaking the rendering logic
 - Considering replacing my JavaScript Markdown parser and instead using a modular <b>Rust</b>-based Markdown parser, compiled to <b>WebAssembly (WASM)</b> and integrated to my web app. This is pretty much just to expand my list of technologies. I would probably do this first and then aim to implement version control.
+### Better "Token" Verification System
+- I currently have it so that the browser will cache userData with a token in localStorage. At the moment, I have it so that as long as that token is valid, the site authentication will treat the client as a logged in user (w/ the userData associated with said token). This could be better (e.g., although I removed the "validity expiration" part of the Login Tokens generated, I don't really have anything in place to double-check that the token is still valid or the userData associated with the token is still valid. For example, I might clear out the `users` table from the backend but I would still be able to log-in as a now non-existent user if the token is still cached in the browser).
+
 ### I could probaly style things a little better
 - This was by far my lowest priority.
 

@@ -37,11 +37,6 @@ if(!dbName) {
     process.exit(1);
 }
 
-console.log("DEBUG: The value of dbUrl => [", dbUrl, "]");
-console.log("DEBUG: The value of pgUser => [", pgUser, "]");
-console.log("DEBUG: The value of dbName => [", dbName, "]");
-console.log("DEBUG: The value fo pgPass => [", pgPass, "]");
-
 const pool = new pg.Pool({connectionString: dbUrl});
 const tables = ['users', 'rooms', 'user_rooms', 'messages', 'invite_links', 'ydocs'];
 

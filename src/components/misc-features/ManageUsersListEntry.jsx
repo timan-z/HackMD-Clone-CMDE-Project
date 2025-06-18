@@ -1,6 +1,3 @@
-// DEFINITELY COME BACK AND RE-MODULARIZE MY CODE -- COMBINE THIS WITH UsersListEntry.jsx LATER.
-// I AM TRYING TO BLAST THROUGH COMPLETING THE FUNCTIONALTIY OF THIS STUPID PROJECT!
-
 import React from "react";
 import { btnStyleEd } from "../utility/utilityFuncs.js";
 
