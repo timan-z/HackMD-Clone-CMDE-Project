@@ -4,9 +4,17 @@
 <u>Date</u>: <b>6/17/2025</b> (_Completed from Jan - Jun 2025 part-time while working full-time_)<br>
 <u>Description</u>: <b>This is a full-stack, real-time Collaborative Markdown Editor built with React, Lexical, Yjs, Socket.IO, and PostgreSQL among various other technologies. It is a web application that enables multiple users to edit markdown documents simultaneously with live cursor rendering, real-time interaction such as messaging and notifications, and robust session and user management. As the name suggets, this project was heavily inspired by and aims to capture the capabilities and modern UI of the existing CMDE HackMD but also similar products like Google Docs.</b>
 
-## Table of Contents (_This will be a large README.doc_)
+## Table of Contents
 - [Key Features](#key-features)
 - [Tech Stack](#tech-stack)
+- [Project Structure](#project-structure)
+- [Architecture Design](#architecture-overview-mermaid-diagram)
+- [How SQL Queries Flow](#how-sql-queries-flow-here)
+- [Setup & Run](#setup--run)
+- [Database Schema (PostgreSQL)](#database-schema-postgresql)
+- [Testing Suggestions](#testing-suggestions)
+- [Some Limitations](#some-limitations)
+- [Future Improvements](#future-improvements-and-things-to-add)
 
 ## Key Features
 ### Editor & Document Features
@@ -134,6 +142,45 @@ graph TD
 - <b>D->I->J</b> - During editing or on disconnect, autosaves are sent via a `PUT /api/ydocs` request. Content is saved into the `ydocs` table using `saveRoomData()` in your backend.
 - <b>D->K->L</b> - The raw content is parsed using `markdown-it` with task list support (`MDParser.jsx`) and rendered as a live preview beside the editor.
 
+## How SQL Queries "Flow" Here:
+1. My React frontend code (e.g., a file like `Dashboard.jsx`) invokes a function that was invoked from my `/utility/api.js` file (where I have reusable functions to interact with my Express API e.g., `getAllRooms()`).
+```
+export const getAllRooms = async(token) => {
+    const result = await fetch(`${API_BASE}/auth/rooms`, {
+        method:"GET",
+        headers: { Authorization: `Bearer ${token}` },
+    });
+    return await result.json();
+};
+```
+2. Then, on the backend Express server, the request sent by `api.js` is received and all necessary information is extracted in `auth.js` with `router.get('/rooms', verifyToken, getAllEdRooms);` (where those two functions passed are executed from left to right, the former just being some JWT verification function that also passes some arguments off to `getAllEdRooms`).
+3. Then, in `authController.js`, `getAllEdRooms` runs, and that's what sends the information I want back to the frontend:
+```
+export const getAllEdRooms = async (req, res) => {
+    const userID = req.user.id; // Will get obtained by func verifyToken...
+    try {
+        const roomsRes = await pool.query(`
+            SELECT
+                ur.id AS user_room_id,
+                ur.role,
+                r.id AS room_id,
+                r.name AS room_name,
+                r.created_at,
+                u.username AS creator_name
+            FROM user_rooms ur
+            JOIN rooms r ON ur.room_id = r.id
+            JOIN users u ON r.created_by = u.id
+            WHERE ur.user_id = $1
+            ORDER BY r.created_at DESC
+        `, [userID]);
+
+        res.json(roomsRes.rows);
+    } catch (err) {
+        console.error("DEBUG: FAILED TO RETRIEVE ROOMS => [", err, "]");
+        res.status(500).json({error: "COULD NOT RETRIEVE EDITOR ROOMS."});
+    }
+};
+```
 ## Setup & Run
 ### Prerequisites
 - PostgreSQL running with schema from `schema.sql`
@@ -169,34 +216,32 @@ Includes the following tables:
 - `messages` (private chat messages)
 
 ## Testing Suggestions
-- <b>Test role-based access by creating two accounts and joining the same room</b> (_type at the same time and watch the custom cursor rendering take form, message each other, keep an eye on notifications in one user's table when the other joins_).
-- <b>Try kicking users or transferring ownership from Dashboard in real-time</b>
+- <b>Sign up</b> and register two different accounts (you can do this in two separate browsers, maybe one browser and an incognito tab).
+- From the <b>Dashboard</b>, create a new Editor Room and create an invite link, invite the other account you made.
+- Have one user join said room and then the other user join that room, <b>watch the Notifications symbol animate</b> in response to their entry (click it and view the Notification, optionally you can clear it).
+- <b>Begin typing in the Text Editor</b>, then open the other user's tab and <b>notice the custom foreign cursor (with username) render that appears on the screen</b>. You can type there as well and check vice-versa. You will notice edits are synced in real-time via Yjs and that Markdown syntax is parsed on-the-fly in a live Preview Panel.
+- Play around with the Editor UI, <b>toggle the view modes, drag the "draggable" slider that lets you resize the Editor and Preview Panel</b>. Play around with the Toolbar icons.
+- Click on the <b>Users List icon</b> and then target the other user in the room for the <b>Chat button, send them messages</b> and see how they are received and how they persist.
+- On the Owner User client, return to the Dashboard and <b>kick the other User</b> from the room you were both in, go to the latter user's tab and notice the pop-up that appears.
 
+## Some Limitations
+### Email addresses are not verified:
+- No email verification system is implemented (for simplicity, it's really not the point of this project and I didn't want to dwell any longer on miscellaneous features).
+### Single-server design:
+- The current implementation assumes all servers (Express, Socket.IO, y-websocket) run locally and are not load-balanced or clustered.
+### Invite links are not rate-limited:
+- Repeatedly generating invite links can fill the `invite_links` table without cleanup unless a background job is added.
+### No full Markdown export styling:
+- I have basic markdown export available via download, but full PDF-style or print styling has not been implemented here.
+### I meant to replicate all of HackMD's editor functionalities but there were some I had to scrap:
+- Namely the additional configurations when hovering your cursor over a Table structure in the Text Editor contenteditable. There is litterally no way I can do that by myself without introducing new frameworks that just aren't worth it.
+### My method of saving and loading Editor Doc state could be better (this doubles as a future improvement):
+- So, if you really look at my code, you'll notice that in Editor.jsx I'm querying the PostgreSQL backend for a pre-existing document state and what I'm retrieving is a JSON string representation of the Editor state from a table called "ydocs". That's strange. And that's because my original plan was to serialize the state of the ydocs document and store that in my backend. And while I originally did that successfully so, and was able to retrieve it at start-up and verify that the data was correct, I just couldn't initialize/bootstrap the Lexical Text Editor with its values and after two full days of trying to figure out what was wrong, I gave up and opted for this alternative instead (you can look at old commits and find my original set-up which was much more elaborate). At some point, I might dive back in and try to figure this out.
 
-
-
-
-
-
-
-
-
-
-
-
-
-<br>
-FUTURE TO-DO:
-- Replace JavaScript markdown rendering with Rust compiled.
-- Implement version control.
-- Replace current version of how I'm loading and retrieving existing documents from the backend (wasn't able to figure it out, might need to dig deeper into the Lexical documentation for this).
-- Minimal styling as of this moment -- I can admittedly make things look nicer than they do at the moment.
-
-FUTURE IMPROVEMENTS:
-(minor one) - Allow for Room owner to re-name rooms.
-
-Admittedly I got caught up in the weed swhen it came to implementing a Messaging and Notifications feature -- time I definitely should have spent towards incorporating Version Control or something to that effect.
-
-DONT FORGET TO MAKE NOTE OF THE CLOUDINARY THING -- THAT'S SOMETHING IMPORTANT TO NOTE DOWN...
-
-This was a massive project that I kind of let get off the rails and overcomplicated far too much.
+## Future Improvements and Things to Add
+### I definitely should look to implement Version Control
+- This is by far the most glaring ommission from my project. I got way too hung up on miscellaneous features such as the Chat and Notification system when I definitely should have focused on more integral and technically impressive features like implementing Version Control. I let the scope of this project get far too wide and overcomplicated way too much.
+### Thinking about tweaking the rendering logic
+- Considering replacing my JavaScript Markdown parser and instead using a modular <b>Rust</b>-based Markdown parser, compiled to <b>WebAssembly (WASM)</b> and integrated to my web app. This is pretty much just to expand my list of technologies. I would probably do this first and then aim to implement version control.
+### I could probaly style things a little better
+- This was by far my lowest priority.

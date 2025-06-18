@@ -11,6 +11,9 @@
 ### Backend:
 - [socketIOServer.js](#socketioserverjs)
 - [expressServer.js](#expressserverjs)
+### Overall:
+- [Frontend Highlights](#frontend-highlights)
+- [Backend Highlights](#backend-highlights)
 
 ## Editor.jsx
 This is the file where the <b>Real-Time Collaborative Text Editor</b>, using <b>Lexical</b> (by Meta) as the Editor base and <b>Yjs</b> for shared document state CRDT (Conflict-free replicated data type) sync, is defined.
@@ -302,3 +305,36 @@ This file exposes secure endpoints (e.g. login, register, getUser), interfaces w
 - `GET /` returns "Backend is running." (useful for quick health checks or frontend fetch test).
 #### 7. Server Bootstrapping
 - Listens on `PORT` (default `5000` is what I set) and logs successful startup
+
+## Frontend Highlights
+### Lexical Editor Integration
+- Using the Lexical framework, my editor is customized for CRDT collaboration and augmented with plugins for Markdown support and toolbar controls. It interfaces tightly with Yjs and custom Socket.IO layers.
+### Real-Time Cursors & Messaging:
+- Remote user cursors are rendered live using a throttled `send-cursor-pos` mechanism and layered with Socket.IO broadcast logic (this information is received and used by `<RemoteCursorOverlay>` within the Editor).
+- Chat functionality is user-specific and persistent, appearing in a collapsible interface within the Editor view.
+### Pre-bootstrap Document State:
+- Before Lexical mounts, the app queries the backend for previously saved document state. If found, it is loaded into memory and the editor state is set once Yjs and Lexical sync together.
+### Transient Notifications:
+- Live Socket.IO notifications inform the user of joins, leaves, kicks, and DMs, using animated visual indicators rather than primitive alerts.
+### UI State Management Without Redux:
+- Localized state (e.g. modal toggles, notification bars, users list, room roles) is efficiently managed using scoped `useState`/`useRef` logic and lifted states where necessary.
+- `hasJoinedRef` prevents React 18 Strict Mode from causing double-mount issues during editor initialization.
+
+## Backend Highlights
+### Socket.IO Server Logic
+- Manages user presence, cross-room communication, and live updates of active users, remote cursors, and private messages.
+- Uses `map` objects to manage:
+1. First user detection (for loading docs)
+2. Latest Editor document states
+3. Active socket-room-user mappings
+### Document State Serialization + PostgreSQL:
+- Upon disconnect (and room emptying), the backend serializes the CRDT state and persists it to the ydocs table.
+- On reconnect, this state is loaded on the frontend once Yjs and Lexical sync together.
+### Invite Link & Role System:
+- Backend generates expiring `UUID` invite links linked to `invite_links` table.
+- `user_rooms` table joins users and rooms while enforcing role-based logic (e.g., `king` vs. `member` privileges).
+### Resilient Express API Routing:
+- Robust error handling across routes (`/api/auth`, `/api/rooms`, `/api/ydocs`) with JWT validation middleware.
+### PostgreSQL Schema Design:
+- Includes normalized relational tables for users, rooms, document content (ydocs), invite links, and private messages.
+- Cascading deletes and foreign key constraints help enforce relational integrity.
