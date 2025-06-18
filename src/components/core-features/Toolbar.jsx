@@ -260,8 +260,25 @@ function Toolbar() {
         "multiLine" will be a boolean value and multiLineS will be the symbol to prepend (these will be passed in by the calling code. 
         NOTE: When multiLine is false, multiLineS will have 1 passed in by default... */
         function calcUpdatedLineT(whichOne, lineText, multiLine, multiLineS) {
-
             let updatedLineT = null;
+
+            if(!lineText) { // TO-DO:+DEBUG: could definitely make this more modular -- last-minute fixing some stuff...
+                if(whichOne === "quote") {
+                    updatedLineT = "> ";
+                } else if (whichOne === "generic") {
+                    updatedLineT = "* ";
+                } else if (whichOne === "numbered") {
+                    if(multiLine === false) {
+                        updatedLineT = "1. ";
+                    } else {
+                        updatedLineT = String(multiLineS) + ". ";
+                    }
+                } else {
+                    updatedLineT = "- [ ] ";
+                }
+                return updatedLineT;
+            }
+
             if ((whichOne === "quote" && (lineText.length >=2 && lineText[0] === ">" && lineText[1] === " ")) ||
                 (whichOne === "generic" && (lineText.length >= 2 && lineText[0] === "*" && lineText[1] === " ")) ||
                 (whichOne === "numbered" && (lineText.length >= 3 && lineText[0] === String(multiLineS) && lineText[1] === "." && lineText[2] === " ")) ||
@@ -390,12 +407,18 @@ function Toolbar() {
                 // EDIT: Ported all the code below into external function "calcUpdatedLineT"...
                 updatedLineT = calcUpdatedLineT(whichOne, lineText, false, 1);
 
-                selection.deleteLine();
-                // When anchor.offset pre-deleteLine() is 0, I don't want to have those two following lines (but otherwise I do).
-                if(anchorOffsetFreeze !== 0) {
-                    selection.deleteLine(false);
-                    selection.deleteLine(true);
-                }
+                if(lineText) {  // debug:
+                        
+                    selection.deleteLine();
+                    // When anchor.offset pre-deleteLine() is 0, I don't want to have those two following lines (but otherwise I do).
+                    if(anchorOffsetFreeze !== 0) {
+                        selection.deleteLine(false);
+                        selection.deleteLine(true);
+                    }
+
+                } else { // debug:
+                    console.log("DEBUG: Things...");    // debug:
+                }   // debug:
 
                 selection.insertText(updatedLineT);
             } else {
@@ -483,6 +506,33 @@ function Toolbar() {
             }
         );
     };
+
+    // Sep Function for applying the Table insertion:
+    const applyMarkdownFormatTable = (editor) => {
+        editor.update(() => {
+            const selection = $getSelection();
+            // invalid selection (cursor not present in the text editor space):
+            if(!$isRangeSelection(selection)) {
+                return;
+            }
+            let selectionText = selection.getTextContent();
+            let wrappedText = null;
+
+            // This is the "default table format":
+            const firstLine = "\n\n| Column 1 | Column 2 | Column 3 |\n";
+            const secondLine = "| -------- | -------- | -------- |\n";
+            const thirdLine = "| Text     | Text     | Text     |";
+
+            wrappedText = `${selectionText}${firstLine}${secondLine}${thirdLine}`;
+            selection.insertText(wrappedText);
+
+            /* thirdLine should end with a \n but ending the insertion text with "\n" causes strange behavior,
+            so a manual linebreak will have to do here: */
+            const updatedSelection = $getSelection();
+            const lineBreakNode = $createLineBreakNode();
+            updatedSelection.insertNodes([lineBreakNode]);
+        });
+    }
 
     return (<div style={{backgroundColor:"#003B00"}}>
         {/* NOTE: Added these two buttons below (UNDO and REDO) well after finishing the ones below... */}

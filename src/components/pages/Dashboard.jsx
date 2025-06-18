@@ -45,7 +45,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                 timestamp: Date.now(),
             });
 
-            navigate('/dashboard');
+            window.location.reload();
         } catch (err) {
             console.error(`ERROR: Error in attempting to leave the Editor Room ID:(${roomId}) because: ${err}`);
         }
@@ -57,7 +57,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
 
         try {
             await deleteRoom(roomId, token);
-            navigate('/dashboard');
+            window.location.reload();
         } catch (err) {
             console.error(`ERROR: Error in attempting to delete the Editor Room ID:(${roomId}) because: ${err}`);
         }
@@ -243,7 +243,7 @@ function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setU
                         try {
                             const data = await joinRoomViaInv(token, edRoomLink);
                             if(data.success) {
-                                navigate("/dashboard");
+                                window.location.reload();
                             } else {
                                 alert("Seems to be an expired link or you might already be in the room.");
                             }

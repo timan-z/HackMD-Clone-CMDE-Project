@@ -14,7 +14,7 @@ function Register() {
 
     /* NOTE: For now, upon successful Registry, let's re-route to the Login page. But when this is more fleshed out, let's make it so
     that there's some sort of animated pop-up that says "Registration successful! Would you like to login now?" (with option to click login). */
-    const navigate = useNavigate(); // For re-directing to Login page on successful Registration. DEBUG: FOR NOW!!!
+    const navigate = useNavigate(); // For re-directing to Login page on successful Registration.
 
     // Pre-register button that ensures all forms are filled:
     const checkFormsFilled = () => {
@@ -108,10 +108,9 @@ function Register() {
 
                                 if (result.error) {
                                     console.error("REGISTRATION FAILED: ", result.error);
-                                    // DEBUG:+NOTE: I SHOULD HAVE A POP-UP SHOW UP IN THE ACTUAL WEBPAGE WITH THIS.
+                                    alert("REGISTRATION FAILED: ", result.error);
                                 } else {
                                     console.log("REGISTRATION SUCCESSFUL.");
-                                    alert("DEBUG: REGISTRATION SUCCESSFUL -- CHECK MY TABLE IN POSTGRESQL TO MAKE SURE ALL IS GOOD.");
                                     navigate("/Login");
                                 }
                             }

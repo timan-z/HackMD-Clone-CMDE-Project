@@ -260,7 +260,7 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   border: 2.5px solid black;
   background-color: #00FF41;
   box-shadow: 0 0 6px #00FF41;
-  z-index:9999999;
+  z-index:9999;
 }
 
 .resizeTEPP:hover {
