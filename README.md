@@ -15,6 +15,7 @@
 - [Testing Suggestions](#testing-suggestions)
 - [Some Limitations](#some-limitations)
 - [Future Improvements](#future-improvements-and-things-to-add)
+- [Site Demonstrations (GIF)](#site-functionality-gif-demonstrations) <b><-- You probably want this one.</b>
 
 ## Key Features
 ### Editor & Document Features
@@ -245,3 +246,31 @@ Includes the following tables:
 - Considering replacing my JavaScript Markdown parser and instead using a modular <b>Rust</b>-based Markdown parser, compiled to <b>WebAssembly (WASM)</b> and integrated to my web app. This is pretty much just to expand my list of technologies. I would probably do this first and then aim to implement version control.
 ### I could probaly style things a little better
 - This was by far my lowest priority.
+
+## SITE FUNCTIONALITY (GIF) DEMONSTRATIONS:
+### [1] Register and Sign-In Demonstration:
+![register-sign-in](public/guide_gifs/1.Register&Sign-In.gif)
+
+### [2] Create New Room and Invite User:
+![create-room-invite](public/guide_gifs/2.Creating-new-room-and-inviting-another.gif)
+
+### [3] Notifications and Messaging:
+![notifs-messaging](public/guide_gifs/3.Notifs-and-Messaging.gif)
+
+### [4] Playing with Toolbar Functionality:
+![toolbar-func](public/guide_gifs/4.Playing-w-Toolbar.gif)
+
+### [5] Playing with Toggle View and Resize Slider:
+![toggle-view](public/guide_gifs/5.Playing-w-Toggle-View.gif)
+
+### [6] Getting Kicked in Real-Time:
+![getting-kicked](public/guide_gifs/6.Kicked-in-Real-Time.gif)
+
+### [7] Upload Image with Cloudinary:
+![upload-image](public/guide_gifs/7.Upload-Image.gif)
+
+### [8] Download and Upload Image:
+![download-upload-md](public/guide_gifs/8.Download-and-Upload-md.gif)
+
+### [9] Protected Routes (Accessing Unauthorized Pages):
+![protected-routes](public/guide_gifs/9.Protected-Routes.gif)
