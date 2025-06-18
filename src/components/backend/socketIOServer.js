@@ -222,10 +222,6 @@ io.on("connection", (socket) => {
             // Clean up empty rooms (if applicable):
 
             if(connectedUsers[roomId].length === 0) {
-                console.log("DEBUG: About to call saveRoomData!!!");
-                console.log("Debug: The value of latestEdDocs.get(roomId) => [", latestEdDocs.get(roomId), "]");
-                console.log("Debug: The value of latestEdTokens.get(roomId) => [", latestEdTokens.get(roomId), "]");
-
                 // save room data to postgresql:
                 saveRoomData(roomId, latestEdDocs.get(roomId), latestEdTokens.get(roomId));
 

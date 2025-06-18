@@ -4,9 +4,6 @@ import { createPortal } from 'react-dom';
 import NotificationBarHeader from "./NotificationBarHeader";
 
 const NotificationBar = ({ roomId, notifsOpen, onClose, socket }) => {
-
-    console.log("DEBUG: The value of roomId => [", roomId, "]");
-
     const notifBarRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
@@ -26,7 +23,6 @@ const NotificationBar = ({ roomId, notifsOpen, onClose, socket }) => {
     useEffect(() => {
         if (!socket) return;
 
-        const oneHour = 1000 * 3600;   // 3600 seconds is 1 hour.
         const handleNotif = (notif) => {
 
             // So if the Notifications component isn't open, set the background colour of the icon to Red (to imply new notifications):

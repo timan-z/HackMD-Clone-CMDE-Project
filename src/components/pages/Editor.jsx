@@ -306,11 +306,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // useEffect Hook #1: Listens for emits from the Socket.IO server:
   useEffect(()=> {
-
-
-
-
-
     // Handle notifications:
     const handleNotif = (notif) => {
       // Changing the colour of the Notifications Bar Icon to let the user know that they've received a notification:
@@ -328,11 +323,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       localStorage.setItem(`notifs-${roomId}`, JSON.stringify(updated));
     }
     socket.on("notification", handleNotif);
-
-
-
-
-
 
     // Listen to see if the current user gets kicked from the editing room:
     socket.on("you-have-been-kicked", () => {

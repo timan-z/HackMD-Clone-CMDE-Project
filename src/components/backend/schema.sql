@@ -1,3 +1,11 @@
+-- DROP TABLES IF THEY EXIST (Obviously, this schema.sql file should only be ran if you're okay to wipe all existing data):
+DROP TABLE IF EXISTS invite_links;
+DROP TABLE IF EXISTS user_rooms;
+DROP TABLE IF EXISTS ydocs;
+DROP TABLE IF EXISTS messages;
+DROP TABLE IF EXISTS rooms;
+DROP TABLE IF EXISTS users;
+
 -- 1. users table:
 CREATE TABLE users (
     id SERIAL PRIMARY KEY,
@@ -30,6 +38,23 @@ CREATE TABLE invite_links (
     room_id UUID REFERENCES rooms(id) ON DELETE CASCADE,
     created_by INTEGER REFERENCES users(id),
     expires_at TIMESTAMP NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 5. ydocs table:
+CREATE TABLE ydocs(
+    room_id UUID PRIMARY KEY REFERENCES rooms(id) ON DELETE CASCADE,
+    content TEXT NOT NULL,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+-- 6. messages table:
+CREATE TABLE messages(
+    id UUID PRIMARY KEY REFERENCES gen_random_uuid(),
+    room_id UUID REFERENCES rooms(id) ON DELETE CASCADE,
+    from_user INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    to_user INTEGER NOT NULL REFERENCES users(id) ON DELETE CASCADE,
+    message TEXT NOT NULL,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
 );
 

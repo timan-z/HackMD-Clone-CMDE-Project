@@ -17,6 +17,8 @@
 - [Future Improvements](#future-improvements-and-things-to-add)
 - [Site Demonstrations (GIF)](#site-functionality-gif-demonstrations) <b><-- You probably want this one.</b>
 
+[For a more thorough breakdown of the _main_ components of this project](./README2.md)
+
 ## Key Features
 ### Editor & Document Features
 - Real-time collaborative text editing using <b>Yjs</b> CRDT
