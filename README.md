@@ -241,7 +241,7 @@ Includes the following tables:
 
 ## Future Improvements and Things to Add
 ### I definitely should look to implement Version Control
-- This is by far the most glaring ommission from my project. I got way too hung up on miscellaneous features such as the Chat and Notification system when I definitely should have focused on more integral and technically impressive features like implementing Version Control. I let the scope of this project get far too wide and overcomplicated way too much.
+- This is by far the most glaring omission from my project. I got way too hung up on miscellaneous features such as the Chat and Notification system when I definitely should have focused on more integral and technically impressive features like implementing Version Control. I let the scope of this project get far too wide and overcomplicated way too much.
 ### Thinking about tweaking the rendering logic
 - Considering replacing my JavaScript Markdown parser and instead using a modular <b>Rust</b>-based Markdown parser, compiled to <b>WebAssembly (WASM)</b> and integrated to my web app. This is pretty much just to expand my list of technologies. I would probably do this first and then aim to implement version control.
 ### I could probaly style things a little better

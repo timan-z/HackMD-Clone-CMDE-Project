@@ -160,12 +160,6 @@ export const saveRoomDoc = async(roomId, docData, token) => {
 
 // 4.2. To retrieve Editor Room document data from the PostgreSQL backend server:
 export const getRoomDoc = async(roomId, token) => {
-
-    
-    console.log("getRoomDoc-DEBUG: Function entered...");
-    console.log("getRoomDoc-DEBUG: The value of roomId => [", roomId, "]");
-
-
     const result = await fetch(`${API_BASE}/auth/rooms/${roomId}/get`, {
         method:"GET",
         headers: {Authorization: `Bearer ${token}`}

@@ -306,6 +306,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // useEffect Hook #1: Listens for emits from the Socket.IO server:
   useEffect(()=> {
+
+
+
+
+
     // Handle notifications:
     const handleNotif = (notif) => {
       // Changing the colour of the Notifications Bar Icon to let the user know that they've received a notification:
@@ -315,15 +320,19 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         let notifsBtn = document.getElementById('notifs-button');
         notifsBtn.style.backgroundColor = 'red';
       }
-
       const id = uuidv4();
       const newNotif = { id, message: notif.message || notif, timestamp: Date(), };
-      const stored = localStorage.getItem("notifications");
+      const stored = localStorage.getItem(`notifs-${roomId}`);
       const prev = stored ? JSON.parse(stored) : [];
       const updated = [...prev, newNotif];
-      localStorage.setItem("notifications", JSON.stringify(updated));
+      localStorage.setItem(`notifs-${roomId}`, JSON.stringify(updated));
     }
     socket.on("notification", handleNotif);
+
+
+
+
+
 
     // Listen to see if the current user gets kicked from the editing room:
     socket.on("you-have-been-kicked", () => {
@@ -622,7 +631,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
           {/* Code to have the Notifications component appear: */}
           {showNotifs && (
-            <NotificationBar notifsOpen={showNotifs} socket={socket} onClose={()=>toggleNotifs()} />
+            <NotificationBar roomId={roomId} notifsOpen={showNotifs} socket={socket} onClose={()=>toggleNotifs()} />
           )}
 
           {/* This will be the "Users-List" button on the top-right of the T.E. room webpage: */}

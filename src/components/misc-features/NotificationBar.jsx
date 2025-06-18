@@ -3,20 +3,23 @@ import { useState, useRef, useEffect } from "react";
 import { createPortal } from 'react-dom';
 import NotificationBarHeader from "./NotificationBarHeader";
 
-const NotificationBar = ({ notifsOpen, onClose, socket }) => {
+const NotificationBar = ({ roomId, notifsOpen, onClose, socket }) => {
+
+    console.log("DEBUG: The value of roomId => [", roomId, "]");
+
     const notifBarRef = useRef(null);
     const dragHandleRef = useRef(null);
     const offset = useRef({ x: 0, y: 0 });
     const [notifications, setNotifications] = useState(() => {
-        const stored = localStorage.getItem("notifications");
+        const stored = localStorage.getItem(`notifs-${roomId}`);
         return stored ? JSON.parse(stored) : [];
     });
 
-    // Function for clearing the contents of state variable "notifications":
+    // Function for clearing the contents of state variable `notifs-${notifications}`:
     const clearNotifs = () => {
         setNotifications([]);
         // TO-DO: Need to make it so that clearing notifications **also** wipes the localStorage history:
-        localStorage.removeItem("notifications");
+        localStorage.removeItem(`notifs-${roomId}`);
     };
 
     // Function for handling receiving notifications is in this useEffect.
@@ -31,7 +34,6 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
                 let notifsBtn = document.getElementById('notifs-button');
                 if(notifsBtn) notifsBtn.style.backgroundColor = 'red';
             }
-
             setNotifications((prev) => [...prev, notif]);
         };
 
@@ -87,7 +89,6 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
     }, []);
 
     const notifBar = (
-
         <div id="notification-bar"
         ref={notifBarRef}
         style={{
@@ -128,7 +129,6 @@ const NotificationBar = ({ notifsOpen, onClose, socket }) => {
                 ))}
             </div>
         </div>
-  
     );
 
     return createPortal(notifBar, document.body); // append notifBar to document.body of the webpage.
