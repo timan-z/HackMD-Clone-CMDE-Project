@@ -15,9 +15,11 @@
 - [Testing Suggestions](#testing-suggestions)
 - [Some Limitations](#some-limitations)
 - [Future Improvements](#future-improvements-and-things-to-add)
-- [Site Demonstrations (GIF)](#site-functionality-gif-demonstrations) <b><-- You probably want this one.</b>
+- [Site Demonstrations (GIF)](#site-functionality-gif-demonstrations)
 
-[For a more thorough breakdown of the _main_ components of this project](./README2.md)
+## Additional Material
+1. [For a recorded <b>video demo</b> walking through the site](https://youtu.be/A1ZNsfc-iCU?si=7vcxAByDAkpfe5ES)<br>
+2. [For a more thorough breakdown of the _main_ components of this project](./README2.md)
 
 ## Key Features
 ### Editor & Document Features
@@ -209,7 +211,7 @@ export const getAllEdRooms = async (req, res) => {
 Create `.env` file (_you can obviously adjust the values seen here like the `PORT` value chosen etc, this is just what I had in my setup, but be weary of what you would need to tweak in the code. Cloudinary values and an account are needed for the Upload Image functionality of the Editor (found in the Toolbar)_):
 ```
 PORT=5000
-DATABASE_URL=postgres://youruser:yourpassword@localhost:5432/yourdb
+DATABASE_URL=postgres://youruser:yourpassword@localhost:5433/yourdb
 VITE_CLOUDINARY_CLOUD_NAME=your_cloud_name
 VITE_CLOUDINARY_API_KEY=your_cloudinary_api_key
 VITE_CLOUDINARY_UPLOAD_PRESET=your_upload_preset
@@ -269,10 +271,11 @@ Includes the following tables:
 ### Thinking about tweaking the rendering logic
 - Considering replacing my JavaScript Markdown parser and instead using a modular <b>Rust</b>-based Markdown parser, compiled to <b>WebAssembly (WASM)</b> and integrated to my web app. This is pretty much just to expand my list of technologies. I would probably do this first and then aim to implement version control.
 ### Better "Token" Verification System
-- I currently have it so that the browser will cache userData with a token in localStorage. At the moment, I have it so that as long as that token is valid, the site authentication will treat the client as a logged in user (w/ the userData associated with said token). This could be better (e.g., although I removed the "validity expiration" part of the Login Tokens generated, I don't really have anything in place to double-check that the token is still valid or the userData associated with the token is still valid. For example, I might clear out the `users` table from the backend but I would still be able to log-in as a now non-existent user if the token is still cached in the browser).
-
+- I currently have it so that the browser will cache userData with a token in localStorage. At the moment, I have it so that as long as that token is valid, the site authentication will treat the client as a logged in user (w/ the userData associated with said token). This could be better (e.g., although I removed the "validity expiration" part of the Login Tokens generated, I don't really have anything in place to double-check that the token is _still_ valid or the userData associated with the token is still valid. For example, I might clear out the `users` table from the backend but I would still be able to log-in as a now non-existent user if the token is still cached in the browser).
 ### I could probaly style things a little better
-- This was by far my lowest priority.
+- This was by far my lowest priority. (But I should definitely make it look a little nicer than it does).
+### I want to make this project deployable at some point in the immediate future
+- For now, I'm going to be making a short demo video (in addition to the gifs viewable in the section below) where I personally walk through the site functionality and explore all of its features. Sometime soon, I would like to host this project somewhere and make it fully interactable for anyone who'd care to visit and explore its functionalities. I am currently considering hosting it on Fly.io since it supports to a reasonable extent all of the technologies needed for my project to function.
 
 ## SITE FUNCTIONALITY (GIF) DEMONSTRATIONS:
 ### [1] Register and Sign-In Demonstration:

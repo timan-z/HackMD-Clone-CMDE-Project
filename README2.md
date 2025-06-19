@@ -15,6 +15,8 @@
 - [Frontend Highlights](#frontend-highlights)
 - [Backend Highlights](#backend-highlights)
 
+[Returning to the main README.md file](./README.md)
+
 ## Editor.jsx
 This is the file where the <b>Real-Time Collaborative Text Editor</b>, using <b>Lexical</b> (by Meta) as the Editor base and <b>Yjs</b> for shared document state CRDT (Conflict-free replicated data type) sync, is defined.
 
