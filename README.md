@@ -139,6 +139,7 @@ mde-part2
 │     └─ index.css
 └─ vite.config.js
 ```
+- <b>Note:</b> "mde-part2" was the directory I worked with. This was the second phase of my project (adding user and session management, and so on) after completing the majority of work related to the Editor page itself. (_This is expanded on more in the <b>Future Improvements</b> area, but I would like to implement version control and RUST into this project at some point. Those would presumably constitute a Part 3 and possibly a Part 4 respectively_).
 ## Architecture Overview (Mermaid Diagram)
 ```
 graph TD
