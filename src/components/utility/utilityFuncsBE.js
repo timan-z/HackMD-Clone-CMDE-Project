@@ -6,7 +6,7 @@ import dotenv from 'dotenv';
 dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET;
 
-import { saveEdRoomDoc } from "../controllers/authController.js";
+import { saveEdRoomDoc } from "../backend/controllers/authController.js";
 //import { saveRoomDoc } from "./api.js"; <-- EDIT: For deployment reasons, I should keep backend and frontend separate (api.js is frontend).
 
 // [ACCOUNT MANAGEMENT-RELATED] MIDDLEWARE THAT AUTHENTICATES AND EXTRACTS USER FROM TOKEN:
