@@ -1,0 +1,24 @@
+{
+  "name": "rust-markdown",
+  "type": "module",
+  "collaborators": [
+    "Timan Zheng <timanzproper@gmail.com>"
+  ],
+  "description": "Building a RUST-powered Markdown Parser w/ wasm-pack (to integrate into my CMDE Project)",
+  "version": "0.1.0",
+  "license": "Honestly, I have no idea",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timan-z/HackMD-Clone-CMDE-Project"
+  },
+  "files": [
+    "rust_markdown_bg.wasm",
+    "rust_markdown.js",
+    "rust_markdown.d.ts"
+  ],
+  "main": "rust_markdown.js",
+  "types": "rust_markdown.d.ts",
+  "sideEffects": [
+    "./snippets/*"
+  ]
+}
