@@ -1,9 +1,10 @@
-
+import { parse_markdown } from "rust-markdown";   // <-- new "main" parser.
 import MarkdownIt from "markdown-it";
 import markdownItTaskLists from "markdown-it-task-lists";
 /* ^ Not sure why I'm getting the "... Could not find a declaration file..." prefix here,
 it does seem to work and if I remove it the emote for the checkbox dissapears. [!] */
 
+// EDIT: Markdown-It is now the "fall-back" parser, a backup to the Comrak RUST parser that will be used from now on.
 const md = new MarkdownIt({
     html: true,
     linkify: true,
@@ -11,8 +12,31 @@ const md = new MarkdownIt({
     breaks: true
 }).use(markdownItTaskLists);
 
+// Placeholder var for Comrak parse_markdown function, the RUST-powered Markdown Parser (and condition var to check when WASM is ready):
+let comrakParser = null;
+let wasmReady = false;
+
+// Async init wrapper:
+export async function initComrak() {
+    try {
+        //await init();
+        comrakParser = (markdownText) => parse_markdown(markdownText);
+        wasmReady = true;
+        console.log("[MDParser]: Comrak (RUST) Markdown Parser initialized and ready to go!");
+    } catch(err) {
+        console.error("[ERROR][MDParser]: Failed to initialize Comrak, fallback parser Markdown-It will be used for rendering instead. Err: ", err);
+    }
+}
+initComrak();
+
 // This function below is supposed to take Markdown text and convert it to HTML:
 export const parseMarkdown = (markdownText) => {
-    let parsedContent = md.render(markdownText);
-    return parsedContent;
+    if(comrakParser && wasmReady) {
+        try {
+            return comrakParser(markdownText);
+        } catch(err) {
+            console.error("[ERROR][MDParser]: Comrak parsing failed, falling back to Markdown-It.");
+        }
+    }
+    return md.render(markdownText);
 };

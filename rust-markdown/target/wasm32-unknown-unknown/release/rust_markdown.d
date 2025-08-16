@@ -1,0 +1,1 @@
+C:\Users\timan\Desktop\update-hackmd-clone\hackMD-Clone-CMDE-Project\rust-markdown\target\wasm32-unknown-unknown\release\rust_markdown.wasm: C:\Users\timan\Desktop\update-hackmd-clone\hackMD-Clone-CMDE-Project\rust-markdown\src\lib.rs

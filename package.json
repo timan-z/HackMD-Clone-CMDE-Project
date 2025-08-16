@@ -1,5 +1,5 @@
 {
-  "name": "mde-part2",
+  "name": "cmde-project",
   "private": true,
   "version": "0.0.0",
   "type": "module",
@@ -31,6 +31,7 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.5.3",
+    "rust-markdown": "file:rust-markdown/pkg",
     "socket.io": "^4.8.1",
     "socket.io-client": "^4.8.1",
     "uuid": "^11.1.0",
@@ -50,10 +51,7 @@
     "eslint-plugin-react-hooks": "^5.0.0",
     "eslint-plugin-react-refresh": "^0.4.16",
     "globals": "^15.14.0",
-    "vite": "^6.0.5"
-  },
-  "overrides": {
-  "lexical": "0.30.0",
-  "@lexical/*": "0.30.0"
-}
+    "vite": "^6.0.5",
+    "vite-plugin-wasm": "^3.5.0"
+  }
 }
