@@ -1,9 +1,9 @@
 {
   "name": "yjs-server",
   "scripts": {
-    "start": "node_modules/.bin/y-websocket --port $PORT"
+    "start": "npx y-websocket-server --port $PORT"
   },
   "dependencies": {
-    "y-websocket": "^3.0.0"
+    "@y/websocket-server": "^1.2.0"
   }
 }
