@@ -27,8 +27,7 @@ import { throttle } from "lodash";
 /* Using "socket" for the real-time interaction features but also tying RemoteCursorOverlay.jsx
 back to my Text Editor (while using <CollaborationPlugin/>). */
 //const socket = io("http://localhost:4000");
-const socket = io("http://localhost:5000"); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
-
+const socket = io(import.meta.env.VITE_SOCKET_BASE); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
 
 // NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming (didn't change anything).
 const sampleTheme = {
@@ -724,7 +723,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
-                      const provider = new WebsocketProvider('ws://localhost:1234', id, doc, {connect:true});
+                      const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, {connect:true});
 
                       // start-up function (runs once yjs syncs up, websocket connects, etc):
                       const roomStartUp = () => {

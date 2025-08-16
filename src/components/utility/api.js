@@ -1,6 +1,6 @@
 // Frontend API utilities (for handling API requests sent from the frontend -- basically my Postman tests through JS):
 
-const API_BASE = "http://localhost:5000/api"; // My backend express server.
+const API_BASE = import.meta.env.VITE_API_BASE; // My backend express server.
 
 // 1. USER-RELATED UTILITIES:
 // 1.1. Register:

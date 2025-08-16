@@ -7,7 +7,7 @@ import UsersListSection from './UsersListSection.jsx';
 import ManageUsersListSection from './ManageUsersListSection.jsx';
 import { io } from "socket.io-client";
 //const socket = io("http://localhost:4000");
-const socket = io("http://localhost:5000"); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
+const socket = io(import.meta.env.VITE_SOCKET_BASE); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
 
 const ManageUsersSection = ({ roomId, roomName, roomMembers, currentUserId, onClose, onTransfer }) => {
 

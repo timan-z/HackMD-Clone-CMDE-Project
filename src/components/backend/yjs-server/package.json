@@ -1,0 +1,9 @@
+{
+  "name": "yjs-server",
+  "scripts": {
+    "start": "y-websocket-server --port $PORT"
+  },
+  "dependencies": {
+    "y-websocket": "^3.0.0"
+  }
+}
