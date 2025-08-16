@@ -4,6 +4,6 @@
     "start": "npx y-websocket-server --port $PORT"
   },
   "dependencies": {
-    "@y/websocket-server": "^1.2.0"
+    "@y/websocket-server": "^0.1.1"
   }
 }
