@@ -1,4 +1,5 @@
-import { parse_markdown } from "rust-markdown";   // <-- new "main" parser.
+//import { parse_markdown } from "rust-markdown";   // <-- new "main" parser.
+import {parse_markdown} from "../../rust-markdown/pkg/rust_markdown.js";
 import MarkdownIt from "markdown-it";
 import markdownItTaskLists from "markdown-it-task-lists";
 /* ^ Not sure why I'm getting the "... Could not find a declaration file..." prefix here,
