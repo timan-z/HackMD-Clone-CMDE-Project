@@ -7,6 +7,8 @@ planning on hosting them, I should merge them together (so I can serve them on o
 
 So this file here "server.js" basically squashes socketIOServer.js and expressServer.js together.
 It will also embed the Yjs provider in it (my "npx y-websocket --port 1234" command). */
+
+// DEBUG:+EDIT:+TO-DO: ^ Embedding the Yjs provider more complicated than I was expecting, this is something I should return to later for the sake of time.
 import express from "express";
 import http from "http"; // Express runs on HTTP.
 import { Server } from "socket.io";
