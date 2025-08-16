@@ -11,7 +11,10 @@ import express from "express";
 import http from "http"; // Express runs on HTTP.
 import { Server } from "socket.io";
 import cors from "cors";
+import dotenv from "dotenv";
 import pg from "pg";
+import pkg from 'lodash';
+const { throttle } = pkg;
 
 // Routes:
 import authRoutes from "./routes/auth.js";

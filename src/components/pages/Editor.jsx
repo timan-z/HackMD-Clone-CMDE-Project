@@ -26,7 +26,9 @@ import { throttle } from "lodash";
 
 /* Using "socket" for the real-time interaction features but also tying RemoteCursorOverlay.jsx
 back to my Text Editor (while using <CollaborationPlugin/>). */
-const socket = io("http://localhost:4000");
+//const socket = io("http://localhost:4000");
+const socket = io("http://localhost:5000"); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
+
 
 // NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming (didn't change anything).
 const sampleTheme = {
