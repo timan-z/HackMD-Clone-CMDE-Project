@@ -34,8 +34,9 @@ let connectedUsers = {}; // This will my array var holding info about all the us
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
 // DEBUG: IS THE PROBLEM THE SLASH???
-let FRONTEND_URL = process.env.FRONTEND_URL;
-if(FRONTEND_URL.endsWith('/')) {
+let FRONTEND_URL = null;
+if(process.env.FRONTEND_URL.endsWith('/')) {
+    console.log("endsWith if-condition was entered...");
     FRONTEND_URL = FRONTEND_URL.slice(0, -1);   // remove last character.
 }
 // DEBUG: IS THE PROBLEM THE SLASH???
