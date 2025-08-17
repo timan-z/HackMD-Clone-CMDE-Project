@@ -29,6 +29,8 @@ back to my Text Editor (while using <CollaborationPlugin/>). */
 //const socket = io("http://localhost:4000");
 const socket = io(import.meta.env.VITE_SOCKET_BASE, {withCredentials: true}); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
 
+console.log("DEBUG: The value of import.meta.env.VITE_SOCKET_BASE => ", import.meta.env.VITE_SOCKET_BASE);
+
 // NOTE: This is just one of the sample themes offered in the Lexical documentation: https://lexical.dev/docs/getting-started/theming (didn't change anything).
 const sampleTheme = {
   ltr: 'ltr',
