@@ -1,0 +1,4 @@
+# Proxy socket.io requests to backend
+/socket.io/*   https://hackmd-clone-cmde-project-production.up.railway.app/socket.io/:splat   200
+# Let React Router handle all other routes
+/*    /index.html   200
