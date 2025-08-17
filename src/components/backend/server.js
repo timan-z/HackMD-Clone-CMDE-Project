@@ -58,8 +58,7 @@ app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(express.json()); // Parses incoming JSON requests. 
 
 // Postgres-related
-//const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-const pool = new pg.Pool({ connectionString: DATABASE_URL });
+const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
 pool.connect((err, client, release) => {
   if (err) {
     console.error("Error acquiring client", err);
