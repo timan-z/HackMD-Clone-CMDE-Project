@@ -33,6 +33,7 @@ const latestEdTokens = new Map(); // ^ coincides with latestEdDocs, just saving 
 let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
+// TO-DO: CLEAN UP THIS MESS I MADE.
 // DEBUG: IS THE PROBLEM THE SLASH???
 let FRONTEND_URL = null;
 if(process.env.FRONTEND_URL.endsWith('/')) {
