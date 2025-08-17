@@ -6,8 +6,16 @@ import { btnStyleDB } from "../utility/utilityFuncs.js";
 
 import ManageUsersSection from "../misc-features/ManageUsersSection.jsx";
 
+// DEBUG: BELOW.
+let socket_base = import.meta.env.VITE_SOCKET_BASE;
+if(socket_base.endsWith('/')) {
+    socket_base = socket_base.slice(0, -1);
+}
+console.log("DEBUG: Value of socket_base => ", socket_base);
+// DEBUG: ABOVE.
+
 //const socket = io("http://localhost:4000");
-const socket = io(import.meta.env.VITE_SOCKET_BASE, { withCredentials: true}); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
+const socket = io(socket_base, { withCredentials: true}); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
 
 function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setUser }) {
     const joinEdRoomLink = useRef(null);
