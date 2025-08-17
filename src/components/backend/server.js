@@ -37,7 +37,7 @@ let clientCursors = []; // This will be my array var holding the client-cursor i
 let FRONTEND_URL = null;
 if(process.env.FRONTEND_URL.endsWith('/')) {
     console.log("endsWith if-condition was entered...");
-    FRONTEND_URL = FRONTEND_URL.slice(0, -1);   // remove last character.
+    FRONTEND_URL = process.env.FRONTEND_URL.slice(0, -1);   // remove last character.
 }
 // DEBUG: IS THE PROBLEM THE SLASH???
 
