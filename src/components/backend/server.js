@@ -33,24 +33,33 @@ const latestEdTokens = new Map(); // ^ coincides with latestEdDocs, just saving 
 let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
+// DEBUG: IS THE PROBLEM THE SLASH???
+let FRONTEND_URL = process.env.FRONTEND_URL;
+if(FRONTEND_URL.endsWith('/')) {
+    FRONTEND_URL = FRONTEND_URL.slice(0, -1);   // remove last character.
+}
+// DEBUG: IS THE PROBLEM THE SLASH???
+
 // Attaching Socket.IO:
 const io = new Server(server, {
   cors: {
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    //origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
+    credentials:true,
   },
 });
 
-
 console.log("DEBUG: The value of FRONTEND_URL => ", process.env.FRONTEND_URL);
 
-
 // expressServer.js stuff:
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+//app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
+app.use(cors({ origin: FRONTEND_URL, credentials: true }));
 app.use(express.json()); // Parses incoming JSON requests. 
 
 // Postgres-related
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+//const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
+const pool = new pg.Pool({ connectionString: DATABASE_URL });
 pool.connect((err, client, release) => {
   if (err) {
     console.error("Error acquiring client", err);
