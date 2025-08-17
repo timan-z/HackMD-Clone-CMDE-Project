@@ -12,6 +12,9 @@ dotenv.config();
 
 const execAsync = promisify(exec);
 const dbUrl = process.env.DATABASE_URL;
+
+console.log("DEBUG: The value of dbUrl => ", dbUrl);    // DEBUG:!
+
 if(!dbUrl) {
     console.error("ERROR: Could not run the SQL commands of schema.sql because DATABASE_URL is not defined in .env");
     process.exit(1);
@@ -40,12 +43,18 @@ if(!dbName) {
 const pool = new pg.Pool({connectionString: dbUrl});
 const tables = ['users', 'rooms', 'user_rooms', 'messages', 'invite_links', 'ydocs'];
 
+console.log("DEBUG: The value of pgUser => ", pgUser);
+console.log("DEBUG: The value of dbName => ", dbName);
+console.log("DEBUG: The value of port => ", port);
+
 // Construct psql comamnd for running schema.sql:
 const runSchemaSQL = async () => {
     console.log("Running schema.sql...");
     try {
         //await execAsync(`cmd.exe /C "set PGPASSWORD=${pgPass} && psql -U ${pgUser} -d ${dbName} -p ${port} -f ./src/components/backend/schema.sql`);
         await execAsync(`psql -U ${pgUser} -d ${dbName} -p ${port} -f ./src/components/backend/schema.sql`);
+        //await execAsync(`psql -d ${dbName} -f ./src/components/backend/schema.sql`);
+        //await execAsync(`psql ${dbUrl} -f ./src/components/backend/schema.sql`)
         console.log("schema.sql has been executed.");
     } catch(err) {
         console.error("ERROR: Error when running schema.sql => [", err.stderr || err, "]");
