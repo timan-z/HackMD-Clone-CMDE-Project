@@ -38,6 +38,11 @@ let FRONTEND_URL = null;
 if(process.env.FRONTEND_URL.endsWith('/')) {
     console.log("endsWith if-condition was entered...");
     FRONTEND_URL = process.env.FRONTEND_URL.slice(0, -1);   // remove last character.
+} else {
+    FRONTEND_URL = process.env.FRONTEND_URL;
+}
+if(!process.env.FRONTEND_URL) {
+    FRONTEND_URL = "http://localhost:5173"
 }
 // DEBUG: IS THE PROBLEM THE SLASH???
 
