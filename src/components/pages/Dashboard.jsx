@@ -7,7 +7,7 @@ import { btnStyleDB } from "../utility/utilityFuncs.js";
 import ManageUsersSection from "../misc-features/ManageUsersSection.jsx";
 
 //const socket = io("http://localhost:4000");
-const socket = io(import.meta.env.VITE_SOCKET_BASE); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
+const socket = io(import.meta.env.VITE_SOCKET_BASE, { withCredentials: true}); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
 
 function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setUser }) {
     const joinEdRoomLink = useRef(null);

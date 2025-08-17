@@ -51,7 +51,7 @@ const io = new Server(server, {
   },
 });
 
-console.log("DEBUG: The value of FRONTEND_URL => ", process.env.FRONTEND_URL);
+console.log("DEBUG: The value of FRONTEND_URL => ", FRONTEND_URL);
 
 // expressServer.js stuff:
 //app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
