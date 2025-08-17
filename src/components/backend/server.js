@@ -42,7 +42,7 @@ const io = new Server(server, {
 });
 
 
-console.log("DEBUG: The value of FRONTEND_URL => ", FRONTEND_URL);
+console.log("DEBUG: The value of FRONTEND_URL => ", process.env.FRONTEND_URL);
 
 
 // expressServer.js stuff:
