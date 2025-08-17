@@ -1,0 +1,10 @@
+[[redirects]]
+  from = "/socket.io/*"
+  to = "https://hackmd-clone-cmde-project-production.up.railway.app/socket.io/:splat"
+  status = 200
+  force = true
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
