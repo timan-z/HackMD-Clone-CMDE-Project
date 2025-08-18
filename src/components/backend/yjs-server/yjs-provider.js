@@ -1,9 +1,8 @@
 import http from "http";
 import express from "express";
 import { WebSocketServer } from "ws";
-
-// ✅ ESM style for v2.x
-import { setupWSConnection } from "y-websocket";
+import pkg from "y-websocket";   // import the CommonJS module
+const { setupWSConnection } = pkg; // destructure named export
 
 const PORT = process.env.PORT || 1234;
 const HOST = process.env.HOST || "0.0.0.0";
