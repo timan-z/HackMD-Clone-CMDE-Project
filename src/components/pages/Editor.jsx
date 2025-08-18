@@ -32,6 +32,9 @@ if(socket_base.endsWith('/')) {
 console.log("DEBUG: Value of socket_base => ", socket_base);
 // DEBUG: ABOVE.
 
+console.log("DEBUG: Value of VITE_YJS_WS_URL =>", import.meta.env.VITE_YJS_WS_URL);
+// import.meta.env.VITE_YJS_WS_URL
+
 /* Using "socket" for the real-time interaction features but also tying RemoteCursorOverlay.jsx
 back to my Text Editor (while using <CollaborationPlugin/>). */
 //const socket = io("http://localhost:4000");
