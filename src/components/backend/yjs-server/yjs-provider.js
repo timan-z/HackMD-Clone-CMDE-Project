@@ -2,9 +2,8 @@ import http from "http";
 import express from "express";
 import { WebSocketServer } from "ws";
 
-// ✅ always import default, then destructure
-import pkg from "y-websocket";
-const { setupWSConnection } = pkg;
+// ✅ ESM style for v2.x
+import { setupWSConnection } from "y-websocket";
 
 const PORT = process.env.PORT || 1234;
 const HOST = process.env.HOST || "0.0.0.0";
