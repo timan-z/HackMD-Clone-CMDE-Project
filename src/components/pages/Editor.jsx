@@ -114,7 +114,7 @@ const sampleTheme = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, setShouldBootstrap, loadContent }) {  
+function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, loadContent }) {  
   // "Main" state variables:
   const hasLoadedRef = useRef(false);
   const hasConnectedRef = useRef(false);  // This and the one below also relate to the pre-existing doc state loading...
@@ -1004,7 +1004,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
       {/* Everything's pretty much just in EditorContent(...) */}
 
       {fetchedDoc ? (
-        <EditorContent token={token} loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} setShouldBootstrap={setShouldBootstrap} loadContent={loadContent} />
+        <EditorContent token={token} loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} loadContent={loadContent} />
       ):(<div>LOADING...</div>)}
 
     </LexicalComposer>
