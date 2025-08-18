@@ -628,7 +628,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
-  function useShouldBootstrap(roomId) {
+  function useShouldBootstrapStable(roomId, {
+    timeoutMs = 2000,     // overall timeout for the probe
+    pollInterval = 150,   // how often to poll awareness
+    stableChecks = 2,     // number of consecutive equal reads required
+    stabilityDelay = 200, // additional wait before returning ready
+  } = {}) {
     const decidedFor = useRef(null); // roomId we decided for
     const decidedVal = useRef(false); // boolean decision
     const [ready, setReady] = useState(false);
@@ -645,46 +650,81 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       let cancelled = false;
       const doc = new Y.Doc();
       const provider = new WebsocketProvider(
-        import.meta.env.VITE_YJS_WS_URL, // ensure this env var is set
+        import.meta.env.VITE_YJS_WS_URL,
         roomId,
         doc,
         { connect: true }
       );
 
-      const decide = () => {
-        if (cancelled) return;
+      let lastVal = null;
+      let stableCount = 0;
+      const start = Date.now();
 
-        // number of peers including self
-        const peers = provider.awareness.getStates().size;
-        const firstPeer = peers <= 1;
-
+      const decideAndCleanup = (isFirst) => {
         decidedFor.current = roomId;
-        decidedVal.current = firstPeer;
+        decidedVal.current = isFirst;
 
-        // cleanup probe resources
         try { provider.disconnect(); provider.destroy(); } catch (e) {}
         try { doc.destroy(); } catch (e) {}
 
-        setReady(true);
+        // small delay to let stray broadcasts settle
+        setTimeout(() => {
+          if (!cancelled) setReady(true);
+        }, stabilityDelay);
       };
 
-      // Either when synced or after a small timeout, decide
-      provider.on("synced", decide);
-      const t = setTimeout(decide, 1200);
+      const check = () => {
+        if (cancelled) return;
+        try {
+          const curr = provider.awareness?.getStates?.().size ?? 0;
+          if (lastVal === curr) {
+            stableCount++;
+          } else {
+            stableCount = 1;
+            lastVal = curr;
+          }
+
+          if (stableCount >= stableChecks) {
+            const isFirstPeer = curr <= 1;
+            decideAndCleanup(isFirstPeer);
+            return;
+          }
+        } catch (e) {
+          // ignore transient errors
+        }
+
+        if (Date.now() - start >= timeoutMs) {
+          const curr = provider.awareness?.getStates?.().size ?? 0;
+          decideAndCleanup(curr <= 1);
+          return;
+        }
+
+        setTimeout(check, pollInterval);
+      };
+
+      // start polling once synced (server state available)
+      provider.once("synced", () => {
+        if (!cancelled) check();
+      });
+
+      // fallback: if synced never fires, start polling after short delay
+      const fallback = setTimeout(() => {
+        if (!cancelled) check();
+      }, 600);
 
       return () => {
         cancelled = true;
-        clearTimeout(t);
+        clearTimeout(fallback);
         try { provider.disconnect(); provider.destroy(); } catch (e) {}
         try { doc.destroy(); } catch (e) {}
       };
-    }, [roomId]);
+    }, [roomId, timeoutMs, pollInterval, stableChecks, stabilityDelay]);
 
-    // Note: shouldBootstrap lives on a ref; read it after ready becomes true.
+    // shouldBootstrap is on a ref, read after ready true
     return { ready, shouldBootstrap: decidedVal.current };
   }
 
-  const { ready, shouldBootstrap } = useShouldBootstrap(roomId);
+  const { ready, shouldBootstrap } = useShouldBootstrapStable(roomId);
   console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
 
@@ -857,7 +897,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
                   {ready ? (
                     <CollaborationPlugin
-                      id={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                      key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                      id={roomId}
                       providerFactory={providerFactory}
                       shouldBootstrap={shouldBootstrap}
                       /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
