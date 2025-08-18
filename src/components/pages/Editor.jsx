@@ -578,7 +578,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false });
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
-
     provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt);
       if (evt.status === "connected") {
