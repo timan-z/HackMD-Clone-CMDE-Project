@@ -1,7 +1,8 @@
 import http from "http";
 import express from "express";
 import { WebSocketServer } from "ws";
-import { setupWSConnection } from "y-websocket";
+import pkg from "y-websocket"; // CommonJS import
+const { setupWSConnection } = pkg; // destructure named export
 
 const PORT = process.env.PORT || 1234;
 const HOST = process.env.HOST || "0.0.0.0";
@@ -13,14 +14,16 @@ app.get("/healthz", (_req, res) => res.send("ok"));
 const server = http.createServer(app);
 const wss = new WebSocketServer({ server, perMessageDeflate: false });
 
-// log upgrades (Railway edge sometimes drops without logging)
 server.on("upgrade", (req, socket, head) => {
-  console.log("HTTP upgrade attempt", { url: req.url, origin: req.headers.origin });
+  console.log("HTTP upgrade attempt:", {
+    url: req.url,
+    origin: req.headers.origin,
+    host: req.headers.host
+  });
 });
 
-// handle WS connections
 wss.on("connection", (ws, req) => {
-  const docName = req.url.slice(1); // strip leading "/"
+  const docName = req.url.slice(1);
   console.log("WebSocket connected for doc:", docName, "origin:", req.headers.origin);
   setupWSConnection(ws, req, { docName });
 });
