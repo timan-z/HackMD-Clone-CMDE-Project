@@ -114,7 +114,7 @@ const sampleTheme = {
 };
 
 // Most of the "content" of the LexicalComposer component (Text Editor) will be in this child element here:
-function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, shouldBootstrap, setShouldBootstrap, loadContent }) {  
+function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData, docRef, hasJoinedRef, setShouldBootstrap, loadContent }) {  
   // "Main" state variables:
   const hasLoadedRef = useRef(false);
   const hasConnectedRef = useRef(false);  // This and the one below also relate to the pre-existing doc state loading...
@@ -627,6 +627,42 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
+  // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
+  function useShouldBootstrap(roomId) {
+    const [shouldBootstrap, setShouldBootstrap] = useState(false);
+    useEffect(() => {
+      let cancelled = false;
+
+      const doc = new Y.Doc();
+      const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true });
+
+      const decide = () => {
+        const peers = provider.awareness.getStates().size;
+        const firstPeer = peers <= 1;
+        if (!cancelled) setShouldBootstrap(firstPeer);
+
+        provider.disconnect();
+        provider.destroy();
+        doc.destroy();
+      };
+
+      provider.on("synced", decide);
+
+      const t = setTimeout(decide, 1500);
+
+      return () => {
+        cancelled = true;
+        clearTimeout(t);
+        try { provider.disconnect(); provider.destroy(); } catch {}
+        try { doc.destroy(); } catch {}
+      };
+    }, [roomId]);
+    return shouldBootstrap;
+  }
+
+  const shouldBootstrap = useShouldBootstrap(roomId);
+  // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
+
 
 
 
@@ -803,7 +839,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={providerFactory}
-                    shouldBootstrap={false}
+                    shouldBootstrap={shouldBootstrap}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
@@ -900,7 +936,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const docRef = useRef(null);
   const [fetchedDoc, setFetchedDoc] = useState(false);
-  const [shouldBootstrap, setShouldBootstrap] = useState(false);
+  //const [shouldBootstrap, setShouldBootstrap] = useState(false);
   //const [loadContent, setLoadContent] = useState(null);
   const loadContent = useRef(null);
   
@@ -968,7 +1004,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
       {/* Everything's pretty much just in EditorContent(...) */}
 
       {fetchedDoc ? (
-        <EditorContent token={token} loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} shouldBootstrap={shouldBootstrap} setShouldBootstrap={setShouldBootstrap} loadContent={loadContent} />
+        <EditorContent token={token} loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} setShouldBootstrap={setShouldBootstrap} loadContent={loadContent} />
       ):(<div>LOADING...</div>)}
 
     </LexicalComposer>
