@@ -735,6 +735,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     providerFactory={(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
+
+                      console.log("RAILWAY-DEBUG: The value of import.meta.env.VITE_YJS_WS_URL is as follows => ", import.meta.env.VITE_YJS_WS_URL);
+
                       const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, {connect:true});
 
                       // start-up function (runs once yjs syncs up, websocket connects, etc):
