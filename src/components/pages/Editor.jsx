@@ -562,6 +562,76 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
+  // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
+  const providerFactory = useCallback((id, yjsDocMap) => {
+    console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
+
+    // Reuse doc if it exists
+    let doc = yjsDocMap.get(id);
+    if (!doc) {
+      doc = new Y.Doc();
+      yjsDocMap.set(id, doc);
+      console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
+    } else {
+      console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
+    }
+
+    const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false });
+    console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
+
+    provider.on("status", (evt) => {
+      console.log("RAILWAY-DEBUG: provider status", id, evt);
+      if (evt.status === "connected") {
+        hasConnectedRef.current = true;
+        if (hasSyncedRef.current) {
+          socket.emit("ready-for-load", id);
+          socket.emit("join-room", id, userData.id, userData.username);
+        }
+      }
+    });
+
+    provider.on("synced", (isSynced) => {
+      console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
+      if (isSynced) {
+        hasSyncedRef.current = true;
+        if (hasConnectedRef.current) {
+          socket.emit("ready-for-load", id);
+          socket.emit("join-room", id, userData.id, userData.username);
+        }
+      }
+    });
+
+    // Instrument raw WebSocket if available
+    try {
+      const underlying = provider.ws || provider.websocket;
+      if (underlying) {
+        underlying.addEventListener?.("open", () => console.log("RAILWAY-DEBUG: underlying ws open", id));
+        underlying.addEventListener?.("close", (e) =>
+          console.log("RAILWAY-DEBUG: underlying ws close", id, e.code, e.reason, e.wasClean)
+        );
+        underlying.addEventListener?.("error", (e) => console.log("RAILWAY-DEBUG: underlying ws error", id, e));
+      }
+    } catch (err) {
+      console.error("RAILWAY-DEBUG: providerFactory: error instrumenting underlying ws", err);
+    }
+
+    // Connect after listeners attached
+    try {
+      provider.connect();
+      console.log("RAILWAY-DEBUG: provider.connect() called for", id);
+    } catch (err) {
+      console.error("RAILWAY-DEBUG: provider.connect() threw for", id, err);
+    }
+
+    return provider;
+  }, [socket, userData]);
+  // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
+
+
+
+
+
+  
 
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
@@ -732,7 +802,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
                   <CollaborationPlugin
                     id={roomId}
-                    providerFactory={(id, yjsDocMap) => {
+                    providerFactory={providerFactory}
+                    /*{(id, yjsDocMap) => {
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
 
@@ -799,7 +870,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       });
 
                       return provider;
-                    }}
+                    }}*/
                     shouldBootstrap={false}
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
