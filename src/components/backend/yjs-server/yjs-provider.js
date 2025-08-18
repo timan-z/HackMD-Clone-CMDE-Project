@@ -1,7 +1,10 @@
 import http from "http";
 import express from "express";
 import { WebSocketServer } from "ws";
-import { setupWSConnection } from "y-websocket"; // now valid named import
+
+// ✅ always import default, then destructure
+import pkg from "y-websocket";
+const { setupWSConnection } = pkg;
 
 const PORT = process.env.PORT || 1234;
 const HOST = process.env.HOST || "0.0.0.0";
@@ -14,7 +17,11 @@ const server = http.createServer(app);
 const wss = new WebSocketServer({ server, perMessageDeflate: false });
 
 server.on("upgrade", (req, socket, head) => {
-  console.log("HTTP upgrade attempt:", { url: req.url, origin: req.headers.origin, host: req.headers.host });
+  console.log("HTTP upgrade attempt:", {
+    url: req.url,
+    origin: req.headers.origin,
+    host: req.headers.host
+  });
 });
 
 wss.on("connection", (ws, req) => {
