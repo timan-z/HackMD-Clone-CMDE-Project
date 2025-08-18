@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from "react-router-dom"; 
 import {v4 as uuidv4} from 'uuid';
 // standard Lexical imports:
@@ -774,10 +774,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       } catch (err) {
                         console.error("RAILWAY-DEBUG: error instrumenting provider", err);
                       }
-                      const testRawWS = new WebSocket(`${import.meta.env.VITE_YJS_WS_URL}/${id}`);
-                      testRawWS.onopen = () => console.log("railway-debug: raw test WS open for", id);
-                      testRawWS.onclose = (e) => console.log("railway-debug: raw test WS closed for", id, e.code, e.reason, e.wasClean);
-                      testRawWS.onerror = (e) => console.log("railway-debug: raw test WS error for", id, e);
                       // RAILWAY-DEBUG: BLOCK ABOVE.
 
                       // 1. provider listener for when the WebSocket connects:
