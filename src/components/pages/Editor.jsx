@@ -661,6 +661,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   }
 
   const shouldBootstrap = useShouldBootstrap(roomId);
+  console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap);
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
 
 
@@ -835,7 +836,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 everything as the contentEditable (which is why it has the same class), just want it to positioned relatively instead, which
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}> 
-
                   <CollaborationPlugin
                     id={roomId}
                     providerFactory={providerFactory}
