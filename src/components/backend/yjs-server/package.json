@@ -1,9 +1,13 @@
 {
-  "name": "yjs-server",
+  "name": "yjs-ws-provider",
+  "private": true,
+  "type": "module",
   "scripts": {
-    "start": "HOST=0.0.0.0 PORT=$PORT y-websocket"
+    "start": "node yjs-provider.js"
   },
   "dependencies": {
-    "@y/websocket-server": "^0.1.1"
+    "express": "^4.21.2",
+    "ws": "^8.18.0",
+    "y-websocket": "^3.0.0"
   }
 }
