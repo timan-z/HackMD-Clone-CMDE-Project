@@ -736,9 +736,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       const doc = new Y.Doc();
                       yjsDocMap.set(id, doc);
 
+                      console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
                       console.log("RAILWAY-DEBUG: The value of import.meta.env.VITE_YJS_WS_URL is as follows => ", import.meta.env.VITE_YJS_WS_URL);
 
                       const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, {connect:true});
+
+                      console.log("RAILWAY-DEBUG: providerFactory called for room: ", id, " time: ", Date.now());
 
                       // start-up function (runs once yjs syncs up, websocket connects, etc):
                       const roomStartUp = () => {
@@ -748,6 +751,34 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                         // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
                         socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
                       }
+
+                      // RAILWAY-DEBUG: BLOCK BELOW.
+                      try {
+                        // provider connection status (y-websocket provider emits 'status' and 'synced')
+                        provider.on('status', (evt) => console.log('Railway-Debug: provider status', id, evt));
+                        provider.on('synced', (isSynced) => console.log('Railway-Debug: provider synced', id, isSynced));
+
+                        // If provider exposes underlying ws, log its readyState and events.
+                        // In some implementations it is provider.ws or provider.websocket. Try both:
+                        const ws = provider.ws || provider.websocket || provider.provider;
+                        console.log("Railway-Debug: provider underlying ws reference:", !!ws);
+
+                        // If there's direct websocket, add event hooks:
+                        if (ws && ws.addEventListener) {
+                          ws.addEventListener('open', () => console.log('Railway-Debug: underlying ws open', id));
+                          ws.addEventListener('close', (e) => console.log('Railway-Debug: underlying ws close', id, e.code, e.reason, e.wasClean));
+                          ws.addEventListener('error', (e) => console.log('Railway-Debug: underlying ws error', id, e));
+                        } else {
+                          console.log("RAILWAY-DEBUG: no direct ws reference to instrument for provider:", id);
+                        }
+                      } catch (err) {
+                        console.error("RAILWAY-DEBUG: error instrumenting provider", err);
+                      }
+                      const testRawWS = new WebSocket(`${import.meta.env.VITE_YJS_WS_URL}/${id}`);
+                      testRawWS.onopen = () => console.log("railway-debug: raw test WS open for", id);
+                      testRawWS.onclose = (e) => console.log("railway-debug: raw test WS closed for", id, e.code, e.reason, e.wasClean);
+                      testRawWS.onerror = (e) => console.log("railway-debug: raw test WS error for", id, e);
+                      // RAILWAY-DEBUG: BLOCK ABOVE.
 
                       // 1. provider listener for when the WebSocket connects:
                       provider.on('status', (event) => {
