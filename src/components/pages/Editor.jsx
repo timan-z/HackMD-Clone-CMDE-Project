@@ -629,46 +629,64 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
   function useShouldBootstrap(roomId) {
-    const [shouldBootstrap, setShouldBootstrap] = useState(false);
-    useEffect(() => {
-      let cancelled = false;
+    const decidedFor = useRef(null); // roomId we decided for
+    const decidedVal = useRef(false); // boolean decision
+    const [ready, setReady] = useState(false);
 
+    useEffect(() => {
+      if (!roomId) return; // guard
+
+      // If we've already decided for this roomId, become ready immediately
+      if (decidedFor.current === roomId) {
+        setReady(true);
+        return;
+      }
+
+      let cancelled = false;
       const doc = new Y.Doc();
-      const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true });
+      const provider = new WebsocketProvider(
+        import.meta.env.VITE_YJS_WS_URL, // ensure this env var is set
+        roomId,
+        doc,
+        { connect: true }
+      );
 
       const decide = () => {
+        if (cancelled) return;
+
+        // number of peers including self
         const peers = provider.awareness.getStates().size;
         const firstPeer = peers <= 1;
-        if (!cancelled) setShouldBootstrap(firstPeer);
 
-        provider.disconnect();
-        provider.destroy();
-        doc.destroy();
+        decidedFor.current = roomId;
+        decidedVal.current = firstPeer;
+
+        // cleanup probe resources
+        try { provider.disconnect(); provider.destroy(); } catch (e) {}
+        try { doc.destroy(); } catch (e) {}
+
+        setReady(true);
       };
 
+      // Either when synced or after a small timeout, decide
       provider.on("synced", decide);
-
-      const t = setTimeout(decide, 1500);
+      const t = setTimeout(decide, 1200);
 
       return () => {
         cancelled = true;
         clearTimeout(t);
-        try { provider.disconnect(); provider.destroy(); } catch {}
-        try { doc.destroy(); } catch {}
+        try { provider.disconnect(); provider.destroy(); } catch (e) {}
+        try { doc.destroy(); } catch (e) {}
       };
     }, [roomId]);
-    return shouldBootstrap;
+
+    // Note: shouldBootstrap lives on a ref; read it after ready becomes true.
+    return { ready, shouldBootstrap: decidedVal.current };
   }
 
-  const shouldBootstrap = useShouldBootstrap(roomId);
-  console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap);
+  const { ready, shouldBootstrap } = useShouldBootstrap(roomId);
+  console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
-
-
-
-
-
-  
 
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
@@ -835,16 +853,21 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 will be dynamically rendered when multiple people are editing the same editor. I want it to be the same dimensions and
                 everything as the contentEditable (which is why it has the same class), just want it to positioned relatively instead, which
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
-                <div className={'content-editable'} style={{position:"relative"}}> 
-                  <CollaborationPlugin
-                    id={roomId}
-                    providerFactory={providerFactory}
-                    shouldBootstrap={shouldBootstrap}
-                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
-                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
-                    (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
+                <div className={'content-editable'} style={{position:"relative"}}>
+
+                  {ready ? (
+                    <CollaborationPlugin
+                      id={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                      providerFactory={providerFactory}
+                      shouldBootstrap={shouldBootstrap}
+                      /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
+                      "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
+                      you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
+                      (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
+                    />
+                  ) : (
+                    <div style={{display:"none"}}/>
+                  )}
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
