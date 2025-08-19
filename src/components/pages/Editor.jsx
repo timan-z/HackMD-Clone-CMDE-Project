@@ -680,14 +680,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
 
     // Reuse doc if it exists
-    let doc = yjsDocMap.get(id);
+    /*let doc = yjsDocMap.get(id);
     if (!doc) {
       doc = new Y.Doc();
       yjsDocMap.set(id, doc);
       console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
-    }
+    }*/
+    const doc = new Y.Doc();
+    console.log("RAILWAY-DEBUG: Brain is broken. new Y.Doc()!!!")
 
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
