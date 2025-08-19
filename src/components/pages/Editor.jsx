@@ -686,6 +686,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     return { ready, shouldBootstrap: decidedVal.current };
   }
   const { ready, shouldBootstrap } = useShouldBootstrapStable(roomId);
+  const shouldBootstrapRef = useRef(shouldBootstrap); // 8/19/2025-DEBUG: HUHHH???
+  useEffect(() => {
+    shouldBootstrapRef.current = shouldBootstrap;
+  }, [shouldBootstrap]);
+
   console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
 
@@ -745,13 +750,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           }
 
           // If our probe says *we* should bootstrap, try to win the race
-          if (shouldBootstrap) {
+          if (shouldBootstrapRef.current) {
             console.log("RAILWAY-DEBUG: synced -> shouldBootstrap=true; attempting tryBootstrapDoc for", id);
 
             // Build the payload to seed.
             const defaultInitialPayload = {
               contentType: "markdown",
-              text: editor  // should be editor's state or uselexical composer thing
+              text: "# Welcome — edit to get started\n\nThis room has been bootstrapped by the first editor." // buffer.
             };
 
             const payload = defaultInitialPayload;
@@ -799,10 +804,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     return provider;
   }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
-
-
-
-
 
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE SYNC ISSUE (EVERYTHING WORKS GOOD MAYBE 7/10 TIMES. TRY TO KNOCK OUT THE EDGE CASES):
   /* Need to make it so that the first client that successfully seeds content to Yjs writes a cmde-meta.bootstrapped flag in the Y.Doc.
