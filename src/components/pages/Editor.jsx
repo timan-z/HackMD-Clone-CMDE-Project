@@ -634,10 +634,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
   function useShouldBootstrapStable(roomId, {
-    timeoutMs = 4000,     // overall timeout for the probe
+    timeoutMs = 2000,     // overall timeout for the probe
     pollInterval = 150,   // how often to poll awareness
-    stableChecks = 3,     // number of consecutive equal reads required
-    stabilityDelay = 350, // additional wait before returning ready
+    stableChecks = 2,     // number of consecutive equal reads required
+    stabilityDelay = 200, // additional wait before returning ready
   } = {}) {
     const decidedFor = useRef(null); // roomId we decided for
     const decidedVal = useRef(false); // boolean decision
