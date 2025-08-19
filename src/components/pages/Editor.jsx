@@ -371,8 +371,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       //socket.off("load-existing");
       socket.off("notification", handleNotif);
 
-      window.removeEventListener("beforeunload", handleBeforeUnload);
-      handleBeforeUnload(); // If user navigates away within SPA, still save.
+      //window.removeEventListener("beforeunload", handleBeforeUnload);
+      //handleBeforeUnload(); // If user navigates away within SPA, still save.
     };
   }, []);
 
