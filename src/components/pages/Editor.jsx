@@ -563,75 +563,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-
-
-
-
-
-  // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
-  const providerFactory = useCallback((id, yjsDocMap) => {
-    console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
-
-    // Reuse doc if it exists
-    let doc = yjsDocMap.get(id);
-    if (!doc) {
-      doc = new Y.Doc();
-      yjsDocMap.set(id, doc);
-      console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
-    } else {
-      console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
-    }
-
-    const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false });
-    console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
-    provider.on("status", (evt) => {
-      console.log("RAILWAY-DEBUG: provider status", id, evt);
-      if (evt.status === "connected") {
-        hasConnectedRef.current = true;
-        if (hasSyncedRef.current) {
-          socket.emit("ready-for-load", id);
-          socket.emit("join-room", id, userData.id, userData.username);
-        }
-      }
-    });
-
-    provider.on("synced", (isSynced) => {
-      console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
-      if (isSynced) {
-        hasSyncedRef.current = true;
-        if (hasConnectedRef.current) {
-          socket.emit("ready-for-load", id);
-          socket.emit("join-room", id, userData.id, userData.username);
-        }
-      }
-    });
-
-    // Instrument raw WebSocket if available
-    try {
-      const underlying = provider.ws || provider.websocket;
-      if (underlying) {
-        underlying.addEventListener?.("open", () => console.log("RAILWAY-DEBUG: underlying ws open", id));
-        underlying.addEventListener?.("close", (e) =>
-          console.log("RAILWAY-DEBUG: underlying ws close", id, e.code, e.reason, e.wasClean)
-        );
-        underlying.addEventListener?.("error", (e) => console.log("RAILWAY-DEBUG: underlying ws error", id, e));
-      }
-    } catch (err) {
-      console.error("RAILWAY-DEBUG: providerFactory: error instrumenting underlying ws", err);
-    }
-
-    // Connect after listeners attached
-    try {
-      provider.connect();
-      console.log("RAILWAY-DEBUG: provider.connect() called for", id);
-    } catch (err) {
-      console.error("RAILWAY-DEBUG: provider.connect() threw for", id, err);
-    }
-
-    return provider;
-  }, [socket, userData]);
-  // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
-
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
   function useShouldBootstrapStable(roomId, {
     timeoutMs = 2000,     // overall timeout for the probe
@@ -707,10 +638,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         setTimeout(check, pollInterval);
       };
 
-      // start polling once synced (server state available)
-      /*provider.once("synced", () => {
-        if (!cancelled) check();
-      });*/
       // start polling once synced (server state available), but also wait for status connected
       provider.once("synced", () => {
         if (cancelled) return;
@@ -758,20 +685,179 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     // shouldBootstrap is on a ref, read after ready true
     return { ready, shouldBootstrap: decidedVal.current };
   }
-
   const { ready, shouldBootstrap } = useShouldBootstrapStable(roomId);
   console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
 
+  // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
+  const providerFactory = useCallback((id, yjsDocMap) => {
+    console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
+
+    // Reuse doc if it exists
+    let doc = yjsDocMap.get(id);
+    if (!doc) {
+      doc = new Y.Doc();
+      yjsDocMap.set(id, doc);
+      console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
+    } else {
+      console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
+    }
+
+    const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false });
+    console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
+    provider.on("status", (evt) => {
+      console.log("RAILWAY-DEBUG: provider status", id, evt);
+      if (evt.status === "connected") {
+        hasConnectedRef.current = true;
+        if (hasSyncedRef.current) {
+          socket.emit("ready-for-load", id);
+          socket.emit("join-room", id, userData.id, userData.username);
+        }
+      }
+    });
+
+    provider.on("synced", (isSynced) => {
+      console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
+      if (isSynced) {
+        hasSyncedRef.current = true;
+        if (hasConnectedRef.current) {
+          socket.emit("ready-for-load", id);
+          socket.emit("join-room", id, userData.id, userData.username);
+        }
+
+        // RAILWAY-DEBUG: META-FLAG BOOTSTRAP LOGIC
+        try {
+          const docInMap = yjsDocMap.get(id) || doc; // prefer map, fallback to local var
+          if (!docInMap) {
+            console.warn("RAILWAY-DEBUG: synced but no Y.Doc found in yjsDocMap for", id);
+            return;
+          }
+
+          // Quick check: does meta show the doc already bootstrapped?
+          const meta = docInMap.getMap?.("cmde-meta");
+          const alreadyBootstrapped = !!meta?.get?.("bootstrapped");
+          console.log("RAILWAY-DEBUG: meta.bootstrapped for", id, "=>", alreadyBootstrapped);
+
+          if (alreadyBootstrapped) {
+            // nothing to do — someone else seeded the doc
+            console.log("RAILWAY-DEBUG: synced -> doc already bootstrapped, skipping bootstrap for", id);
+            return;
+          }
+
+          // If our probe says *we* should bootstrap, try to win the race
+          if (shouldBootstrap) {
+            console.log("RAILWAY-DEBUG: synced -> shouldBootstrap=true; attempting tryBootstrapDoc for", id);
+
+            // Build the payload to seed.
+            const defaultInitialPayload = {
+              contentType: "markdown",
+              text: editor  // should be editor's state or uselexical composer thing
+            };
+
+            const payload = defaultInitialPayload;
+            const didBootstrap = tryBootstrapDoc(docInMap, payload);
+            console.log("RAILWAY-DEBUG: tryBootstrapDoc result for", id, "=>", didBootstrap);
+
+            if (didBootstrap) {
+              // notify the server ? <-- TO-DO: Maybe?
+              // socket.emit("doc-bootstrapped", id, userData.id);
+              console.log("RAILWAY-DEBUG: doc bootstrapped by this client for", id);
+            } else {
+              console.log("RAILWAY-DEBUG: did not win bootstrap race for", id);
+            }
+          } else {
+            console.log("RAILWAY-DEBUG: synced -> shouldBootstrap=false (probe decided not to bootstrap) for", id);
+          }
+        } catch (err) {
+          console.error("RAILWAY-DEBUG: error in synced handler bootstrap logic for", id, err);
+        }
+      }
+    });
+
+    // Instrument raw WebSocket if available
+    try {
+      const underlying = provider.ws || provider.websocket;
+      if (underlying) {
+        underlying.addEventListener?.("open", () => console.log("RAILWAY-DEBUG: underlying ws open", id));
+        underlying.addEventListener?.("close", (e) =>
+          console.log("RAILWAY-DEBUG: underlying ws close", id, e.code, e.reason, e.wasClean)
+        );
+        underlying.addEventListener?.("error", (e) => console.log("RAILWAY-DEBUG: underlying ws error", id, e));
+      }
+    } catch (err) {
+      console.error("RAILWAY-DEBUG: providerFactory: error instrumenting underlying ws", err);
+    }
+
+    // Connect after listeners attached
+    try {
+      provider.connect();
+      console.log("RAILWAY-DEBUG: provider.connect() called for", id);
+    } catch (err) {
+      console.error("RAILWAY-DEBUG: provider.connect() threw for", id, err);
+    }
+
+    return provider;
+  }, [socket, userData]);
+  // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
 
 
 
 
+  // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE SYNC ISSUE (EVERYTHING WORKS GOOD MAYBE 7/10 TIMES. TRY TO KNOCK OUT THE EDGE CASES):
+  /* Need to make it so that the first client that successfully seeds content to Yjs writes a cmde-meta.bootstrapped flag in the Y.Doc.
+  Once this is done, all the probes (useShouldBootstrapStable) first check this flag at synced and fallback to shouldBootstrap = false if set.
+  (Extra safety guard since relying on awareness checks don't account for all race conditions -- some stuff slips through). */
 
+  /* Set cmde-meta.bootstrapped if applicable. Returns true if this call won the race and set te flag,
+  false if another client has already beat it to the punch. */
+  function tryBootstrapDoc(doc, initialPayload = null) {
+    if (!doc) return false;
 
+    const meta = doc.getMap('cmde-meta');
+    if (meta.get('bootstrapped')) return false;
 
+    let didBootstrap = false;
+    doc.transact(() => {
+      // double-check inside transaction to win the race safely
+      if (meta.get('bootstrapped')) {
+        didBootstrap = false;
+        return;
+      }
 
+      // Write initial content into the doc's content map
+      // Use a map 'cmde-content' so other clients can read it if needed.
+      if (initialPayload !== null) {
+        const content = doc.getMap('cmde-content');
+        // only set if absent (avoid stomping)
+        if (!content.get('initial')) {
+          content.set('initial', initialPayload);
+        }
+      }
+
+      // set the meta flag (and timestamp)
+      meta.set('bootstrapped', true);
+      meta.set('bootstrappedAt', Date.now());
+      didBootstrap = true;
+    });
+
+    return didBootstrap;
+  }
+
+  // Manually set bootstrapped flag (for debugging maybe): 
+  function markDocBootstrapped(doc) {
+    if (!doc) return false;
+    const meta = doc.getMap('cmde-meta');
+    if (meta.get('bootstrapped')) return false;
+    doc.transact(() => {
+      if (!meta.get('bootstrapped')) {
+        meta.set('bootstrapped', true);
+        meta.set('bootstrappedAt', Date.now());
+      }
+    });
+    return true;
+  }
+  // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE SYNC ISSUE (EVERYTHING WORKS GOOD MAYBE 7/10 TIMES. TRY TO KNOCK OUT THE EDGE CASES).
 
 
 
