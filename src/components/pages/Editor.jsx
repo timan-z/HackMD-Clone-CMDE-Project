@@ -348,7 +348,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
 
     // Loading a pre-existing document state for this Editor Room from the PostgreSQL backend (or just checking to see if loading is necessary):
-    socket.on("load-existing", () => {
+    /*socket.on("load-existing", () => {
       if(hasLoadedRef.current) return;
       if(!loadContent.current) return;
 
@@ -363,7 +363,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
         hasLoadedRef.current = true;  // DEBUG: come back and check on this later (i know this is redundant but i spent a while fixing the loading doc thing and im terrified getting rid of this might do something bad).
       });
-    });
+    });*/
 
     // Stuff to be done if the user exits the Editor Room (to the Dashboard or just closes the tab or browser):
     const handleBeforeUnload = () => {
@@ -386,7 +386,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       socket.off("notification", handleNotif);
       socket.off("you-have-been-kicked");
       socket.off("active-users-list");
-      socket.off("load-existing");
+      //socket.off("load-existing");
       socket.off("notification", handleNotif);
 
       window.removeEventListener("beforeunload", handleBeforeUnload);
@@ -714,7 +714,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if (evt.status === "connected") {
         hasConnectedRef.current = true;
         if (hasSyncedRef.current) {
-          socket.emit("ready-for-load", id);
+          //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
         }
       }
@@ -725,56 +725,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if (isSynced) {
         hasSyncedRef.current = true;
         if (hasConnectedRef.current) {
-          socket.emit("ready-for-load", id);
+          //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
         }
-
-        // RAILWAY-DEBUG: META-FLAG BOOTSTRAP LOGIC
-        /*try {
-          const docInMap = yjsDocMap.get(id) || doc; // prefer map, fallback to local var
-          if (!docInMap) {
-            console.warn("RAILWAY-DEBUG: synced but no Y.Doc found in yjsDocMap for", id);
-            return;
-          }
-
-          // Quick check: does meta show the doc already bootstrapped?
-          const meta = docInMap.getMap?.("cmde-meta");
-          const alreadyBootstrapped = !!meta?.get?.("bootstrapped");
-          console.log("RAILWAY-DEBUG: meta.bootstrapped for", id, "=>", alreadyBootstrapped);
-
-          if (alreadyBootstrapped) {
-            // nothing to do — someone else seeded the doc
-            console.log("RAILWAY-DEBUG: synced -> doc already bootstrapped, skipping bootstrap for", id);
-            return;
-          }
-
-          // If our probe says *we* should bootstrap, try to win the race
-          if (shouldBootstrapRef.current) {
-            console.log("RAILWAY-DEBUG: synced -> shouldBootstrap=true; attempting tryBootstrapDoc for", id);
-
-            // Build the payload to seed.
-            const defaultInitialPayload = {
-              contentType: "markdown",
-              text: "# Welcome — edit to get started\n\nThis room has been bootstrapped by the first editor." // buffer.
-            };
-
-            const payload = defaultInitialPayload;
-            const didBootstrap = tryBootstrapDoc(docInMap, payload);
-            console.log("RAILWAY-DEBUG: tryBootstrapDoc result for", id, "=>", didBootstrap);
-
-            if (didBootstrap) {
-              // notify the server ? <-- TO-DO: Maybe?
-              // socket.emit("doc-bootstrapped", id, userData.id);
-              console.log("RAILWAY-DEBUG: doc bootstrapped by this client for", id);
-            } else {
-              console.log("RAILWAY-DEBUG: did not win bootstrap race for", id);
-            }
-          } else {
-            console.log("RAILWAY-DEBUG: synced -> shouldBootstrap=false (probe decided not to bootstrap) for", id);
-          }
-        } catch (err) {
-          console.error("RAILWAY-DEBUG: error in synced handler bootstrap logic for", id, err);
-        }*/
       }
     });
 
@@ -858,20 +811,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     return true;
   }*/
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE SYNC ISSUE (EVERYTHING WORKS GOOD MAYBE 7/10 TIMES. TRY TO KNOCK OUT THE EDGE CASES).
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
@@ -1040,26 +979,20 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  {/*{ready ? (*/}
+                  <CollaborationPlugin
+                    //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                    key={roomId}
+                    id={roomId}
+                    providerFactory={providerFactory}
+                    //shouldBootstrap={shouldBootstrap}
+                    shouldBootstrap={false}
+                    // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
+                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
+                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
+                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
+                    (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
+                  />
 
-                    <CollaborationPlugin
-                      //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
-                      key={roomId}
-                      id={roomId}
-                      providerFactory={providerFactory}
-                      //shouldBootstrap={shouldBootstrap}
-                      shouldBootstrap={false}
-                      // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
-                      /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
-                      "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                      you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
-                      (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                    />
-                  {/*    }  />
-                  }) : (
-                    <div style={{display:"none"}}/>
-                  )}*/}
-                  
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
