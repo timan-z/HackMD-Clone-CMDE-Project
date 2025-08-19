@@ -562,6 +562,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
+
+
+
+
+
+
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
   const providerFactory = useCallback((id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
@@ -628,10 +634,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
   function useShouldBootstrapStable(roomId, {
-    timeoutMs = 2000,     // overall timeout for the probe
+    timeoutMs = 4000,     // overall timeout for the probe
     pollInterval = 150,   // how often to poll awareness
-    stableChecks = 2,     // number of consecutive equal reads required
-    stabilityDelay = 200, // additional wait before returning ready
+    stableChecks = 3,     // number of consecutive equal reads required
+    stabilityDelay = 350, // additional wait before returning ready
   } = {}) {
     const decidedFor = useRef(null); // roomId we decided for
     const decidedVal = useRef(false); // boolean decision
@@ -702,8 +708,38 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       };
 
       // start polling once synced (server state available)
-      provider.once("synced", () => {
+      /*provider.once("synced", () => {
         if (!cancelled) check();
+      });*/
+      // start polling once synced (server state available), but also wait for status connected
+      provider.once("synced", () => {
+        if (cancelled) return;
+        try {
+          // Quick check: if doc already has bootstrapped flag, short-circuit
+          const meta = doc.getMap?.("cmde-meta");
+          const alreadyBootstrapped = meta?.get?.("bootstrapped");
+          if (alreadyBootstrapped) {
+            // clearly someone else seeded the doc -> do not bootstrap
+            decideAndCleanup(false);
+            return;
+          }
+        } catch (e) {
+          // ignore
+        }
+        // Wait for provider status 'connected' before reading awareness
+        if (provider.status === "connected") {
+          check();
+        } else {
+          const onStatus = (evt) => {
+            if (evt.status === "connected") {
+              provider.off?.("status", onStatus);
+              if (!cancelled) check();
+            }
+          };
+          provider.on?.("status", onStatus);
+          // safety: if 'status' never changes, fallback to check after short delay
+          setTimeout(() => { if (!cancelled) check(); }, 700);
+        }
       });
 
       // fallback: if synced never fires, start polling after short delay
@@ -726,6 +762,30 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const { ready, shouldBootstrap } = useShouldBootstrapStable(roomId);
   console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
