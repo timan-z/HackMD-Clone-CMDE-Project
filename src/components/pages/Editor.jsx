@@ -708,7 +708,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
 
-    const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false });
+    const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
     provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt);
@@ -759,7 +759,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
               text: "# Welcome — edit to get started\n\nThis room has been bootstrapped by the first editor." // buffer.
             };
 
-            const payload = defaultInitialPayload;
+            /*const payload = defaultInitialPayload;
             const didBootstrap = tryBootstrapDoc(docInMap, payload);
             console.log("RAILWAY-DEBUG: tryBootstrapDoc result for", id, "=>", didBootstrap);
 
@@ -769,7 +769,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
               console.log("RAILWAY-DEBUG: doc bootstrapped by this client for", id);
             } else {
               console.log("RAILWAY-DEBUG: did not win bootstrap race for", id);
-            }
+            }*/
           } else {
             console.log("RAILWAY-DEBUG: synced -> shouldBootstrap=false (probe decided not to bootstrap) for", id);
           }
@@ -1046,7 +1046,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       id={roomId}
                       providerFactory={providerFactory}
-                      shouldBootstrap={shouldBootstrap}
+                      //shouldBootstrap={shouldBootstrap}
+                      shouldBootstrap={false}
+                      // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
                       /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                       you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
