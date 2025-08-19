@@ -564,7 +564,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
-  function useShouldBootstrapStable(roomId, {
+  /*function useShouldBootstrapStable(roomId, {
     timeoutMs = 2000,     // overall timeout for the probe
     pollInterval = 150,   // how often to poll awareness
     stableChecks = 3,     // number of consecutive equal reads required
@@ -689,9 +689,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const shouldBootstrapRef = useRef(shouldBootstrap); // 8/19/2025-DEBUG: HUHHH???
   useEffect(() => {
     shouldBootstrapRef.current = shouldBootstrap;
-  }, [shouldBootstrap]);
-
-  console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
+  }, [shouldBootstrap]);*/
+  //console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
 
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
@@ -731,7 +730,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
 
         // RAILWAY-DEBUG: META-FLAG BOOTSTRAP LOGIC
-        try {
+        /*try {
           const docInMap = yjsDocMap.get(id) || doc; // prefer map, fallback to local var
           if (!docInMap) {
             console.warn("RAILWAY-DEBUG: synced but no Y.Doc found in yjsDocMap for", id);
@@ -759,7 +758,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
               text: "# Welcome — edit to get started\n\nThis room has been bootstrapped by the first editor." // buffer.
             };
 
-            /*const payload = defaultInitialPayload;
+            const payload = defaultInitialPayload;
             const didBootstrap = tryBootstrapDoc(docInMap, payload);
             console.log("RAILWAY-DEBUG: tryBootstrapDoc result for", id, "=>", didBootstrap);
 
@@ -769,13 +768,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
               console.log("RAILWAY-DEBUG: doc bootstrapped by this client for", id);
             } else {
               console.log("RAILWAY-DEBUG: did not win bootstrap race for", id);
-            }*/
+            }
           } else {
             console.log("RAILWAY-DEBUG: synced -> shouldBootstrap=false (probe decided not to bootstrap) for", id);
           }
         } catch (err) {
           console.error("RAILWAY-DEBUG: error in synced handler bootstrap logic for", id, err);
-        }
+        }*/
       }
     });
 
@@ -812,7 +811,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   /* Set cmde-meta.bootstrapped if applicable. Returns true if this call won the race and set te flag,
   false if another client has already beat it to the punch. */
-  function tryBootstrapDoc(doc, initialPayload = null) {
+  /*function tryBootstrapDoc(doc, initialPayload = null) {
     if (!doc) return false;
 
     const meta = doc.getMap('cmde-meta');
@@ -857,7 +856,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       }
     });
     return true;
-  }
+  }*/
   // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE SYNC ISSUE (EVERYTHING WORKS GOOD MAYBE 7/10 TIMES. TRY TO KNOCK OUT THE EDGE CASES).
 
 
@@ -1043,7 +1042,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
                   {ready ? (
                     <CollaborationPlugin
-                      key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                      //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                      key={roomId}
                       id={roomId}
                       providerFactory={providerFactory}
                       //shouldBootstrap={shouldBootstrap}
