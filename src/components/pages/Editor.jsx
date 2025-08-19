@@ -348,7 +348,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
 
     // Stuff to be done if the user exits the Editor Room (to the Dashboard or just closes the tab or browser):
-    const handleBeforeUnload = () => {
+    /*const handleBeforeUnload = () => {
       if(hasLoadedRef.current) {
         editor.update(() => {
           //const editorState = editor.getEditorState();          
@@ -362,7 +362,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         socket.emit("leave-room", roomId, userData.id);
       }
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);
+    window.addEventListener("beforeunload", handleBeforeUnload);*/
 
     return () => {
       socket.off("notification", handleNotif);
@@ -710,6 +710,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
         }
+      }
+    });
+
+    doc.on('update', (u, origin) => {
+      if (origin === undefined) {
+        console.log('Y-DEBUG: remote update bytes=', u.length, 'room=', id);
       }
     });
 
