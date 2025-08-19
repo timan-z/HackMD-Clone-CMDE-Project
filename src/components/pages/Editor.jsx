@@ -348,7 +348,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
 
     // Stuff to be done if the user exits the Editor Room (to the Dashboard or just closes the tab or browser):
-    /*const handleBeforeUnload = () => {
+    const handleBeforeUnload = () => {
       if(hasLoadedRef.current) {
         editor.update(() => {
           //const editorState = editor.getEditorState();          
@@ -362,7 +362,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         socket.emit("leave-room", roomId, userData.id);
       }
     };
-    window.addEventListener("beforeunload", handleBeforeUnload);*/
+    window.addEventListener("beforeunload", handleBeforeUnload);
 
     return () => {
       socket.off("notification", handleNotif);
@@ -371,8 +371,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       //socket.off("load-existing");
       socket.off("notification", handleNotif);
 
-      //window.removeEventListener("beforeunload", handleBeforeUnload);
-      //handleBeforeUnload(); // If user navigates away within SPA, still save.
+      window.removeEventListener("beforeunload", handleBeforeUnload);
+      handleBeforeUnload(); // If user navigates away within SPA, still save.
     };
   }, []);
 
@@ -680,17 +680,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
 
     // Reuse doc if it exists
-    /*let doc = yjsDocMap.get(id);
+    let doc = yjsDocMap.get(id);
     if (!doc) {
       doc = new Y.Doc();
       yjsDocMap.set(id, doc);
       console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
-    }*/
-    const doc = new Y.Doc();
-    console.log("RAILWAY-DEBUG: Brain is broken. new Y.Doc()!!!")
-
+    }
+    
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
     provider.on("status", (evt) => {
