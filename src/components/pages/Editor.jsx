@@ -567,8 +567,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   function useShouldBootstrapStable(roomId, {
     timeoutMs = 2000,     // overall timeout for the probe
     pollInterval = 150,   // how often to poll awareness
-    stableChecks = 2,     // number of consecutive equal reads required
-    stabilityDelay = 200, // additional wait before returning ready
+    stableChecks = 3,     // number of consecutive equal reads required
+    stabilityDelay = 350, // additional wait before returning ready
   } = {}) {
     const decidedFor = useRef(null); // roomId we decided for
     const decidedVal = useRef(false); // boolean decision
