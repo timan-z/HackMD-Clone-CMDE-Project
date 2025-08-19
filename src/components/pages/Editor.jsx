@@ -351,10 +351,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     const handleBeforeUnload = () => {
       if(hasLoadedRef.current) {
         editor.update(() => {
-          const editorState = editor.getEditorState();          
-          const jsonString = JSON.stringify(editorState); 
+          //const editorState = editor.getEditorState();          
+          //const jsonString = JSON.stringify(editorState); 
           // send copy of the latest Lexical editor document state:
-          socket.emit("send-latest-doc", roomId, jsonString, token);
+          //socket.emit("send-latest-doc", roomId, jsonString, token);
           socket.off("active-cursors");
           socket.off("update-cursors");
           hasJoinedRef.current = false;
