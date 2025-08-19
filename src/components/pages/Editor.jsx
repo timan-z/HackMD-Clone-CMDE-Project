@@ -1,4 +1,4 @@
-import { useEffect, useState, useRef, useCallback, useMemo } from 'react';
+import { useEffect, useState, useRef, useCallback } from 'react';
 import { useParams, useNavigate } from "react-router-dom"; 
 import {v4 as uuidv4} from 'uuid';
 // standard Lexical imports:
@@ -714,7 +714,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if (evt.status === "connected") {
         hasConnectedRef.current = true;
         if (hasSyncedRef.current) {
-          //socket.emit("ready-for-load", id);
+          socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
         }
       }
@@ -725,7 +725,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if (isSynced) {
         hasSyncedRef.current = true;
         if (hasConnectedRef.current) {
-          //socket.emit("ready-for-load", id);
+          socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
         }
 
@@ -864,25 +864,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-  // RAILWAY-DEBUG:[BELOW] - Trying to fix problem ughh
-  function useY(roomId) {
-    return useMemo(() => {
-      const doc = new Y.Doc();
-      const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true });
 
-      // diagnostic: prove remote updates arrive
-      doc.on("update", (u, origin) => {
-        if (origin === undefined) {
-          console.log("Y-DEBUG remote update", u.length, "bytes", "room=", roomId);
-        }
-      });
 
-      return { doc, provider };
-    }, [roomId]);
-  }
-  const {doc, provider} = useY(roomId);
-  const yText = doc.getText("lexical");
-  // RAILWAY-DEBUG:[ABOVE] - Trying to fix problem ughh
+
+
+
 
 
 
@@ -1054,22 +1040,26 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  <CollaborationPlugin
-                    //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
-                    //key={roomId}
-                    id={roomId}
-                    providerFactory={() => provider}
-                    //providerFactory={providerFactory}
-                    //shouldBootstrap={shouldBootstrap}
-                    shouldBootstrap={false}
-                    // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
-                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
-                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
-                    (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
+                  {/*{ready ? (*/}
 
-
+                    <CollaborationPlugin
+                      //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                      key={roomId}
+                      id={roomId}
+                      providerFactory={providerFactory}
+                      //shouldBootstrap={shouldBootstrap}
+                      shouldBootstrap={false}
+                      // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
+                      /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
+                      "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
+                      you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
+                      (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
+                    />
+                  {/*    }  />
+                  }) : (
+                    <div style={{display:"none"}}/>
+                  )}*/}
+                  
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
