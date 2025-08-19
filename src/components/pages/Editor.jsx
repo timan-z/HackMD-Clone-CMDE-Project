@@ -347,24 +347,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       setActiveUsersList(activeUsers);
     });
 
-    // Loading a pre-existing document state for this Editor Room from the PostgreSQL backend (or just checking to see if loading is necessary):
-    /*socket.on("load-existing", () => {
-      if(hasLoadedRef.current) return;
-      if(!loadContent.current) return;
-
-      editor.update(() => {
-        try {
-          editor.setEditorState(
-            editor.parseEditorState(loadContent.current)  // I'm just parsing a JSON string of the saved Lexical state (NOTE: For now, since I can't figure out the Yjs-Lexical sync).
-          );
-          hasLoadedRef.current = true;
-        } catch(err) {
-          console.error("ERROR: Failed to load pre-existing document state from the backend database. This may simply be because it was empty (if so, there is no problem) => ", err);
-        }
-        hasLoadedRef.current = true;  // DEBUG: come back and check on this later (i know this is redundant but i spent a while fixing the loading doc thing and im terrified getting rid of this might do something bad).
-      });
-    });*/
-
     // Stuff to be done if the user exits the Editor Room (to the Dashboard or just closes the tab or browser):
     const handleBeforeUnload = () => {
       if(hasLoadedRef.current) {
@@ -1082,7 +1064,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, setUser, saveRoomData, getRoomData }) {
   const hasJoinedRef = useRef(false); // guard against React 18 strict mode (preventing things from executing twice).
   const docRef = useRef(null);
-  const [fetchedDoc, setFetchedDoc] = useState(false);
+  //const [fetchedDoc, setFetchedDoc] = useState(false);
   //const [shouldBootstrap, setShouldBootstrap] = useState(false);
   //const [loadContent, setLoadContent] = useState(null);
   const loadContent = useRef(null);
@@ -1122,7 +1104,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   pre-existing document state for this Editor Room (if it exists). (NOTE: Original plan was to have Yjs-Lexical sync
   in a way that Yjs and <CollaborationPlugin> would take care of loading and saving document states, but I just couldn't
   get it to work for somereason -- that's also why all of this here is in the Editor() function instead of EditorContent). */
-  useEffect(() => {
+  /*useEffect(() => {
     // Guard against React 18 Strict Mode making this useEffect run twice:
     if(hasJoinedRef.current) return;
     if(loadContent.current) return;
@@ -1144,16 +1126,12 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
     };
     fetchAndInit();
 
-  }, [userData]);
+  }, [userData]);*/
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
       {/* Everything's pretty much just in EditorContent(...) */}
-
-      {fetchedDoc ? (
-        <EditorContent token={token} loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} loadContent={loadContent} />
-      ):(<div>LOADING...</div>)}
-
+      <EditorContent token={token} loadUser={loadUser} loadRoomUsers={loadRoomUsers} roomId={roomId} userData={userData} setUser={setUser} username={username} userId={userId} saveRoomData={saveRoomData} getRoomData={getRoomData} docRef={docRef} hasJoinedRef={hasJoinedRef} loadContent={loadContent} />
     </LexicalComposer>
   );
 }
