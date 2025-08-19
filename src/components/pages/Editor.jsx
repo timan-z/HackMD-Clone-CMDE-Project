@@ -283,7 +283,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   }, 100);
 
   // Function for manually saving the Text Editor document state to the backend server:
-  const saveDocState = () => {
+  /*const saveDocState = () => {
     let docData = null;
     if(!token) return;
 
@@ -295,7 +295,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     if(!docData) return;
     saveRoomData(roomId, docData, token);
-  };
+  };*/
 
   // useEffect Hook #0: The one I want to run on mount (for requesting and retrieving the list of current users tied to this Room):
   const callLoadRoomUsers = async(roomId) => {
@@ -943,7 +943,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
             </label>
 
             {/* 5. Button manually save the state of the Editor document to the backend server: */}
-            <button style={btnStyleEd} onClick={()=> saveDocState()}>SAVE</button>
+            {/*<button style={btnStyleEd} onClick={()=> saveDocState()}>SAVE</button>*/}
 
           </div>
           
@@ -1099,34 +1099,6 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
       }
     }
   }, []);
-
-  /* Editor() useEffect Hook #1: For sending Active User status to the Socket.IO server and also retrieving the
-  pre-existing document state for this Editor Room (if it exists). (NOTE: Original plan was to have Yjs-Lexical sync
-  in a way that Yjs and <CollaborationPlugin> would take care of loading and saving document states, but I just couldn't
-  get it to work for somereason -- that's also why all of this here is in the Editor() function instead of EditorContent). */
-  /*useEffect(() => {
-    // Guard against React 18 Strict Mode making this useEffect run twice:
-    if(hasJoinedRef.current) return;
-    if(loadContent.current) return;
-
-    hasJoinedRef.current = true;
-    setToken(localStorage.getItem("token"));
-
-    const fetchAndInit = async() => {
-      try {
-        const result = await getRoomData(roomId);
-
-        if(result.success && result.docData) {
-          loadContent.current = result.docData;
-        }
-      } catch(err) {
-        console.warn("No saved doc on the PostgreSQL backend. If this is a new Editor Room, there is no issue. Otherwise, server issue: ", err);
-      }
-      setFetchedDoc(true);
-    };
-    fetchAndInit();
-
-  }, [userData]);*/
 
   return (
     <LexicalComposer initialConfig={initialConfig}>
