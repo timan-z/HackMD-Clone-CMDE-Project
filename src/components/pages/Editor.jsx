@@ -633,7 +633,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
         // 8/20/2025-DEBUG: I am in pain.
         const rootFrag = doc.share.get("root");
-        const shouldInit = rootFrag instanceof Y.XmlFragment && rootFrag.length === 0;
+        let shouldInit = rootFrag instanceof Y.XmlFragment && rootFrag.length === 0;
         console.log(
           "REEEEEE: [collab] synced — fragment length:",
           rootFrag?.length,
