@@ -632,11 +632,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
 
         // 8/20/2025-DEBUG: I am in pain.
+        console.log("8/20/2025-DEBUG: Right beneath the stupid existing = doc.share.get('root'); statement...");
         const existing = doc.share.get('root');
+        console.log("8/20/2025-DEBUG: So rn, the value of existing => ", existing);
         if(!existing) {
+          console.log("8/20/2025-Debug: In the if(!existing){...} branch... [setShouldBootstrap(true)]");
           setShouldBootstrap(true);
         } else {
           // root alr exist in da Y.Doc
+          console.log("8/20/2025-Debug: In the else{...} branch... [setShouldBootstrap(false)]");
           setShouldBootstrap(false);
         }
         // 8/20/2025-DEBUG: So much pain.
