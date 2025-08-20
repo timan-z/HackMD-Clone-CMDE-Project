@@ -732,12 +732,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       // 8/19/2025-DEBUG: try-block below:
       const root = doc.share.get("root");
       console.log("Y-DEBUG: root entry in doc.share:", root, "type=", root?.constructor?.name);
-      /*try {
+      try {
         const root = doc.getXmlFragment("root");
-        console.log("Y-DEBUG: root fragment exists?", !!root, "childCount=", root.length);
+        //console.log("Y-DEBUG: root fragment exists?", !!root, "childCount=", root.length);
+        console.log("Y-DEBUG: root text snapshot", root.toString());
       } catch(e) {
-        console.error("Y-DEBUG: error accessing root fragment", e);
-      }*/
+        //console.error("Y-DEBUG: error accessing root fragment", e);
+      }
       if (doc.share.has("root")) {
         console.warn("Y-DEBUG: reusing doc that already has a root fragment!", id, doc.guid);
       }
