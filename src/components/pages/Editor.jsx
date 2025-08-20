@@ -801,7 +801,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
         });
       } catch(e) {
-        // ignore
+        console.log("console.log('Y-ASSERT constructors'...) failed because: ", e);
       }
 
       // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
@@ -809,13 +809,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       try {
         frag1 = doc.getXmlFragment('root');         // creates if missing
       } catch(e) {
-        // ignore
+        console.log("frag1 = doc.getXmlFragment('root'); failed because: ", e);
       }
       let frag2 = null;
       try {
         frag2 = doc.share.get('root');              // retrieves existing
       } catch(e) {
-        // ignore
+        console.log("frag2 = doc.share.get('root'); failed because: ", e);
       }
       console.log('Y-ASSERT root sameRef', frag1 === frag2);
 
@@ -828,7 +828,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           });
         }
       } catch(e) {
-        // ignore
+        console.log("The if (frag2 && frag2.constructor !== frag1.constructor) {...} failed!");
       }
       // HERE???
       // 8/19/2025-DEBUG: try-block above.
