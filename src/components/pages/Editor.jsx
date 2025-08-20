@@ -789,11 +789,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       // HERE???
       // 8/19/2025-DEBUG: try-block above.
 
-
-
-
-
-
       // 8/19/2025-DEBUG: More below.
       // After provider is constructed but before connect():
       provider.on('synced', (isSynced) => {
@@ -819,9 +814,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         console.log('Y-CHECK update origin', label, { bytes: update.byteLength });
       });
       // 8/19/2025-DEBUG: More above.
-
-
-
 
       if (isSynced) {
         hasSyncedRef.current = true;
