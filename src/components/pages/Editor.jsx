@@ -555,24 +555,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-
-  // 8/20/2025-DEBUG: Below.
-  useEffect(() => {
-    const { provider } = providerFactory(roomId, yjsDocMap);
-    const handleSynced = (isSynced) => {
-      console.log("RAILWAY-DEBUG: provider synced", roomId, isSynced);
-      if (isSynced) setSynced(true);
-    };
-    provider.on("synced", handleSynced);
-    return () => {
-      provider.off("synced", handleSynced);
-      provider.destroy();
-      setSynced(false);
-    };
-  }, [roomId, providerFactory]);
-  // 8/20/2025-DEBUG: Above.
-
-
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
   /*function useShouldBootstrapStable(roomId, {
     timeoutMs = 2000,     // overall timeout for the probe
@@ -706,7 +688,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
   const providerFactory = useCallback((id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
-
     // Reuse doc if it exists
     let doc = yjsDocMap.get(id);
     if (!doc) {
@@ -1089,7 +1070,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  { synced ? (<CollaborationPlugin
+                  <CollaborationPlugin
                       //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       key={roomId}
                       id={roomId}
@@ -1101,11 +1082,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                       you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                       (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                    />
-                  ) : (
-                    <div></div>
-                  )}
-
+                  />
+          
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
