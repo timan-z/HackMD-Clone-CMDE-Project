@@ -737,12 +737,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
       
       // 8/19/2025-DEBUG: try-block below:
-      const root = doc.share.get("root");
+      /*const root = doc.share.get("root");
       console.log("Y-DEBUG: root entry in doc.share:", root, "type=", root?.constructor?.name);
       try {
-        const root = doc.getXmlFragment("root");
+        //const root = doc.getXmlFragment("root");
         //console.log("Y-DEBUG: root fragment exists?", !!root, "childCount=", root.length);
-        console.log("Y-DEBUG: root text snapshot", root.toString());
+        //console.log("Y-DEBUG: root text snapshot", root.toString());
       } catch(e) {
         //console.error("Y-DEBUG: error accessing root fragment", e);
       }
@@ -785,13 +785,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
       } catch(e) {
         console.log("The if (frag2 && frag2.constructor !== frag1.constructor) {...} failed!");
-      }
+      }*/
       // HERE???
       // 8/19/2025-DEBUG: try-block above.
 
       // 8/19/2025-DEBUG: More below.
       // After provider is constructed but before connect():
-      provider.on('synced', (isSynced) => {
+      /*provider.on('synced', (isSynced) => {
         // Sanity: do we have one and only one 'root' and is it the fragment type?
         const entry = doc.share.get('root');
         const badType = entry && !(entry).insert; // rough check it's a Y.XmlFragment-like
@@ -801,7 +801,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           rootCtorName: entry && entry.constructor && entry.constructor.name,
           sameCtorAsFrag: entry && entry.constructor === doc.getXmlFragment('root').constructor,
         });
-      });
+      });*/
 
       // Catch premature access: who is reading a type not attached to doc?
       doc.on('updateV2', (update, origin) => {
