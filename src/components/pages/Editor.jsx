@@ -703,10 +703,14 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     // 8/19/2025-DEBUG: Below.
     // 1) Fingerprint the Yjs constructors we actually have:
-    console.log('Y-ASSERT constructors', {
-      DocCtor: Y.Doc,
-      XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
-    });
+    try {
+      console.log('Y-ASSERT constructors', {
+        DocCtor: Y.Doc,
+        XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
+      });
+    } catch(e) {
+      // ignore
+    }
 
     // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
     let frag1 = null;
@@ -715,7 +719,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     } catch(e) {
       // ignore
     }
-    const frag2 = doc.share.get('root');              // retrieves existing
+    let frag2 = null;
+    try {
+      frag2 = doc.share.get('root');              // retrieves existing
+    } catch(e) {
+      // ignore
+    }
     console.log('Y-ASSERT root sameRef', frag1 === frag2);
 
     // 3) Crash early if a second Yjs copy sneaks in (constructor mismatch):
