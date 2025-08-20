@@ -840,8 +840,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
                   />)}
 
-
-
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
