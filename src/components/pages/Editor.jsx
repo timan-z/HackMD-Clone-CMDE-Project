@@ -607,7 +607,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
 
-    provider.on("status", (evt) => {
+    /*provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
       if (evt.status === "connected") {
         hasConnectedRef.current = true;
@@ -627,7 +627,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           //socket.emit("join-room", id, userData.id, userData.username);
         }
       }
-    });
+    });*/
 
     return provider;
   }, []);
