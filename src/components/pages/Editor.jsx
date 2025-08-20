@@ -567,10 +567,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
-    
+  
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
-
 
     provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
@@ -578,7 +577,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         hasConnectedRef.current = true;
         if (hasSyncedRef.current) {
           //socket.emit("ready-for-load", id);
-          socket.emit("join-room", id, userData.id, userData.username);
+          //socket.emit("join-room", id, userData.id, userData.username);
         }
       }
     });
@@ -586,18 +585,17 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     provider.on("synced", (isSynced) => {
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
       if (isSynced) {
-        setSynced(true); // 8/20/2025-DEBUG: Hm.
-
         hasSyncedRef.current = true;
         if (hasConnectedRef.current) {
           //socket.emit("ready-for-load", id);
-          socket.emit("join-room", id, userData.id, userData.username);
+          //socket.emit("join-room", id, userData.id, userData.username);
         }
       }
     });
 
     return provider;
-  }, [socket, userData]);
+  }, []);
+  // }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
   return(
@@ -767,7 +765,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  {synced ? (<CollaborationPlugin
+                  <CollaborationPlugin
                       //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       key={roomId}
                       id={roomId}
@@ -779,7 +777,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                       you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                       (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />) : (<div>hey</div>)}
+                  />
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
