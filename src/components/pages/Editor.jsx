@@ -703,7 +703,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     // 8/19/2025-DEBUG: Below.
     // 1) Fingerprint the Yjs constructors we actually have:
-    try {
+    /*try {
       console.log('Y-ASSERT constructors', {
         DocCtor: Y.Doc,
         XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
@@ -737,7 +737,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       }
     } catch(e) {
       // ignore
-    }
+    }*/
     // 8/19/2025-DEBUG: Above.
 
 
