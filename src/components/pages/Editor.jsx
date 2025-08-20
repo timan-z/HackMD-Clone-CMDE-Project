@@ -152,7 +152,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showNotifs, setShowNotifs] = useState(false);
 
 
-  const [synced, setSynced] = useState(false); // 8/20/2025-DEBUG: im dumb.
+
+  const providerRef = useRef(null);
+  const [ready, setReady] = useState(false); // 8/20/2025-DEBUG: im dumb.
   /*const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
   // 8/19/2025-DEBUG: [BELOW].
   useEffect(() => {
@@ -555,6 +557,30 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
+
+
+
+  // 8/20/2025-DEBUG: Below.
+  useEffect(() => {
+    setReady(false);
+    const probeDoc = new Y.Doc();
+    const probe = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, probeDoc, { connect: true });
+    const onSynced = (s) => {
+      if (s) {
+        setReady(true);
+        probe.disconnect();
+        probeDoc.destroy();
+      }
+    };
+    probe.on('synced', onSynced);
+    return () => {
+      probe.off('synced', onSynced);
+      probe.disconnect();
+      probeDoc.destroy();
+    };
+  }, [roomId]);
+  // 8/20/2025-DEBUG: Above.
+
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
   const providerFactory = useCallback((id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
@@ -567,9 +593,19 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
-  
+    
+    // 8/20/2025-DEBUG: Losing my marbles. [Below].
+    const existing = doc.share.get('root');
+    if (existing && existing.constructor !== Y.XmlFragment) {
+      console.warn('[collab] clearing mismatched root');
+      doc.share.delete('root'); // only deletes if it's the wrong type
+    }
+    // 8/20/2025-DEBUG: Losing my marbles. [Above].
+    
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
+
+    providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
 
     provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
