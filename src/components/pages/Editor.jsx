@@ -709,7 +709,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
 
     // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
-    const frag1 = doc.getXmlFragment('root');         // creates if missing
+    let frag1 = null;
+    try {
+      frag1 = doc.getXmlFragment('root');         // creates if missing
+    } catch(e) {
+      // ignore
+    }
     const frag2 = doc.share.get('root');              // retrieves existing
     console.log('Y-ASSERT root sameRef', frag1 === frag2);
 
