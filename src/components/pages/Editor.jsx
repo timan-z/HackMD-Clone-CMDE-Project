@@ -632,22 +632,20 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
 
         // 8/20/2025-DEBUG: I am in pain.
-        console.log("8/20/2025-DEBUG: Right beneath the stupid existing = doc.share.get('root'); statement...");
-        const existing = doc.share.get('root');
-        console.log("8/20/2025-DEBUG: So rn, the value of existing => ", existing);
-        if(!existing) {
-          console.log("8/20/2025-Debug: In the if(!existing){...} branch... [setShouldBootstrap(true)]");
-          setShouldBootstrap(true);
-        } else {
-          // root alr exist in da Y.Doc
-          console.log("8/20/2025-Debug: In the else{...} branch... [setShouldBootstrap(false)]");
-          setShouldBootstrap(false);
-        }
+        const rootFrag = doc.share.get("root");
+        const shouldInit = rootFrag instanceof Y.XmlFragment && rootFrag.length === 0;
+        console.log(
+          "REEEEEE: [collab] synced — fragment length:",
+          rootFrag?.length,
+          "=> bootstrap?",
+          shouldInit
+        );
+        setShouldBootstrap(shouldInit);
         // 8/20/2025-DEBUG: So much pain.
       }
     });
     return provider;
-  }, []);
+  }, [socket, userData]);
   // }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
