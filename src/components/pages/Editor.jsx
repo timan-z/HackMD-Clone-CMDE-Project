@@ -562,7 +562,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     if(hasConnectedRef.current == true && hasSyncedRef.current == true) {
       console.log("8/20/2025-DEBUG: This new useEffect if-condition been entered!!!");
       socket.emit("join-room", id, userData.id, userData.username);
-      setSynced(true);
+      //setSynced(true);
     }
   }, [hasSyncedRef, hasConnectedRef]);
   // 8/20/2025-DEBUG: [Above].
@@ -790,7 +790,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  { synced ? (<CollaborationPlugin
+                  <CollaborationPlugin
                       //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       key={roomId}
                       id={roomId}
@@ -802,9 +802,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                       you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                       (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />) : (
-                    <div>Oh no.</div>
-                  )}
+                  />
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
