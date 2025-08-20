@@ -25,7 +25,9 @@ import { io } from "socket.io-client";
 import { throttle } from "lodash";
 
 
-import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
+//import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
+const [synced, setSynced] = useState(false);
+
 
 
 // DEBUG: BELOW.
@@ -553,7 +555,21 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-
+  // 8/20/2025-DEBUG: Below.
+  useEffect(() => {
+    const { provider } = providerFactory(roomId, yjsDocMap);
+    const handleSynced = (isSynced) => {
+      console.log("RAILWAY-DEBUG: provider synced", roomId, isSynced);
+      if (isSynced) setSynced(true);
+    };
+    provider.on("synced", handleSynced);
+    return () => {
+      provider.off("synced", handleSynced);
+      provider.destroy();
+      setSynced(false);
+    };
+  }, [roomId, providerFactory]);
+  // 8/20/2025-DEBUG: Above.
 
 
   // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
@@ -714,7 +730,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
 
     // 8/19/2025-DEBUG: debugging stuff below.
-    console.log("Y-DEBUG: doc.guid =", doc.guid, "for room", id);
+    /*console.log("Y-DEBUG: doc.guid =", doc.guid, "for room", id);
     console.log("Y-DEBUG: doc collections at start:", Array.from(doc.share.keys()));
     provider.on("synced", () => {
       console.log("Y-DEBUG: doc collections after sync:", Array.from(doc.share.keys()));
@@ -730,7 +746,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       const states = provider.awareness.getStates();
       console.log("Y-DEBUG: awareness states", Array.from(states.keys()));
     });
-    console.log("Y-DEBUG: state vector at start", encodeStateVector(doc));
+    console.log("Y-DEBUG: state vector at start", encodeStateVector(doc));*/
     // 8/19/2025-DEBUG: debugging stuff above.
 
     provider.on("synced", (isSynced) => {
@@ -740,9 +756,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       /*const root = doc.share.get("root");
       console.log("Y-DEBUG: root entry in doc.share:", root, "type=", root?.constructor?.name);
       try {
-        //const root = doc.getXmlFragment("root");
+        const root = doc.getXmlFragment("root");
         //console.log("Y-DEBUG: root fragment exists?", !!root, "childCount=", root.length);
-        //console.log("Y-DEBUG: root text snapshot", root.toString());
+        console.log("Y-DEBUG: root text snapshot", root.toString());
       } catch(e) {
         //console.error("Y-DEBUG: error accessing root fragment", e);
       }
@@ -801,7 +817,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           rootCtorName: entry && entry.constructor && entry.constructor.name,
           sameCtorAsFrag: entry && entry.constructor === doc.getXmlFragment('root').constructor,
         });
-      });*/
+      });
 
       // Catch premature access: who is reading a type not attached to doc?
       doc.on('updateV2', (update, origin) => {
@@ -812,7 +828,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           origin === undefined ? 'remote' : 'unknown';
 
         console.log('Y-CHECK update origin', label, { bytes: update.byteLength });
-      });
+      });*/
       // 8/19/2025-DEBUG: More above.
 
       if (isSynced) {
@@ -825,7 +841,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
 
     // Instrument raw WebSocket if available
-    try {
+    /*try {
       const underlying = provider.ws || provider.websocket;
       if (underlying) {
         underlying.addEventListener?.("open", () => console.log("RAILWAY-DEBUG: underlying ws open", id));
@@ -836,15 +852,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       }
     } catch (err) {
       console.error("RAILWAY-DEBUG: providerFactory: error instrumenting underlying ws", err);
-    }
+    }*/
 
     // Connect after listeners attached
-    try {
+    /*try {
       provider.connect();
       console.log("RAILWAY-DEBUG: provider.connect() called for", id);
     } catch (err) {
       console.error("RAILWAY-DEBUG: provider.connect() threw for", id, err);
-    }
+    }*/
 
     return provider;
   }, [socket, userData]);
@@ -1072,19 +1088,22 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  <CollaborationPlugin
-                    //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
-                    key={roomId}
-                    id={roomId}
-                    providerFactory={providerFactory}
-                    //shouldBootstrap={shouldBootstrap}
-                    shouldBootstrap={false}
-                    // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
-                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
-                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
-                    (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
+                  { synced ? (<CollaborationPlugin
+                      //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                      key={roomId}
+                      id={roomId}
+                      providerFactory={providerFactory}
+                      //shouldBootstrap={shouldBootstrap}
+                      shouldBootstrap={false}
+                      // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
+                      /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
+                      "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
+                      you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
+                      (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
+                    />
+                  ) : (
+                    <div></div>
+                  )}
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
