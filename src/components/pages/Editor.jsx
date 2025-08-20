@@ -700,6 +700,30 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
     
+
+    // 8/19/2025-DEBUG: Below.
+    // 1) Fingerprint the Yjs constructors we actually have:
+    console.log('Y-ASSERT constructors', {
+      DocCtor: Y.Doc,
+      XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
+    });
+
+    // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
+    const frag1 = doc.getXmlFragment('root');         // creates if missing
+    const frag2 = doc.share.get('root');              // retrieves existing
+    console.log('Y-ASSERT root sameRef', frag1 === frag2);
+
+    // 3) Crash early if a second Yjs copy sneaks in (constructor mismatch):
+    if (frag2 && frag2.constructor !== frag1.constructor) {
+      console.error('Y-FAIL: multiple Yjs constructors detected', {
+        got: frag2.constructor,
+        expected: frag1.constructor,
+      });
+    }
+    // 8/19/2025-DEBUG: Above.
+
+
+    
     //setKeyVal(`${roomId}:${doc.guid}`); // 8/19/2025-DEBUG: Yeah.
 
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
