@@ -795,20 +795,40 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       }
       // HERE??????
       // 1) Fingerprint the Yjs constructors we actually have:
-      console.log('Y-ASSERT constructors', {
-        DocCtor: Y.Doc,
-        XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
-      });
-      // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
-      const frag1 = doc.getXmlFragment('root');         // creates if missing
-      const frag2 = doc.share.get('root');              // retrieves existing
-      console.log('Y-ASSERT root sameRef', frag1 === frag2);
-      // 3) Crash early if a second Yjs copy sneaks in (constructor mismatch):
-      if (frag2 && frag2.constructor !== frag1.constructor) {
-        console.error('Y-FAIL: multiple Yjs constructors detected', {
-          got: frag2.constructor,
-          expected: frag1.constructor,
+      try {
+        console.log('Y-ASSERT constructors', {
+          DocCtor: Y.Doc,
+          XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
         });
+      } catch(e) {
+        // ignore
+      }
+
+      // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
+      let frag1 = null;
+      try {
+        frag1 = doc.getXmlFragment('root');         // creates if missing
+      } catch(e) {
+        // ignore
+      }
+      let frag2 = null;
+      try {
+        frag2 = doc.share.get('root');              // retrieves existing
+      } catch(e) {
+        // ignore
+      }
+      console.log('Y-ASSERT root sameRef', frag1 === frag2);
+
+      // 3) Crash early if a second Yjs copy sneaks in (constructor mismatch):
+      try {
+        if (frag2 && frag2.constructor !== frag1.constructor) {
+          console.error('Y-FAIL: multiple Yjs constructors detected', {
+            got: frag2.constructor,
+            expected: frag1.constructor,
+          });
+        }
+      } catch(e) {
+        // ignore
       }
       // HERE???
       // 8/19/2025-DEBUG: try-block above.
