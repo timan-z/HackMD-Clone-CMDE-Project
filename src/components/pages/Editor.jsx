@@ -151,6 +151,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showNotifs, setShowNotifs] = useState(false);
 
   const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
+  // 8/19/2025-DEBUG: [BELOW].
+  useEffect(() => {
+    console.log("RAILWAY-DEBUG: The value of keyVal => ", keyVal); // 8/19/2025-DEBUG: Yeah.
+  }, [keyVal]);
+  // 8/19/2025-DEBUG: [ABOVE].
+
 
 
 
@@ -698,7 +704,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
     
     setKeyVal(`${roomId}:${doc.guid}`); // 8/19/2025-DEBUG: Yeah.
-    console.log("RAILWAY-DEBUG: The value of keyVal => ", keyVal); // 8/19/2025-DEBUG: Yeah.
 
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
