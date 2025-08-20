@@ -24,6 +24,10 @@ import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
 import { io } from "socket.io-client";
 import { throttle } from "lodash";
 
+
+import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
+
+
 // DEBUG: BELOW.
 let socket_base = import.meta.env.VITE_SOCKET_BASE;
 if(socket_base.endsWith('/')) {
@@ -692,7 +696,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
     provider.on("status", (evt) => {
-      console.log("RAILWAY-DEBUG: provider status", id, evt);
+      console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
       if (evt.status === "connected") {
         hasConnectedRef.current = true;
         if (hasSyncedRef.current) {
@@ -702,20 +706,44 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       }
     });
 
+    // 8/19/2025-DEBUG: debugging stuff below.
+    console.log("Y-DEBUG: doc.guid =", doc.guid, "for room", id);
+    console.log("Y-DEBUG: doc collections at start:", Array.from(doc.share.keys()));
+    provider.on("synced", () => {
+      console.log("Y-DEBUG: doc collections after sync:", Array.from(doc.share.keys()));
+      console.log("Y-DEBUG: state vector after sync", encodeStateVector(doc));
+    });
+    doc.on('update', (u, origin) => {
+      console.log("Y-DEBUG: update received", { bytes: u.length, origin });
+      if (origin === undefined) {
+        console.log('Y-DEBUG: remote update bytes=', u.length, 'room=', id);
+      }
+    });
+    provider.awareness.on("change", () => {
+      const states = provider.awareness.getStates();
+      console.log("Y-DEBUG: awareness states", Array.from(states.keys()));
+    });
+    console.log("Y-DEBUG: state vector at start", encodeStateVector(doc));
+    // 8/19/2025-DEBUG: debugging stuff above.
+
     provider.on("synced", (isSynced) => {
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
+      
+      // 8/19/2025-DEBUG: try-block below:
+      try {
+        const root = doc.getXmlFragment("root");
+        console.log("Y-DEBUG: root fragment exists?", !!root, "childCount=", root.length);
+      } catch(e) {
+        console.error("Y-DEBUG: error accessing root fragment", e);
+      }
+      // 8/19/2025-DEBUG: try-block above.
+
       if (isSynced) {
         hasSyncedRef.current = true;
         if (hasConnectedRef.current) {
           //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
         }
-      }
-    });
-
-    doc.on('update', (u, origin) => {
-      if (origin === undefined) {
-        console.log('Y-DEBUG: remote update bytes=', u.length, 'room=', id);
       }
     });
 
