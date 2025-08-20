@@ -640,6 +640,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           "=> bootstrap?",
           shouldInit
         );
+        if(rootFrag?.length == 0) {
+          shouldInit = true;
+        }
         setShouldBootstrap(shouldInit);
         // 8/20/2025-DEBUG: So much pain.
       }
