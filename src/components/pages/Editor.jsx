@@ -586,6 +586,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     provider.on("synced", (isSynced) => {
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
       if (isSynced) {
+        setSynced(true); // 8/20/2025-DEBUG: Hm.
+
         hasSyncedRef.current = true;
         if (hasConnectedRef.current) {
           //socket.emit("ready-for-load", id);
@@ -597,18 +599,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     return provider;
   }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
-
-
-
-
-
-
-
-
-
-
-
-
 
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
