@@ -555,19 +555,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-
-  // 8/20/2025-DEBUG: [Below].
-  useEffect(() => {
-    console.log("8/20/2025-DEBUG: This new useEffect I added has been entered...");
-    if(hasConnectedRef.current == true && hasSyncedRef.current == true) {
-      console.log("8/20/2025-DEBUG: This new useEffect if-condition been entered!!!");
-      socket.emit("join-room", id, userData.id, userData.username);
-      //setSynced(true);
-    }
-  }, [hasSyncedRef, hasConnectedRef]);
-  // 8/20/2025-DEBUG: [Above].
-
-
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
   const providerFactory = useCallback((id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
@@ -589,10 +576,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
       if (evt.status === "connected") {
         hasConnectedRef.current = true;
-        /*if (hasSyncedRef.current) {
+        if (hasSyncedRef.current) {
           //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
-        }*/
+        }
       }
     });
 
@@ -600,10 +587,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
       if (isSynced) {
         hasSyncedRef.current = true;
-        /*if (hasConnectedRef.current) {
+        if (hasConnectedRef.current) {
           //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
-        }*/
+        }
       }
     });
 
