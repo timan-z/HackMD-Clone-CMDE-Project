@@ -645,7 +645,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
         console.log("DEBUG: Value of shouldInit after the thing => ", shouldInit);
         setShouldBootstrap(shouldInit);
+        setReady(true);
         // 8/20/2025-DEBUG: So much pain.
+
+
+
       }
     });
     return provider;
@@ -820,7 +824,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  <CollaborationPlugin
+                  {ready ? (<CollaborationPlugin
                       //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       key={roomId}
                       id={roomId}
@@ -832,7 +836,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                       you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                       (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
+                  />) : (<div>brrrr</div>) }
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
