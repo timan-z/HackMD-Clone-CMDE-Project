@@ -553,138 +553,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
   }
 
-
-
-  // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE:
-  /*function useShouldBootstrapStable(roomId, {
-    timeoutMs = 2000,     // overall timeout for the probe
-    pollInterval = 150,   // how often to poll awareness
-    stableChecks = 3,     // number of consecutive equal reads required
-    stabilityDelay = 350, // additional wait before returning ready
-  } = {}) {
-    const decidedFor = useRef(null); // roomId we decided for
-    const decidedVal = useRef(false); // boolean decision
-    const [ready, setReady] = useState(false);
-
-    useEffect(() => {
-      if (!roomId) return; // guard
-
-      // If we've already decided for this roomId, become ready immediately
-      if (decidedFor.current === roomId) {
-        setReady(true);
-        return;
-      }
-
-      let cancelled = false;
-      const doc = new Y.Doc();
-      const provider = new WebsocketProvider(
-        import.meta.env.VITE_YJS_WS_URL,
-        roomId,
-        doc,
-        { connect: true }
-      );
-
-      let lastVal = null;
-      let stableCount = 0;
-      const start = Date.now();
-
-      const decideAndCleanup = (isFirst) => {
-        decidedFor.current = roomId;
-        decidedVal.current = isFirst;
-
-        try { provider.disconnect(); provider.destroy(); } catch (e) {}
-        try { doc.destroy(); } catch (e) {}
-
-        // small delay to let stray broadcasts settle
-        setTimeout(() => {
-          if (!cancelled) setReady(true);
-        }, stabilityDelay);
-      };
-
-      const check = () => {
-        if (cancelled) return;
-        try {
-          const curr = provider.awareness?.getStates?.().size ?? 0;
-          if (lastVal === curr) {
-            stableCount++;
-          } else {
-            stableCount = 1;
-            lastVal = curr;
-          }
-
-          if (stableCount >= stableChecks) {
-            const isFirstPeer = curr <= 1;
-            decideAndCleanup(isFirstPeer);
-            return;
-          }
-        } catch (e) {
-          // ignore transient errors
-        }
-
-        if (Date.now() - start >= timeoutMs) {
-          const curr = provider.awareness?.getStates?.().size ?? 0;
-          decideAndCleanup(curr <= 1);
-          return;
-        }
-
-        setTimeout(check, pollInterval);
-      };
-
-      // start polling once synced (server state available), but also wait for status connected
-      provider.once("synced", () => {
-        if (cancelled) return;
-        try {
-          // Quick check: if doc already has bootstrapped flag, short-circuit
-          const meta = doc.getMap?.("cmde-meta");
-          const alreadyBootstrapped = meta?.get?.("bootstrapped");
-          if (alreadyBootstrapped) {
-            // clearly someone else seeded the doc -> do not bootstrap
-            decideAndCleanup(false);
-            return;
-          }
-        } catch (e) {
-          // ignore
-        }
-        // Wait for provider status 'connected' before reading awareness
-        if (provider.status === "connected") {
-          check();
-        } else {
-          const onStatus = (evt) => {
-            if (evt.status === "connected") {
-              provider.off?.("status", onStatus);
-              if (!cancelled) check();
-            }
-          };
-          provider.on?.("status", onStatus);
-          // safety: if 'status' never changes, fallback to check after short delay
-          setTimeout(() => { if (!cancelled) check(); }, 700);
-        }
-      });
-
-      // fallback: if synced never fires, start polling after short delay
-      const fallback = setTimeout(() => {
-        if (!cancelled) check();
-      }, 600);
-
-      return () => {
-        cancelled = true;
-        clearTimeout(fallback);
-        try { provider.disconnect(); provider.destroy(); } catch (e) {}
-        try { doc.destroy(); } catch (e) {}
-      };
-    }, [roomId, timeoutMs, pollInterval, stableChecks, stabilityDelay]);
-
-    // shouldBootstrap is on a ref, read after ready true
-    return { ready, shouldBootstrap: decidedVal.current };
-  }
-  const { ready, shouldBootstrap } = useShouldBootstrapStable(roomId);
-  const shouldBootstrapRef = useRef(shouldBootstrap); // 8/19/2025-DEBUG: HUHHH???
-  useEffect(() => {
-    shouldBootstrapRef.current = shouldBootstrap;
-  }, [shouldBootstrap]);*/
-  //console.log("RAILWAY-DEBUG: The value of shouldBootstrap => ", shouldBootstrap, "| the value of ready => ", ready);
-  // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE FIRST JOIN VS SYNC EDGE CASE.
-
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
   const providerFactory = useCallback((id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
@@ -711,108 +579,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       }
     });
 
-    // 8/19/2025-DEBUG: debugging stuff below.
-    /*console.log("Y-DEBUG: doc.guid =", doc.guid, "for room", id);
-    console.log("Y-DEBUG: doc collections at start:", Array.from(doc.share.keys()));
-    provider.on("synced", () => {
-      console.log("Y-DEBUG: doc collections after sync:", Array.from(doc.share.keys()));
-      console.log("Y-DEBUG: state vector after sync", encodeStateVector(doc));
-    });
-    doc.on('update', (u, origin) => {
-      console.log("Y-DEBUG: update received", { bytes: u.length, origin });
-      if (origin === undefined) {
-        console.log('Y-DEBUG: remote update bytes=', u.length, 'room=', id);
-      }
-    });
-    provider.awareness.on("change", () => {
-      const states = provider.awareness.getStates();
-      console.log("Y-DEBUG: awareness states", Array.from(states.keys()));
-    });
-    console.log("Y-DEBUG: state vector at start", encodeStateVector(doc));*/
-    // 8/19/2025-DEBUG: debugging stuff above.
-
     provider.on("synced", (isSynced) => {
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
-      
-      // 8/19/2025-DEBUG: try-block below:
-      /*const root = doc.share.get("root");
-      console.log("Y-DEBUG: root entry in doc.share:", root, "type=", root?.constructor?.name);
-      try {
-        const root = doc.getXmlFragment("root");
-        //console.log("Y-DEBUG: root fragment exists?", !!root, "childCount=", root.length);
-        console.log("Y-DEBUG: root text snapshot", root.toString());
-      } catch(e) {
-        //console.error("Y-DEBUG: error accessing root fragment", e);
-      }
-      if (doc.share.has("root")) {
-        console.warn("Y-DEBUG: reusing doc that already has a root fragment!", id, doc.guid);
-      }
-      // HERE??????
-      // 1) Fingerprint the Yjs constructors we actually have:
-      try {
-        console.log('Y-ASSERT constructors', {
-          DocCtor: Y.Doc,
-          XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
-        });
-      } catch(e) {
-        console.log("console.log('Y-ASSERT constructors'...) failed because: ", e);
-      }
-
-      // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
-      let frag1 = null;
-      try {
-        frag1 = doc.getXmlFragment('root');         // creates if missing
-      } catch(e) {
-        console.log("frag1 = doc.getXmlFragment('root'); failed because: ", e);
-      }
-      let frag2 = null;
-      try {
-        frag2 = doc.share.get('root');              // retrieves existing
-      } catch(e) {
-        console.log("frag2 = doc.share.get('root'); failed because: ", e);
-      }
-      console.log('Y-ASSERT root sameRef', frag1 === frag2);
-
-      // 3) Crash early if a second Yjs copy sneaks in (constructor mismatch):
-      try {
-        if (frag2 && frag2.constructor !== frag1.constructor) {
-          console.error('Y-FAIL: multiple Yjs constructors detected', {
-            got: frag2.constructor,
-            expected: frag1.constructor,
-          });
-        }
-      } catch(e) {
-        console.log("The if (frag2 && frag2.constructor !== frag1.constructor) {...} failed!");
-      }*/
-      // HERE???
-      // 8/19/2025-DEBUG: try-block above.
-
-      // 8/19/2025-DEBUG: More below.
-      // After provider is constructed but before connect():
-      /*provider.on('synced', (isSynced) => {
-        // Sanity: do we have one and only one 'root' and is it the fragment type?
-        const entry = doc.share.get('root');
-        const badType = entry && !(entry).insert; // rough check it's a Y.XmlFragment-like
-        console.log('Y-CHECK synced', {
-          isSynced,
-          hasRoot: !!entry,
-          rootCtorName: entry && entry.constructor && entry.constructor.name,
-          sameCtorAsFrag: entry && entry.constructor === doc.getXmlFragment('root').constructor,
-        });
-      });
-
-      // Catch premature access: who is reading a type not attached to doc?
-      doc.on('updateV2', (update, origin) => {
-        // When a bad tab fails, is the origin the y-websocket provider or the binding?
-        const label =
-          origin && (origin).serverUrl ? 'provider' :
-          origin && (origin).collabNodeMap ? 'lexical-binding' :
-          origin === undefined ? 'remote' : 'unknown';
-
-        console.log('Y-CHECK update origin', label, { bytes: update.byteLength });
-      });*/
-      // 8/19/2025-DEBUG: More above.
-
       if (isSynced) {
         hasSyncedRef.current = true;
         if (hasConnectedRef.current) {
@@ -821,28 +589,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
       }
     });
-
-    // Instrument raw WebSocket if available
-    /*try {
-      const underlying = provider.ws || provider.websocket;
-      if (underlying) {
-        underlying.addEventListener?.("open", () => console.log("RAILWAY-DEBUG: underlying ws open", id));
-        underlying.addEventListener?.("close", (e) =>
-          console.log("RAILWAY-DEBUG: underlying ws close", id, e.code, e.reason, e.wasClean)
-        );
-        underlying.addEventListener?.("error", (e) => console.log("RAILWAY-DEBUG: underlying ws error", id, e));
-      }
-    } catch (err) {
-      console.error("RAILWAY-DEBUG: providerFactory: error instrumenting underlying ws", err);
-    }*/
-
-    // Connect after listeners attached
-    /*try {
-      provider.connect();
-      console.log("RAILWAY-DEBUG: provider.connect() called for", id);
-    } catch (err) {
-      console.error("RAILWAY-DEBUG: provider.connect() threw for", id, err);
-    }*/
 
     return provider;
   }, [socket, userData]);
@@ -1070,7 +816,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  <CollaborationPlugin
+                  { hasConnectedRef.current && hasSyncedRef.current ? (<CollaborationPlugin
                       //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       key={roomId}
                       id={roomId}
@@ -1082,8 +828,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                       you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                       (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
-          
+                  />) : (
+                    <div></div>
+                  )}
+
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
