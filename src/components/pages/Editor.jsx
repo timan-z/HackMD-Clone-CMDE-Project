@@ -26,7 +26,6 @@ import { throttle } from "lodash";
 
 
 //import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
-const [synced, setSynced] = useState(false);
 
 
 
@@ -152,6 +151,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
 
+
+  const [synced, setSynced] = useState(false); // 8/20/2025-DEBUG: im dumb.
   /*const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
   // 8/19/2025-DEBUG: [BELOW].
   useEffect(() => {
