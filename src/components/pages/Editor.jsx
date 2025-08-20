@@ -738,6 +738,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       } catch(e) {
         console.error("Y-DEBUG: error accessing root fragment", e);
       }*/
+      if (doc.share.has("root")) {
+        console.warn("Y-DEBUG: reusing doc that already has a root fragment!", id, doc.guid);
+      }
       // 8/19/2025-DEBUG: try-block above.
 
       if (isSynced) {
