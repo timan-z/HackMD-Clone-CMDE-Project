@@ -9,6 +9,13 @@ export default defineConfig({
   resolve: {
     alias: {
       "rust-markdown": path.resolve(__dirname, "./rust-markdown/pkg/rust_markdown.js")
-    }
+    },
+    dedupe: ['yjs', 'y-protocols', 'lib0', '@lexical/yjs'],
   },
 });
+
+/*export default defineConfig({
+  resolve: {
+    dedupe: ['yjs', 'y-protocols', 'lib0', '@lexical/yjs'],
+  },
+});*/
