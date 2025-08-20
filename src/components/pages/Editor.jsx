@@ -153,8 +153,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-  const providerRef = useRef(null);
+  const providerRef = useRef(null); // 8/20/2025-DEBUG: im dumb.
   const [ready, setReady] = useState(false); // 8/20/2025-DEBUG: im dumb.
+
+  const [shouldBootstrap, setShouldBootstrap] = useState(false); // 8/20/2025-DEBUG: Help me.
+
+
   /*const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
   // 8/19/2025-DEBUG: [BELOW].
   useEffect(() => {
@@ -626,6 +630,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           //socket.emit("ready-for-load", id);
           //socket.emit("join-room", id, userData.id, userData.username);
         }
+
+        // 8/20/2025-DEBUG: I am in pain.
+        const existing = doc.share.get('root');
+        if(!existing) {
+          setShouldBootstrap(true);
+        } else {
+          // root alr exist in da Y.Doc
+          setShouldBootstrap(false);
+        }
+        // 8/20/2025-DEBUG: So much pain.
       }
     });
     return provider;
@@ -805,8 +819,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       key={roomId}
                       id={roomId}
                       providerFactory={providerFactory}
-                      //shouldBootstrap={shouldBootstrap}
-                      shouldBootstrap={false}
+                      shouldBootstrap={shouldBootstrap}
+                      //shouldBootstrap={false}
                       // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
                       /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
