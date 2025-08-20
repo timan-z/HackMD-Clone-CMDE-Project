@@ -156,7 +156,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const providerRef = useRef(null); // 8/20/2025-DEBUG: im dumb.
   const [ready, setReady] = useState(false); // 8/20/2025-DEBUG: im dumb.
 
-  const [shouldBootstrap, setShouldBootstrap] = useState(false); // 8/20/2025-DEBUG: Help me.
+  const [shouldBootstrap, setShouldBootstrap] = useState(null); // 8/20/2025-DEBUG: Help me.
 
 
   /*const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
@@ -642,6 +642,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         );
         if(rootFrag?.length == 0) {
           shouldInit = true;
+        } else {
+          shouldInit = false;
         }
         console.log("DEBUG: Value of shouldInit after the thing => ", shouldInit);
         setShouldBootstrap(shouldInit);
@@ -824,7 +826,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  {ready ? (<CollaborationPlugin
+                  {shouldBootstrap !== null ? (<CollaborationPlugin
                       //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       key={roomId}
                       id={roomId}
