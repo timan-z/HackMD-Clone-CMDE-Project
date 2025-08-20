@@ -1003,7 +1003,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
                   <CollaborationPlugin
                     //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
-                    key={roomId}
+                    //key={roomId}
+                    key={`${roomId}:${doc.guid}`}
                     id={roomId}
                     providerFactory={providerFactory}
                     //shouldBootstrap={shouldBootstrap}
