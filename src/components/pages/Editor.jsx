@@ -728,11 +728,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     console.log('Y-ASSERT root sameRef', frag1 === frag2);
 
     // 3) Crash early if a second Yjs copy sneaks in (constructor mismatch):
-    if (frag2 && frag2.constructor !== frag1.constructor) {
-      console.error('Y-FAIL: multiple Yjs constructors detected', {
-        got: frag2.constructor,
-        expected: frag1.constructor,
-      });
+    try {
+      if (frag2 && frag2.constructor !== frag1.constructor) {
+        console.error('Y-FAIL: multiple Yjs constructors detected', {
+          got: frag2.constructor,
+          expected: frag1.constructor,
+        });
+      }
+    } catch(e) {
+      // ignore
     }
     // 8/19/2025-DEBUG: Above.
 
