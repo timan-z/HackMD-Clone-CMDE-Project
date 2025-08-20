@@ -553,6 +553,21 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
   }
 
+
+
+
+  // 8/20/2025-DEBUG: [Below].
+  useEffect(() => {
+    console.log("8/20/2025-DEBUG: This new useEffect I added has been entered...");
+    if(hasConnectedRef.current == true && hasSyncedRef.current == true) {
+      console.log("8/20/2025-DEBUG: This new useEffect if-condition been entered!!!");
+      socket.emit("join-room", id, userData.id, userData.username);
+      setSynced(true);
+    }
+  }, [hasSyncedRef, hasConnectedRef]);
+  // 8/20/2025-DEBUG: [Above].
+
+
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
   const providerFactory = useCallback((id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
@@ -566,18 +581,18 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
     
-
-    
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
+
+
     provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
       if (evt.status === "connected") {
         hasConnectedRef.current = true;
-        if (hasSyncedRef.current) {
+        /*if (hasSyncedRef.current) {
           //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
-        }
+        }*/
       }
     });
 
@@ -585,10 +600,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
       if (isSynced) {
         hasSyncedRef.current = true;
-        if (hasConnectedRef.current) {
+        /*if (hasConnectedRef.current) {
           //socket.emit("ready-for-load", id);
           socket.emit("join-room", id, userData.id, userData.username);
-        }
+        }*/
       }
     });
 
@@ -596,60 +611,17 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
-  // RAILWAY-DEBUG:[BELOW] TRYING TO FIX THE SYNC ISSUE (EVERYTHING WORKS GOOD MAYBE 7/10 TIMES. TRY TO KNOCK OUT THE EDGE CASES):
-  /* Need to make it so that the first client that successfully seeds content to Yjs writes a cmde-meta.bootstrapped flag in the Y.Doc.
-  Once this is done, all the probes (useShouldBootstrapStable) first check this flag at synced and fallback to shouldBootstrap = false if set.
-  (Extra safety guard since relying on awareness checks don't account for all race conditions -- some stuff slips through). */
 
-  /* Set cmde-meta.bootstrapped if applicable. Returns true if this call won the race and set te flag,
-  false if another client has already beat it to the punch. */
-  /*function tryBootstrapDoc(doc, initialPayload = null) {
-    if (!doc) return false;
 
-    const meta = doc.getMap('cmde-meta');
-    if (meta.get('bootstrapped')) return false;
 
-    let didBootstrap = false;
-    doc.transact(() => {
-      // double-check inside transaction to win the race safely
-      if (meta.get('bootstrapped')) {
-        didBootstrap = false;
-        return;
-      }
 
-      // Write initial content into the doc's content map
-      // Use a map 'cmde-content' so other clients can read it if needed.
-      if (initialPayload !== null) {
-        const content = doc.getMap('cmde-content');
-        // only set if absent (avoid stomping)
-        if (!content.get('initial')) {
-          content.set('initial', initialPayload);
-        }
-      }
 
-      // set the meta flag (and timestamp)
-      meta.set('bootstrapped', true);
-      meta.set('bootstrappedAt', Date.now());
-      didBootstrap = true;
-    });
 
-    return didBootstrap;
-  }
 
-  // Manually set bootstrapped flag (for debugging maybe): 
-  function markDocBootstrapped(doc) {
-    if (!doc) return false;
-    const meta = doc.getMap('cmde-meta');
-    if (meta.get('bootstrapped')) return false;
-    doc.transact(() => {
-      if (!meta.get('bootstrapped')) {
-        meta.set('bootstrapped', true);
-        meta.set('bootstrappedAt', Date.now());
-      }
-    });
-    return true;
-  }*/
-  // RAILWAY-DEBUG:[ABOVE] TRYING TO FIX THE SYNC ISSUE (EVERYTHING WORKS GOOD MAYBE 7/10 TIMES. TRY TO KNOCK OUT THE EDGE CASES).
+
+
+
+
 
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">
@@ -818,7 +790,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  <CollaborationPlugin
+                  { synced ? (<CollaborationPlugin
                       //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                       key={roomId}
                       id={roomId}
@@ -830,7 +802,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                       "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                       you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                       (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
+                  />) : (
+                    <div>Oh no.</div>
+                  )}
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
