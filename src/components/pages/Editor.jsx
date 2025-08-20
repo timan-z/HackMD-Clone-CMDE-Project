@@ -730,12 +730,14 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
       
       // 8/19/2025-DEBUG: try-block below:
-      try {
+      const root = doc.share.get("root");
+      console.log("Y-DEBUG: root entry in doc.share:", root, "type=", root?.constructor?.name);
+      /*try {
         const root = doc.getXmlFragment("root");
         console.log("Y-DEBUG: root fragment exists?", !!root, "childCount=", root.length);
       } catch(e) {
         console.error("Y-DEBUG: error accessing root fragment", e);
-      }
+      }*/
       // 8/19/2025-DEBUG: try-block above.
 
       if (isSynced) {
