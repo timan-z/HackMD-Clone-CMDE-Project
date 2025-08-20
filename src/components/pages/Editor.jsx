@@ -700,50 +700,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
     
-
-    // 8/19/2025-DEBUG: Below.
-    // 1) Fingerprint the Yjs constructors we actually have:
-    /*try {
-      console.log('Y-ASSERT constructors', {
-        DocCtor: Y.Doc,
-        XmlFragCtor: (Y).XmlFragment || (doc.getXmlFragment('root').constructor),
-      });
-    } catch(e) {
-      // ignore
-    }
-
-    // 2) Ensure the 'root' in doc.share was created by THIS Yjs copy:
-    let frag1 = null;
-    try {
-      frag1 = doc.getXmlFragment('root');         // creates if missing
-    } catch(e) {
-      // ignore
-    }
-    let frag2 = null;
-    try {
-      frag2 = doc.share.get('root');              // retrieves existing
-    } catch(e) {
-      // ignore
-    }
-    console.log('Y-ASSERT root sameRef', frag1 === frag2);
-
-    // 3) Crash early if a second Yjs copy sneaks in (constructor mismatch):
-    try {
-      if (frag2 && frag2.constructor !== frag1.constructor) {
-        console.error('Y-FAIL: multiple Yjs constructors detected', {
-          got: frag2.constructor,
-          expected: frag1.constructor,
-        });
-      }
-    } catch(e) {
-      // ignore
-    }*/
-    // 8/19/2025-DEBUG: Above.
-
-
-    
-    //setKeyVal(`${roomId}:${doc.guid}`); // 8/19/2025-DEBUG: Yeah.
-
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
     provider.on("status", (evt) => {
@@ -834,6 +790,35 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       // 8/19/2025-DEBUG: try-block above.
 
 
+
+
+
+
+      // 8/19/2025-DEBUG: More below.
+      // After provider is constructed but before connect():
+      provider.on('synced', (isSynced) => {
+        // Sanity: do we have one and only one 'root' and is it the fragment type?
+        const entry = doc.share.get('root');
+        const badType = entry && !(entry).insert; // rough check it's a Y.XmlFragment-like
+        console.log('Y-CHECK synced', {
+          isSynced,
+          hasRoot: !!entry,
+          rootCtorName: entry && entry.constructor && entry.constructor.name,
+          sameCtorAsFrag: entry && entry.constructor === doc.getXmlFragment('root').constructor,
+        });
+      });
+
+      // Catch premature access: who is reading a type not attached to doc?
+      doc.on('updateV2', (update, origin) => {
+        // When a bad tab fails, is the origin the y-websocket provider or the binding?
+        const label =
+          origin && (origin).serverUrl ? 'provider' :
+          origin && (origin).collabNodeMap ? 'lexical-binding' :
+          origin === undefined ? 'remote' : 'unknown';
+
+        console.log('Y-CHECK update origin', label, { bytes: update.byteLength });
+      });
+      // 8/19/2025-DEBUG: More above.
 
 
 
