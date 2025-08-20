@@ -150,15 +150,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
 
-  const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
+  /*const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
   // 8/19/2025-DEBUG: [BELOW].
   useEffect(() => {
     console.log("RAILWAY-DEBUG: The value of keyVal => ", keyVal); // 8/19/2025-DEBUG: Yeah.
   }, [keyVal]);
-  // 8/19/2025-DEBUG: [ABOVE].
-
-
-
+  // 8/19/2025-DEBUG: [ABOVE].*/
 
   // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
   const navigate = useNavigate();
@@ -703,7 +700,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
     
-    setKeyVal(`${roomId}:${doc.guid}`); // 8/19/2025-DEBUG: Yeah.
+    //setKeyVal(`${roomId}:${doc.guid}`); // 8/19/2025-DEBUG: Yeah.
 
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
@@ -1015,7 +1012,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
                   <CollaborationPlugin
                     //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
-                    key={keyVal}
+                    key={roomId}
                     id={roomId}
                     providerFactory={providerFactory}
                     //shouldBootstrap={shouldBootstrap}
