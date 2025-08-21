@@ -163,7 +163,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   // Guard #1:
   useEffect(() => {
     console.log("8/20/2025-DEBUG: Inside of the probing UseEffect hook...");
-
     setReady(false);
     const probeDoc = new Y.Doc();
     const probe = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, probeDoc, { connect: true });
@@ -872,7 +871,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  {ready && providerReady ? (<CollaborationPlugin
+                  {/* {ready && providerReady ? (<CollaborationPlugin */}
+                  {ready ? (<CollaborationPlugin
                     //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                     key={roomId}
                     id={roomId}
