@@ -153,18 +153,41 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
+
+  // 8/20/2025-DEBUG: Dear God please help me.
   const providerRef = useRef(null); // 8/20/2025-DEBUG: im dumb.
   const [ready, setReady] = useState(false); // 8/20/2025-DEBUG: im dumb.
-
   const [shouldBootstrap, setShouldBootstrap] = useState(null); // 8/20/2025-DEBUG: Help me.
-
-
-  /*const [keyVal, setKeyVal] = useState(roomId); // 8/19/2025-DEBUG: Idk.
-  // 8/19/2025-DEBUG: [BELOW].
+  // 8/20/2025-DEBUG: I'm dumb below.
   useEffect(() => {
-    console.log("RAILWAY-DEBUG: The value of keyVal => ", keyVal); // 8/19/2025-DEBUG: Yeah.
-  }, [keyVal]);
-  // 8/19/2025-DEBUG: [ABOVE].*/
+    setReady(false);
+    const probeDoc = new Y.Doc();
+    const probe = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, probeDoc, { connect: true });
+
+    const onSynced = (s) => {
+      if(!s) return;
+      // Decide bootstrap *before* rendering the real plugin.
+      const rootFrag = probeDoc.share.get('root');  // DEBUG: Maybe do probeDoc.share.has first... (if this raises issues).
+      const isEmpty = !rootFrag || rootFrag.length === 0;
+      setShouldBootstrap(isEmpty);
+      setReady(true);
+      probe.disconnect();
+      probeDoc.destroy();
+    };
+    probe.on('synced', onSynced);
+    return () => {
+      probe.off('synced', onSynced);
+      probe.disconnect();
+      probeDoc.destroy();
+    };
+  }, [roomId]);
+  // 8/20/2025-DEBUG: I'm dumb above.
+
+
+
+
+
+
 
   // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
   const navigate = useNavigate();
@@ -630,9 +653,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           //socket.emit("ready-for-load", id);
           //socket.emit("join-room", id, userData.id, userData.username);
         }
-
         // 8/20/2025-DEBUG: I am in pain.
-        const rootFrag = doc.share.get("root");
+        /*const rootFrag = doc.share.get("root");
         let shouldInit = rootFrag instanceof Y.XmlFragment && rootFrag.length === 0;
         console.log(
           "REEEEEE: [collab] synced — fragment length:",
@@ -647,11 +669,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         }
         console.log("DEBUG: Value of shouldInit after the thing => ", shouldInit);
         setShouldBootstrap(shouldInit);
-        setReady(true);
+        setReady(true);*/
         // 8/20/2025-DEBUG: So much pain.
-
-
-
       }
     });
     return provider;
@@ -826,19 +845,22 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  <CollaborationPlugin
-                      //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
-                      key={roomId}
-                      id={roomId}
-                      providerFactory={providerFactory}
-                      shouldBootstrap={shouldBootstrap}
-                      //shouldBootstrap={false}
-                      // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
-                      /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
-                      "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
-                      you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
-                      (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
+                  {ready ? (<CollaborationPlugin
+                    //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
+                    key={roomId}
+                    id={roomId}
+                    providerFactory={providerFactory}
+                    shouldBootstrap={shouldBootstrap}
+                    //shouldBootstrap={false}
+                    // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
+                    /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
+                    "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
+                    you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
+                    (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
+                  />) : (<div>Connecting...</div>)
+                  } {/* DEBUG: ^ Lowkey if I really can't figure out the problem -- maybe just set a condition var here, return to the client thing,
+                  and make the client re-poll until connection is established??? This is probably bad long term though tbf. */}
+
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
