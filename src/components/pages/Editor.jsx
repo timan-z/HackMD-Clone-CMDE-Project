@@ -157,8 +157,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   // 8/20/2025-DEBUG: Dear God please help me.
   const providerRef = useRef(null); // 8/20/2025-DEBUG: im dumb.
   const [ready, setReady] = useState(false); // 8/20/2025-DEBUG: im dumb.
+  const [providerReady, setProviderReady] = useState(false);  // 8/20/2025-DEBUG: im dumb.
   const [shouldBootstrap, setShouldBootstrap] = useState(null); // 8/20/2025-DEBUG: Help me.
   // 8/20/2025-DEBUG: I'm dumb below.
+  // Guard #1:
   useEffect(() => {
     console.log("8/20/2025-DEBUG: Inside of the probing UseEffect hook...");
 
@@ -170,13 +172,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if(!s) return;
       // Decide bootstrap *before* rendering the real plugin.
       const rootFrag = probeDoc.share.get('root');  // DEBUG: Maybe do probeDoc.share.has first... (if this raises issues).
-      
       console.log("8/20/2025-DEBUG: The value of rootFrag => ", rootFrag);
-
       const isEmpty = !rootFrag || rootFrag.length === 0;
-
       console.log("8/20/2025-DEBUG: The value of isEmpty (next line be 'setShouldBootstrap(isEmpty)') => ", isEmpty);
-
       setShouldBootstrap(isEmpty);
       setReady(true);
       probe.disconnect();
@@ -189,6 +187,23 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       probeDoc.destroy();
     };
   }, [roomId]);
+  // Guard #2:
+  useEffect(() => {
+    if(!ready) return;
+    let p;
+    const doc = new Y.Doc();
+    p = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true});
+    const onSynced = (s) => {
+      if (s) setProviderReady(true);
+    };
+    p.on("synced", onSynced);
+    return () => {
+      p.off("synced", onSynced);
+      p.disconnect();
+      doc.destroy();
+      setProviderReady(false);
+    };
+  }, [ready, roomId]);
   // 8/20/2025-DEBUG: I'm dumb above.
 
 
@@ -853,7 +868,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 is why I have the "style={{position:"relative"}} tossed in (it overrides that one aspect). */}
                 <div className={'content-editable'} style={{position:"relative"}}>
 
-                  {ready ? (<CollaborationPlugin
+                  {ready && providerReady ? (<CollaborationPlugin
                     //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                     key={roomId}
                     id={roomId}
@@ -865,8 +880,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                     (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />) : (<div>Connecting...</div>)
-                  } {/* DEBUG: ^ Lowkey if I really can't figure out the problem -- maybe just set a condition var here, return to the client thing,
+                  />) : (<div>Connecting...</div>)} 
+                  
+                  {/* DEBUG: ^ Lowkey if I really can't figure out the problem -- maybe just set a condition var here, return to the client thing,
                   and make the client re-poll until connection is established??? This is probably bad long term though tbf. */}
 
 
