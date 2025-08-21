@@ -1,11 +1,13 @@
 {
-  "name": "yjs-ws-provider",
+  "name": "yjs-server",
   "private": true,
   "scripts": {
-    "start": "node yjs-provider.js"
+    "start": "node yjs-server.js"
   },
   "dependencies": {
-    "y-websocket": "1.5.0"
+    "ws": "^8.18.0",
+    "yjs": "^13.6.15",
+    "y-leveldb": "0.2.0"
   },
   "engines": {
     "node": ">=18"
