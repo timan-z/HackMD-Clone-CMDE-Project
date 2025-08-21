@@ -194,10 +194,14 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     const doc = new Y.Doc();
     p = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true});
     const onSynced = (s) => {
-      if (s) setProviderReady(true);
+      if (s) {
+        console.log("8/20/2025-DEBUG: Inside the if(s) condition branch of Guard #2.");
+        setProviderReady(true);
+      }
     };
     p.on("synced", onSynced);
     return () => {
+      console.log("8/20/2025-DEBUG: setProviderReady(false); is about to go ahead!");
       p.off("synced", onSynced);
       p.disconnect();
       doc.destroy();
