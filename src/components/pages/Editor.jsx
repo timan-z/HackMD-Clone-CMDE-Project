@@ -188,10 +188,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   }, [roomId]);
   // Guard #2:
   useEffect(() => {
-    if(!ready) return;
-    let p;
-    const doc = new Y.Doc();
-    p = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true});
+    let p = providerRef.current;
+    if(!p) return;    
+    //const doc = new Y.Doc();
+    //p = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true});
     const onSynced = (s) => {
       if (s) {
         console.log("8/20/2025-DEBUG: Inside the if(s) condition branch of Guard #2.");
@@ -202,8 +202,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     return () => {
       console.log("8/20/2025-DEBUG: setProviderReady(false); is about to go ahead!");
       p.off("synced", onSynced);
-      p.disconnect();
-      doc.destroy();
+      //p.disconnect();
+      //doc.destroy();
       setProviderReady(false);
     };
   }, [ready, roomId]);
@@ -656,6 +656,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     // 8/20/2025-DEBUG: Losing my marbles. [Above].
     
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
+    providerRef.current = provider;
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
 
     //providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
@@ -872,7 +873,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 <div className={'content-editable'} style={{position:"relative"}}>
 
                   {/* {ready && providerReady ? (<CollaborationPlugin */}
-                  {ready ? (<CollaborationPlugin
+                  {ready && providerFactory ? (<CollaborationPlugin
                     //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                     key={roomId}
                     id={roomId}
