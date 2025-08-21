@@ -160,6 +160,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [shouldBootstrap, setShouldBootstrap] = useState(null); // 8/20/2025-DEBUG: Help me.
   // 8/20/2025-DEBUG: I'm dumb below.
   useEffect(() => {
+    console.log("8/20/2025-DEBUG: Inside of the probing UseEffect hook...");
+
     setReady(false);
     const probeDoc = new Y.Doc();
     const probe = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, probeDoc, { connect: true });
@@ -168,7 +170,13 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if(!s) return;
       // Decide bootstrap *before* rendering the real plugin.
       const rootFrag = probeDoc.share.get('root');  // DEBUG: Maybe do probeDoc.share.has first... (if this raises issues).
+      
+      console.log("8/20/2025-DEBUG: The value of rootFrag => ", rootFrag);
+
       const isEmpty = !rootFrag || rootFrag.length === 0;
+
+      console.log("8/20/2025-DEBUG: The value of isEmpty (next line be 'setShouldBootstrap(isEmpty)') => ", isEmpty);
+
       setShouldBootstrap(isEmpty);
       setReady(true);
       probe.disconnect();
