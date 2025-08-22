@@ -649,6 +649,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
+    if (!doc.share.has("root")) {
+      doc.get("root", Y.XmlFragment); // <-- THIS CREATES THE ROOT TYPE
+    }
     // 8/20/2025-DEBUG: Losing my marbles. [Below].
     /*const existing = doc.share.get('root');
     if (existing && existing.constructor !== Y.XmlFragment) {
