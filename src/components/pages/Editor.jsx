@@ -28,6 +28,14 @@ import { throttle } from "lodash";
 //import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
 
 
+function initialEditorState() {
+  const root = $getRoot()
+  const paragraph = $createParagraphNode()
+  root.append(paragraph)
+}
+
+
+
 
 // DEBUG: BELOW.
 let socket_base = import.meta.env.VITE_SOCKET_BASE;
@@ -878,6 +886,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     key={roomId}
                     id={roomId}
                     providerFactory={providerFactory}
+                    initialEditorState={initialEditorState}
                     shouldBootstrap={shouldBootstrap}
                     //shouldBootstrap={false}
                     // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
