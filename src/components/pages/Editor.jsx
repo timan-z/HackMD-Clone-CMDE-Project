@@ -648,14 +648,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const providerFactory = useCallback((id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
     // Reuse doc if it exists
-    let doc = yjsDocMap.get(id);
+    /*let doc = yjsDocMap.get(id);
     if (!doc) {
       doc = new Y.Doc();
       yjsDocMap.set(id, doc);
       console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
-    }
+    }*/
+    const doc = new Y.Doc();
     
     // 8/20/2025-DEBUG: Losing my marbles. [Below].
     /*const existing = doc.share.get('root');
