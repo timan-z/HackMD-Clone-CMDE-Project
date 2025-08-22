@@ -10,6 +10,37 @@ the scope of the Editor.jsx file. (This is also much better for Version Control 
 
 const http = require("http");
 const WebSocket = require("ws");
+const setupWSConnection = require("y-websocket/bin/utils").setupWSConnection;
+const LeveldbPersistence = require("y-leveldb").LeveldbPersistence;
+
+const host = process.env.HOST || "0.0.0.0";
+const port = process.env.PORT || 1234;
+const DATA_DIR = process.env.YPERSISTENCE || "./yjs-data";
+
+// Persistence (LevelDB)
+const ldb = new LeveldbPersistence(DATA_DIR);
+
+const server = http.createServer((req, res) => {
+  res.writeHead(200);
+  res.end("8/21/2025-DEBUG: Yjs WebSocket server with LevelDB persistence");
+});
+
+const wss = new WebSocket.Server({ server });
+
+wss.on("connection", (conn, req) => {
+  setupWSConnection(conn, req, {
+    persistenceDir: DATA_DIR,
+    ldb
+  });
+});
+
+server.listen(port, host, () => {
+  console.log(`8/21/2025-DEBUG: Yjs WebSocket server running on ws://${host}:${port}`);
+  console.log(`8/21/2025-DEBUG: Persistence dir: ${DATA_DIR}`);
+});
+
+/*const http = require("http");
+const WebSocket = require("ws");
 const Y = require("yjs");
 const setupWSConnection = require("y-websocket/bin/utils").setupWSConnection;
 const LeveldbPersistence = require("y-leveldb").LeveldbPersistence;
@@ -25,9 +56,8 @@ const ldb = new LeveldbPersistence(DATA_DIR);
 
 const seedingInProcess = new Set(); // 8/22/2025-DEBUG: Guard to avoid races for seeding.
 
-/* 8/22/2025-DEBUG: Function to load the Y.Doc for a room, seed it if it's empty.
-Maintains consistency across restarts given levelDB and is guarded for races.
-*/
+// 8/22/2025-DEBUG: Function to load the Y.Doc for a room, seed it if it's empty.
+//Maintains consistency across restarts given levelDB and is guarded for races.
 async function getOrSeedDoc(roomName) {
   // wait a bit if seeding in process:
   if(seedingInProcess.has(roomName)) {
@@ -41,10 +71,6 @@ async function getOrSeedDoc(roomName) {
     // If it's already seeded:
     if(root instanceof Y.XmlFragment && root.length > 0) return doc;
   }
-  // If already content:
-  /*if (ytext.length > 0) {
-    return doc;
-  }*/
 
   // Double-check w/ a guard to avoid duplicate seeds when multiple clients connect at once:
   if(seedingInProcess.has(roomName)) {
@@ -109,4 +135,4 @@ wss.on("connection", async(conn, req) => {
 server.listen(port, host, () => {
   console.log(`8/21/2025-DEBUG: Yjs WebSocket server running on ws://${host}:${port}`);
   console.log(`8/21/2025-DEBUG: Persistence dir: ${DATA_DIR}`);
-});
+});*/
