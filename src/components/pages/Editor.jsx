@@ -7,7 +7,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $getRoot, $getSelection, $isRangeSelection, $isTextNode} from 'lexical';
+import { $createParagraphNode, $getRoot, $getSelection, $isRangeSelection, $isTextNode} from 'lexical';
 // custom imports:
 import { btnStyleEd } from "../utility/utilityFuncs.js";
 import { parseMarkdown } from "../core-features/MDParser.jsx";
@@ -26,6 +26,15 @@ import { throttle } from "lodash";
 
 
 //import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
+
+
+// 8/22/2025-DEBUG: Brother please. [below].
+  function initialEditorState() {
+    const root = $getRoot();
+    const paragraph = $createParagraphNode();
+    root.append(paragraph);
+  }
+  // 8/22/2025-DEBUG: Brother please. [above].
 
 
 
@@ -208,8 +217,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
   }, [ready, roomId]);*/
   // 8/20/2025-DEBUG: I'm dumb above.
-
-
 
 
 
@@ -882,6 +889,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     key={roomId}
                     id={roomId}
                     providerFactory={providerFactory}
+                    initialEditorState={initialEditorState}
                     //shouldBootstrap={shouldBootstrap}
                     shouldBootstrap={false}
                     // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
