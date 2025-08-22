@@ -7,7 +7,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $getRoot, $getSelection, $isRangeSelection, $isTextNode} from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $createParagraphNode} from 'lexical';
 // custom imports:
 import { btnStyleEd } from "../utility/utilityFuncs.js";
 import { parseMarkdown } from "../core-features/MDParser.jsx";
