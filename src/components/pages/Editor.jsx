@@ -7,7 +7,7 @@ import { ContentEditable } from '@lexical/react/LexicalContentEditable';
 import { PlainTextPlugin } from '@lexical/react/LexicalPlainTextPlugin';
 import { LexicalErrorBoundary } from '@lexical/react/LexicalErrorBoundary';
 import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext';
-import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $createParagraphNode} from 'lexical';
+import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $createParagraphNode, $createTextNode} from 'lexical';
 // custom imports:
 import { btnStyleEd } from "../utility/utilityFuncs.js";
 import { parseMarkdown } from "../core-features/MDParser.jsx";
@@ -29,9 +29,11 @@ import { throttle } from "lodash";
 
 
 function initialEditorState() {
-  const root = $getRoot()
-  const paragraph = $createParagraphNode()
-  root.append(paragraph)
+  const root = $getRoot();
+  const paragraph = $createParagraphNode();
+  const text = $createTextNode(''); 
+  paragraph.append(text);
+  root.append(paragraph);
 }
 
 
