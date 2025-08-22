@@ -889,7 +889,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     key={roomId}
                     id={roomId}
                     providerFactory={providerFactory}
-                    initialEditorState={initialEditorState}
+                    //initialEditorState={initialEditorState}
                     shouldBootstrap={shouldBootstrap}
                     //shouldBootstrap={false}
                     // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
