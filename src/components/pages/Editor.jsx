@@ -29,12 +29,12 @@ import { throttle } from "lodash";
 
 
 // 8/22/2025-DEBUG: Brother please. [below].
-  function initialEditorState() {
-    const root = $getRoot();
-    const paragraph = $createParagraphNode();
-    root.append(paragraph);
-  }
-  // 8/22/2025-DEBUG: Brother please. [above].
+function initialEditorState() {
+  const root = $getRoot();
+  const paragraph = $createParagraphNode();
+  root.append(paragraph);
+}
+// 8/22/2025-DEBUG: Brother please. [above].
 
 
 
@@ -170,7 +170,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [shouldBootstrap, setShouldBootstrap] = useState(null); // 8/20/2025-DEBUG: Help me.
   // 8/20/2025-DEBUG: I'm dumb below.
   // Guard #1:
-  /*useEffect(() => {
+  useEffect(() => {
     console.log("8/20/2025-DEBUG: Inside of the probing UseEffect hook...");
     setReady(false);
     const probeDoc = new Y.Doc();
@@ -215,7 +215,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       //doc.destroy();
       setProviderReady(false);
     };
-  }, [ready, roomId]);*/
+  }, [ready, roomId]);
   // 8/20/2025-DEBUG: I'm dumb above.
 
 
@@ -883,23 +883,22 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 <div className={'content-editable'} style={{position:"relative"}}>
 
                   {/* {ready && providerReady ? (<CollaborationPlugin */}
-                  {/*{ready && providerFactory ? (<CollaborationPlugin */}
-                  <CollaborationPlugin
+                  {/*<CollaborationPlugin*/}
+                  {ready && providerFactory ? (<CollaborationPlugin
                     //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                     key={roomId}
                     id={roomId}
                     providerFactory={providerFactory}
                     initialEditorState={initialEditorState}
-                    //shouldBootstrap={shouldBootstrap}
-                    shouldBootstrap={false}
+                    shouldBootstrap={shouldBootstrap}
+                    //shouldBootstrap={false}
                     // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                     (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />
-                  {/*) : (<div>Connecting...</div>)}*/}
-
+                  />) : (<div>Connecting...</div>)}
+                  {/*/>*/}
                   {/* DEBUG: ^ Lowkey if I really can't figure out the problem -- maybe just set a condition var here, return to the client thing,
                   and make the client re-poll until connection is established??? This is probably bad long term though tbf. */}
 
