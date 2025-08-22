@@ -34,20 +34,39 @@ async function getOrSeedDoc(roomName) {
     await new Promise((r) => setTimeout(r, 100)); // 8/22/2025: TESTING FOR NOW.
   }
   const doc = await ldb.getYDoc(roomName);
-  const ytext = doc.getText('default');
-  // If already content:
-  if (ytext.length > 0) {
-    return doc;
+  //const ytext = doc.getText('default');
+  let root = null;
+  if(doc.share.has("root")) {
+    root = doc.share.get("root");
+    // If it's already seeded:
+    if(root instanceof Y.XmlFragment && root.length > 0) return doc;
   }
+  // If already content:
+  /*if (ytext.length > 0) {
+    return doc;
+  }*/
+
   // Double-check w/ a guard to avoid duplicate seeds when multiple clients connect at once:
   if(seedingInProcess.has(roomName)) {
     // Another client won the seeding race:
-    if(ytext.length > 0) return doc;
+    //if(ytext.length > 0) return doc;
+    if(root && root.length > 0) return doc;
   } else {
     // This client won the seeding race:
+    seedingInProcess.add(roomName);
     try {
-      ytext.insert(0, SEED_TEXT);
+      if(!root) {
+        root = doc.getXmlFragment("root");
+      }
 
+      // Build a minimal Lexical-compatible paragraph
+      const paragraph = new Y.XmlElement("paragraph");
+      const textNode = new Y.XmlText();
+      textNode.insert(0, SEED_TEXT);
+      paragraph.insert(0, textNode);
+      root.insert(0, paragraph);
+
+      //ytext.insert(0, SEED_TEXT);
       // Persist the seeded state to LevelDB so it's durable across restarts
       const update = Y.encodeStateAsUpdate(doc);
       await ldb.storeUpdate(roomName, update);
