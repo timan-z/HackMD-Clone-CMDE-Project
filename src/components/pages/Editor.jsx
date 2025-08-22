@@ -161,7 +161,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [shouldBootstrap, setShouldBootstrap] = useState(null); // 8/20/2025-DEBUG: Help me.
   // 8/20/2025-DEBUG: I'm dumb below.
   // Guard #1:
-  useEffect(() => {
+  /*useEffect(() => {
     console.log("8/20/2025-DEBUG: Inside of the probing UseEffect hook...");
     setReady(false);
     const probeDoc = new Y.Doc();
@@ -206,7 +206,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       //doc.destroy();
       setProviderReady(false);
     };
-  }, [ready, roomId]);
+  }, [ready, roomId]);*/
   // 8/20/2025-DEBUG: I'm dumb above.
 
 
@@ -635,7 +635,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   // 8/20/2025-DEBUG: Above.
 
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
-  const providerFactory = useCallback((id, yjsDocMap) => {
+  //const providerFactory = useCallback((id, yjsDocMap) => {
+  const providerFactory = (id, yjsDocMap) => {
     console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
     // Reuse doc if it exists
     let doc = yjsDocMap.get(id);
@@ -662,14 +663,14 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     //providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
 
     provider.on("status", (evt) => {
-      console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
-      if (evt.status === "connected") {
+      console.log("RAILWAY-DEBUG: provider status", id, evt.status);
+      /*if (evt.status === "connected") {
         hasConnectedRef.current = true;
         if (hasSyncedRef.current) {
           //socket.emit("ready-for-load", id);
           //socket.emit("join-room", id, userData.id, userData.username);
         }
-      }
+      }*/
     });
 
     provider.on("synced", (isSynced) => {
@@ -700,8 +701,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         // 8/20/2025-DEBUG: So much pain.
       }
     });
+
     return provider;
-  }, [socket, userData]);
+  };
+
   // }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
@@ -873,23 +876,24 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                 <div className={'content-editable'} style={{position:"relative"}}>
 
                   {/* {ready && providerReady ? (<CollaborationPlugin */}
-                  {ready && providerFactory ? (<CollaborationPlugin
+                  {/*{ready && providerFactory ? (<CollaborationPlugin */}
+                  <CollaborationPlugin
                     //key={`${roomId}:${shouldBootstrap ? 1 : 0}`}
                     key={roomId}
                     id={roomId}
                     providerFactory={providerFactory}
-                    shouldBootstrap={shouldBootstrap}
-                    //shouldBootstrap={false}
+                    //shouldBootstrap={shouldBootstrap}
+                    shouldBootstrap={false}
                     // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                     (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
-                  />) : (<div>Connecting...</div>)} 
-                  
+                  />
+                  {/*) : (<div>Connecting...</div>)}*/}
+
                   {/* DEBUG: ^ Lowkey if I really can't figure out the problem -- maybe just set a condition var here, return to the client thing,
                   and make the client re-poll until connection is established??? This is probably bad long term though tbf. */}
-
 
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
