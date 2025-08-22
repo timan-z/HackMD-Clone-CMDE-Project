@@ -158,6 +158,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
+  console.log("8/22/2025-DEBUG: How many times does the Editor.jsx page re-render?");
+
+
 
   // 8/20/2025-DEBUG: Dear God please help me.
   const providerRef = useRef(null); // 8/20/2025-DEBUG: im dumb.
