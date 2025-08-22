@@ -24,9 +24,7 @@ import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
 import { io } from "socket.io-client";
 import { throttle } from "lodash";
 
-
 //import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
-
 
 function initialEditorState() {
   const root = $getRoot();
@@ -35,9 +33,6 @@ function initialEditorState() {
   paragraph.append(text);
   root.append(paragraph);
 }
-
-
-
 
 // DEBUG: BELOW.
 let socket_base = import.meta.env.VITE_SOCKET_BASE;
@@ -180,7 +175,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     const onSynced = (s) => {
       if(!s) return;
       // Decide bootstrap *before* rendering the real plugin.
-      const rootFrag = probeDoc.share.get('root');  // DEBUG: Maybe do probeDoc.share.has first... (if this raises issues).
+      let rootFrag = null;
+      if(probeDoc.share.has('root')) {
+        rootFrag = probeDoc.share.get('root');  // DEBUG: Maybe do probeDoc.share.has first... (if this raises issues).
+      }
       console.log("8/20/2025-DEBUG: The value of rootFrag => ", rootFrag);
       const isEmpty = !rootFrag || rootFrag.length === 0;
       console.log("8/20/2025-DEBUG: The value of isEmpty (next line be 'setShouldBootstrap(isEmpty)') => ", isEmpty);
@@ -617,11 +615,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       });
     }
   }
-
-
-
-
-
 
   // 8/20/2025-DEBUG: Below.
   /*useEffect(() => {
