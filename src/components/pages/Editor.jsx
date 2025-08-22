@@ -667,7 +667,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     providerRef.current = provider;
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
 
-    //providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
+    providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
 
     provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt.status);
