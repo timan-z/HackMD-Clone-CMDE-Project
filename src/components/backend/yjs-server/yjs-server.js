@@ -12,6 +12,7 @@ const http = require("http");
 const WebSocket = require("ws");
 const setupWSConnection = require("y-websocket/bin/utils").setupWSConnection;
 const LeveldbPersistence = require("y-leveldb").LeveldbPersistence;
+const Y = require("yjs");
 
 const host = process.env.HOST || "0.0.0.0";
 const port = process.env.PORT || 1234;
@@ -41,16 +42,31 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocket.Server({ server });
 
-wss.on("connection", (conn, req) => {
+wss.on("connection", async(conn, req) => {
   // 8/22/2025-DEBUG: Below.
   const room = extractRoomName(req);
   console.log("[WS] Incoming connection.", {url: req.url, room, host:req.headers.host});
+  
+  console.log("debug: About to enter the try-block in wss.on(connection...)");
+  try {
+    // Load whatever's persisted for this room:
+    const ydoc = await ldb.getYDoc(room || "");
+    const meta = ydoc.getMap("meta");
+    const root = ydoc.getXmlFragment("root"); // exists even if empty
+    const updateSize = Y.encodeStateAsUpdate(ydoc).byteLength;
+    console.log("[WS] pre-connection doc snapshot", {
+      room,
+      bootstrapped: meta.get("bootstrapped") === true,
+      rootLength: root.length,
+      updateSize
+    });
+  } catch(e) {
+    console.error("[WS] snapshot error", e);
+  }
+  console.log("debug: exiting the try-block in wss.on(connection...), about to setupWSConnection(...)");
   // 8/22/2025-DEBUG: Above.
 
-  setupWSConnection(conn, req, {
-    persistenceDir: DATA_DIR,
-    ldb
-  });
+  setupWSConnection(conn, req, { persistenceDir: DATA_DIR, ldb });
 });
 
 server.listen(port, host, () => {
