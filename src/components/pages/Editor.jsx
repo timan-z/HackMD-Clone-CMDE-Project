@@ -645,7 +645,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     let cancelled = false;
     const checkReady = () => {
       const root = doc.share.has("root") ? doc.share.get("root") : null;
-      if (gotRemoteUpdate || (provider.synced && root && root.length > 0)) {
+      const meta = doc.getMap("meta");
+      const bootstrapped = meta.get("bootstrapped") === true;
+      if (gotRemoteUpdate || (provider.synced && root && (root.length > 0 || bootstrapped))) {
         if (!cancelled) setHydrated(true);
         return true;
       }
