@@ -11,6 +11,9 @@ import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $createParagra
 // custom imports:
 import { btnStyleEd } from "../utility/utilityFuncs.js";
 import { parseMarkdown } from "../core-features/MDParser.jsx";
+
+import { initComrak } from "../core-features/MDParser.jsx"; // 8/23/2025-DEBUG: Yeah.
+
 import { findCursorPos } from '../utility/utilityFuncs.js';
 import { RemoteCursorOverlay } from '../core-features/RemoteCursorOverlay.jsx';
 import Toolbar from "../core-features/Toolbar.jsx";
@@ -221,7 +224,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
 
-
+  // 8/23/2025-DEBUG: Fixing the RUST parser. Below.
+  useEffect(() => {
+    initComrak();
+  }, []);
+  // 8/23/2025-DEBUG: Fixing the RUST parser. Above.
 
 
 

@@ -1,4 +1,4 @@
-import { parse_markdown } from "rust-markdown";   // <-- new "main" parser.
+import init, { parse_markdown } from "rust-markdown";   // <-- new "main" parser.
 //import {parse_markdown} from "../../rust-markdown/pkg/rust_markdown.js";
 import MarkdownIt from "markdown-it";
 import markdownItTaskLists from "markdown-it-task-lists";
@@ -20,7 +20,7 @@ let wasmReady = false;
 // Async init wrapper:
 export async function initComrak() {
     try {
-        //await init();
+        await init();
         comrakParser = (markdownText) => parse_markdown(markdownText);
         wasmReady = true;
         console.log("[MDParser]: Comrak (RUST) Markdown Parser initialized and ready to go!");
@@ -28,7 +28,7 @@ export async function initComrak() {
         console.error("[ERROR][MDParser]: Failed to initialize Comrak, fallback parser Markdown-It will be used for rendering instead. Err: ", err);
     }
 }
-initComrak();
+//initComrak();
 
 // This function below is supposed to take Markdown text and convert it to HTML:
 export const parseMarkdown = (markdownText) => {
@@ -36,7 +36,7 @@ export const parseMarkdown = (markdownText) => {
         try {
             return comrakParser(markdownText);
         } catch(err) {
-            console.error("[ERROR][MDParser]: Comrak parsing failed, falling back to Markdown-It.");
+            console.error("[ERROR][MDParser]: Comrak parsing failed, falling back to Markdown-It.", err);
         }
     }
     return md.render(markdownText);
