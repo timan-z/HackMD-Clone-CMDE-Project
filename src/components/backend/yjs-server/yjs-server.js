@@ -85,13 +85,44 @@ async function ensureSeed({ room, enableWrite }) {
 }
 // 8/22/2025-DEBUG: Above.
 
+
+
+// 8/23/2025-DEBUG: Below.
+const hydrationByRoom = new Map();
+function hydrateOnce(room, fn) {
+  if (!hydrationByRoom.has(room)) {
+    hydrationByRoom.set(room, (async () => {
+      // 1) Load all updates from LevelDB (resolves only when applied)
+      const ydoc = await ldb.getYDoc(room || "");
+      // 2) Optional: seed (write-once)
+      const enableWrite = process.env.USE_SERVER_SEED === "1";
+      await ensureSeed({ room, enableWrite });
+      // 3) Tiny microtask so any storeUpdate flush completes before we accept messages
+      await new Promise((r) => queueMicrotask(r));
+    })().finally(() => {
+      // keep the promise around so latecomers still await; don't delete
+    }));
+  }
+  return hydrationByRoom.get(room);
+}
+// 8/23/2025-DEBUG: Above.
+
+
 wss.on("connection", async(conn, req) => {
   // 8/22/2025-DEBUG: Below.
   const room = extractRoomName(req);
   console.log("[WS] Incoming connection.", {url: req.url, room, host:req.headers.host});
-  
   console.log("debug: About to enter the try-block in wss.on(connection...)");
+
+  // 8/23/2025-DEBUG: Temp replace try-block contents with function call to see what happens... [BELOW]
   try {
+    await hydrateOnce(room);
+  } catch (e) {
+    console.error("[WS] hydration error", e);
+  }
+  // 8/23/2025-DEBUG: Temp replace try-block contents with function call to see what happens... [ABOVE]
+
+  /*try {
     // Load whatever's persisted for this room:
     const ydoc = await ldb.getYDoc(room || "");
     const meta = ydoc.getMap("meta");
@@ -109,10 +140,9 @@ wss.on("connection", async(conn, req) => {
     await ensureSeed({ room, enableWrite });
   } catch(e) {
     console.error("[WS] snapshot error", e);
-  }
+  }*/
   console.log("debug: exiting the try-block in wss.on(connection...), about to setupWSConnection(...)");
   // 8/22/2025-DEBUG: Above.
-
   setupWSConnection(conn, req, { persistenceDir: DATA_DIR, ldb });
 });
 

@@ -635,7 +635,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
     doc.on("update", markIfRemote);
 
-    let cancelled = false;
+    //let cancelled = false;
+    let attempts = 0;
     const checkReady = () => {
       const root = doc.share.has("root") ? doc.share.get("root") : null;
       const meta = doc.getMap("meta");
@@ -648,13 +649,34 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
 
     if (checkReady()) return;
+    // 8/23/2025-DEBUG: Below.
+    const tick = () => {
+      if (cancelled) return;
+      if (checkReady()) return;
+      if (attempts >= 4) { // ~ 4 tries over ~2 seconds
+        console.warn("[WS] No remote update after retries; leaving read-only until an update arrives");
+        return; // keep hydrated=false; your UI shows "Connecting..."
+      }
+      attempts += 1;
+      console.warn("[WS] Forcing resync attempt", { attempts });
+      // Gentle reconnect
+      try { provider.disconnect(); } catch {}
+      setTimeout(() => {
+        if (!cancelled) {
+          try { provider.connect(); } catch {}
+          setTimeout(tick, 500); // check again shortly
+        }
+      }, 100);
+    };
+    const t = setTimeout(tick, 400); // first retry a bit after mount
+    // 8/23/2025-DEBUG: Above.
 
-    const t = setTimeout(() => {
+    /*const t = setTimeout(() => {
       if (!checkReady()) {
         console.warn("[WS] Still no remote update; proceeding with hydrated anyway");
         setHydrated(true);
       }
-    }, 1200);
+    }, 1200);*/
 
     return () => {
       cancelled = true;
