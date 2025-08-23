@@ -718,9 +718,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       providersById.current.set(id, provider);
     }
     // Defer connect so Lexical can bind its listeners first
-    queueMicrotask(() => {
+    /*queueMicrotask(() => {
       if (!provider.wsconnected && !provider.wsconnecting) provider.connect();
-    });
+    });*/
+    setTimeout(() => {
+      if (!provider.wsconnected && !provider.wsconnecting) provider.connect();
+    }, 0);
     return provider; 
   }, [socket, userData]);
   // }, [socket, userData]);
