@@ -895,7 +895,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
                   
-                  {providerReady && (<PlainTextPlugin
+                  <PlainTextPlugin
                     contentEditable={
                       <ContentEditable className={`content-editable black-outline ${isDraggingMD ? "dragging" : ""}`} onKeyDown={handleKeyInput} 
                       style={{
@@ -906,7 +906,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     }
                     placeholder={<div className="placeholder">Write your Markdown here...</div>}
                     ErrorBoundary={LexicalErrorBoundary}
-                  />)}
+                  />
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> 
                 </div>
                 
