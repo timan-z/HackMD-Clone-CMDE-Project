@@ -635,7 +635,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
     doc.on("update", markIfRemote);
 
-    //let cancelled = false;
+    let cancelled = false;
     let attempts = 0;
     const checkReady = () => {
       const root = doc.share.has("root") ? doc.share.get("root") : null;
