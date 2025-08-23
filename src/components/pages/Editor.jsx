@@ -658,9 +658,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
     const t = setTimeout(() => {
       if (!checkReady()) {
-        console.warn("[WS] No remote update detected; forcing reconnect");
-        provider.disconnect();
-        provider.connect();
+        console.warn("[WS] Still no remote update; proceeding with hydrated anyway");
+        setHydrated(true);
       }
     }, 1200);
 
