@@ -42,6 +42,56 @@ const server = http.createServer((req, res) => {
 
 const wss = new WebSocket.Server({ server });
 
+
+
+// 8/22/2025-DEBUG: Below.
+async function ensureSeed({ room, enableWrite }) {
+  // Load persisted Y.Doc
+  const ydoc = await ldb.getYDoc(room || "");
+  const meta = ydoc.getMap("meta");
+  const root = ydoc.getXmlFragment("root")  // will create root if it's not present... DEBUG: Maybe this is bad.
+  const before = {
+    bootstrapped: meta.get("bootstrapped") === true,
+    rootLength: root.length,
+    updateSize: Y.encodeStateAsUpdate(ydoc).byteLength
+  };
+
+  console.log("[SEED] before", { room, ...before });
+  if (before.bootstrapped) {
+    console.log("[SEED] already bootstrapped — nothing to do", { room });
+    return;
+  }
+
+  // Prepare the mutation (inside a transaction)
+  ydoc.transact(() => {
+    meta.set("bootstrapped", true);
+    const para = new Y.XmlElement("paragraph");
+    const text = new Y.XmlText();
+    para.insert(0, [text]);
+    root.insert(0, [para]);
+  });
+
+  const afterUpdate = Y.encodeStateAsUpdate(ydoc);
+  const after = {
+    bootstrapped: meta.get("bootstrapped") === true,
+    rootLength: root.length,
+    updateSize: afterUpdate.byteLength
+  };
+  console.log("[SEED] after (not persisted yet)", { room, ...after });
+
+  if (!enableWrite) {
+    console.log("[SEED] DRY RUN — not persisting", { room });
+    return;
+  }
+  await ldb.storeUpdate(room || "", afterUpdate);
+  console.log("[SEED] persisted", { room });
+}
+// 8/22/2025-DEBUG: Above.
+
+
+
+
+
 wss.on("connection", async(conn, req) => {
   // 8/22/2025-DEBUG: Below.
   const room = extractRoomName(req);
@@ -60,6 +110,10 @@ wss.on("connection", async(conn, req) => {
       rootLength: root.length,
       updateSize
     });
+
+    // DEBUG: Dry-run seeding pass.
+    const enableWrite = process.env.USE_SERVER_SEED === "1";
+    await ensureSeed({ room, enableWrite });
   } catch(e) {
     console.error("[WS] snapshot error", e);
   }
