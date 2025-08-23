@@ -19,6 +19,9 @@ let wasmReady = false;
 
 // Async init wrapper:
 export async function initComrak() {
+
+    console.log("8/23/2025-DEBUG: Inside function initComrak()...");
+
     try {
         await init();
         comrakParser = (markdownText) => parse_markdown(markdownText);

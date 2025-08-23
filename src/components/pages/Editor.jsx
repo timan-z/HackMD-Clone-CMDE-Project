@@ -162,6 +162,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const providersById = useRef(new Map()); // 8/22/2025-DEBUG: Hrrghnhhh
   const [hydrated, setHydrated] = useState(false);  // 8/22/2025-DEBUG: Ah
 
+
+  const initRustParser = useRef(false); // 8/23/2025-DEBUG: Debugging RUST Parser...
+
+
   console.log("8/22/2025-DEBUG: How many times does the Editor.jsx page re-render?");
 
   // 8/20/2025-DEBUG: Dear God please help me.
@@ -222,15 +226,14 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   }, [ready, roomId]);*/
   // 8/20/2025-DEBUG: I'm dumb above.
 
-
-
   // 8/23/2025-DEBUG: Fixing the RUST parser. Below.
   useEffect(() => {
-    initComrak();
+    if(!initRustParser.current) {
+      initComrak();
+      initRustParser.current = true;
+    }
   }, []);
   // 8/23/2025-DEBUG: Fixing the RUST parser. Above.
-
-
 
   // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
   const navigate = useNavigate();
