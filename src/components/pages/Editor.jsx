@@ -720,7 +720,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       });
       // recovery for suspended tabs
       const onVis = () => {
-        if (!provider.wsconnected && provider.shouldConnect) provider.connect();
+        if (!provider.wsconnected && provider.shouldConnect) {
+          console.log("8/23/2025-DEBUG: About to call provider.connect()...");
+          provider.connect();
+          console.log("8/23/2025-DEBUG: Called provider.connect()...");
+        }
       };
       document.addEventListener("visibilitychange", onVis);
       providersById.current.set(id, provider);
@@ -730,7 +734,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if (!provider.wsconnected && !provider.wsconnecting) provider.connect();
     });*/
     setTimeout(() => {
-      if (!provider.wsconnected && !provider.wsconnecting) provider.connect();
+      if (!provider.wsconnected && !provider.wsconnecting) {
+        console.log("8/23/2025-DEBUG: About to call provider.connect()...");
+        provider.connect();
+        console.log("8/23/2025-DEBUG: Called provider.connect()...");
+      }
     }, 0);
     return provider; 
   }, [socket, userData]);
