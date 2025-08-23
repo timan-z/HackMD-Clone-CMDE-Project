@@ -393,12 +393,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }));
     setUsersList(tweakedArr);
   };
-  /*useEffect(() => {
+  useEffect(() => {
     callLoadRoomUsers(roomId);
-  }, []);*/
+  }, []);
 
   // useEffect Hook #1: Listens for emits from the Socket.IO server:
-  /*useEffect(()=> {
+  useEffect(()=> {
     // Handle notifications:
     const handleNotif = (notif) => {
       // Changing the colour of the Notifications Bar Icon to let the user know that they've received a notification:
@@ -454,7 +454,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       window.removeEventListener("beforeunload", handleBeforeUnload);
       handleBeforeUnload(); // If user navigates away within SPA, still save.
     };
-  }, []);*/
+  }, []);
 
   // useEffect Hook #2 - For client-instance text editor/state changes/emitting changes to server etc.
   useEffect(() => {
@@ -490,7 +490,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   }, [editor]);
 
   // useEffect Hook #3 - For clientCursors updates (letting us know when to update the RemoteCursorOverlay rendering):
-  /*useEffect(() => {
+  useEffect(() => {
     // Receiving clientCursors (the cursor positions and IDs of all *other* clients editing the document):
     socket.on("update-cursors", (cursors) => {
       setOtherCursors(cursors.filter(cursor => cursor.id !== socket.id)); // The "=> cursor.id !== socket.id" part is for not including *this* client's ID.
@@ -498,7 +498,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     return () => {
       socket.off("update-cursors");
     };
-  }, []);*/
+  }, []);
 
   // The three following const functions are for the "draggable" divider line between the Text Editor and Preview Panel:
   const handleMouseDown = () => {
@@ -652,21 +652,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
-
-    // 8/20/2025-DEBUG: Losing my marbles. [Below].
-    /*const existing = doc.share.get('root');
-    if (existing && existing.constructor !== Y.XmlFragment) {
-      console.warn('[collab] clearing mismatched root');
-      doc.share.delete('root'); // only deletes if it's the wrong type
-    }*/
-    // 8/20/2025-DEBUG: Losing my marbles. [Above].
     
     const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
     providerRef.current = provider;
     console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
 
     //providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
-
     provider.on("status", (evt) => {
       console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
       if (evt.status === "connected") {
@@ -902,7 +893,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
                   since it would feel like a waste otherwise... (and I get more customization with it) */}
                   
-                  <PlainTextPlugin
+                  {providerReady && (<PlainTextPlugin
                     contentEditable={
                       <ContentEditable className={`content-editable black-outline ${isDraggingMD ? "dragging" : ""}`} onKeyDown={handleKeyInput} 
                       style={{
@@ -913,7 +904,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     }
                     placeholder={<div className="placeholder">Write your Markdown here...</div>}
                     ErrorBoundary={LexicalErrorBoundary}
-                  />
+                  />)}
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> 
                 </div>
                 
@@ -1011,7 +1002,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
   }
 
   // Editor() useEffect Hook #0: For getting userData on mount if I don't have it:
-  /*useEffect(() => {
+  useEffect(() => {
     if(!userData) {
       const storedUser = localStorage.getItem("userData");
       if(storedUser) {
@@ -1021,7 +1012,7 @@ function Editor({ loadUser, loadRoomUsers, roomId, userData, username, userId, s
         loadUser();
       }
     }
-  }, []);*/
+  }, []);
 
   return (
     <LexicalComposer initialConfig={initialConfig}>

@@ -20,6 +20,20 @@ const DATA_DIR = process.env.YPERSISTENCE || "./yjs-data";
 // Persistence (LevelDB)
 const ldb = new LeveldbPersistence(DATA_DIR);
 
+// 8/22/2025-DEBUG: Below.
+function extractRoomName(req) {
+  try {
+    const url = new URL(req.url, `http://${req.headers.host}`);
+    if (url.searchParams.has("room")) return url.searchParams.get("room");
+    let pathname = url.pathname || "";
+    if (pathname.startsWith("/")) pathname = pathname.slice(1);
+    return pathname || null;
+  } catch {
+    return null;
+  }
+}
+// 8/22/2025-DEBUG: Above.
+
 const server = http.createServer((req, res) => {
   res.writeHead(200);
   res.end("8/21/2025-DEBUG: Yjs WebSocket server with LevelDB persistence");
@@ -28,6 +42,11 @@ const server = http.createServer((req, res) => {
 const wss = new WebSocket.Server({ server });
 
 wss.on("connection", (conn, req) => {
+  // 8/22/2025-DEBUG: Below.
+  const room = extractRoomName(req);
+  console.log("[WS] Incoming connection.", {url: req.url, room, host:req.headers.host});
+  // 8/22/2025-DEBUG: Above.
+
   setupWSConnection(conn, req, {
     persistenceDir: DATA_DIR,
     ldb
