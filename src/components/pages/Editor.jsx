@@ -157,6 +157,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showNotifs, setShowNotifs] = useState(false);
 
 
+  const providersById = useRef(new Map()); // 8/22/2025-DEBUG: Hrrghnhhh
+  const [hydrated, setHydrated] = useState(false);  // 8/22/2025-DEBUG: Ah
+
+
 
   console.log("8/22/2025-DEBUG: How many times does the Editor.jsx page re-render?");
 
@@ -619,26 +623,52 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
   }
 
-  // 8/20/2025-DEBUG: Below.
-  /*useEffect(() => {
-    setReady(false);
-    const probeDoc = new Y.Doc();
-    const probe = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, probeDoc, { connect: true });
-    const onSynced = (s) => {
-      if (s) {
-        setReady(true);
-        probe.disconnect();
-        probeDoc.destroy();
+
+
+  // 8/22/2025-DEBUG: Below.
+  useEffect(() => {
+    const provider = providerRef.current;
+    if (!provider) return;
+    const doc = provider.doc;
+    if (!doc) return;
+
+    let gotRemoteUpdate = false;
+    const markIfRemote = (update, origin) => {
+      if (origin === provider) {
+        gotRemoteUpdate = true;
+        doc.off("update", markIfRemote);
+        console.log("[WS remote update observed]", roomId);
       }
     };
-    probe.on('synced', onSynced);
-    return () => {
-      probe.off('synced', onSynced);
-      probe.disconnect();
-      probeDoc.destroy();
+    doc.on("update", markIfRemote);
+
+    let cancelled = false;
+    const checkReady = () => {
+      const root = doc.share.has("root") ? doc.share.get("root") : null;
+      if (gotRemoteUpdate || (provider.synced && root && root.length > 0)) {
+        if (!cancelled) setHydrated(true);
+        return true;
+      }
+      return false;
     };
-  }, [roomId]);*/
-  // 8/20/2025-DEBUG: Above.
+
+    if (checkReady()) return;
+
+    const t = setTimeout(() => {
+      if (!checkReady()) {
+        console.warn("[WS] No remote update detected; forcing reconnect");
+        provider.disconnect();
+        provider.connect();
+      }
+    }, 1200);
+
+    return () => {
+      cancelled = true;
+      clearTimeout(t);
+      doc.off("update", markIfRemote);
+    };
+  }, [roomId]);
+  // 8/22/2025-DEBUG: Above.
 
   // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
   const providerFactory = useCallback((id, yjsDocMap) => {
@@ -652,52 +682,30 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     } else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
     }
-    
-    const provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: true }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER.
-    providerRef.current = provider;
-    console.log("RAILWAY-DEBUG: providerFactory: created provider object for", id);
 
-    //providerRef.current = provider; // 8/20/2025-DEBUG: This line here.
-    provider.on("status", (evt) => {
-      console.log("RAILWAY-DEBUG: provider status", id, evt, "ws?", !!provider.ws);
-      if (evt.status === "connected") {
-        hasConnectedRef.current = true;
-        if (hasSyncedRef.current) {
-          //socket.emit("ready-for-load", id);
-          //socket.emit("join-room", id, userData.id, userData.username);
-        }
-      }
-    });
+    let provider = providersById.current.get(id);
+    if(!provider) {
+      provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER. (/22/2025 edit = connect is now false).
+      providerRef.current = provider;
 
-    provider.on("synced", (isSynced) => {
-      console.log("RAILWAY-DEBUG: provider synced", id, isSynced);
-      if (isSynced) {
-        hasSyncedRef.current = true;
-        if (hasConnectedRef.current) {
-          //socket.emit("ready-for-load", id);
-          //socket.emit("join-room", id, userData.id, userData.username);
-        }
-        // 8/20/2025-DEBUG: I am in pain.
-        /*const rootFrag = doc.share.get("root");
-        let shouldInit = rootFrag instanceof Y.XmlFragment && rootFrag.length === 0;
-        console.log(
-          "REEEEEE: [collab] synced — fragment length:",
-          rootFrag?.length,
-          "=> bootstrap?",
-          shouldInit
-        );
-        if(rootFrag?.length == 0) {
-          shouldInit = true;
-        } else {
-          shouldInit = false;
-        }
-        console.log("DEBUG: Value of shouldInit after the thing => ", shouldInit);
-        setShouldBootstrap(shouldInit);
-        setReady(true);*/
-        // 8/20/2025-DEBUG: So much pain.
-      }
+      provider.on("status", (evt) => {
+        console.log("[WS status]", id, evt, "wsconnected?", provider.wsconnected);
+      });
+      provider.on("sync", (isSynced) => {
+        console.log("[WS sync]", id, { isSynced, providerSyncedFlag: provider.synced });
+      });
+      // recovery for suspended tabs
+      const onVis = () => {
+        if (!provider.wsconnected && provider.shouldConnect) provider.connect();
+      };
+      document.addEventListener("visibilitychange", onVis);
+      providersById.current.set(id, provider);
+    }
+    // Defer connect so Lexical can bind its listeners first
+    queueMicrotask(() => {
+      if (!provider.wsconnected && !provider.wsconnecting) provider.connect();
     });
-    return provider;
+    return provider; 
   }, [socket, userData]);
   // }, [socket, userData]);
   // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
@@ -876,26 +884,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     id={roomId}
                     providerFactory={providerFactory}
                     initialEditorState={initialEditorState}
-                    //shouldBootstrap={shouldBootstrap}
                     shouldBootstrap={false}
-                    // 8/19/25-DEBUG: Yeah maybe I should have listened to the comment below a bit better. "You should never try to bootstrap on client." Hahahahaha
                     /* ^ Supposed to be very important. From the Lexical documentation page (their example of a fleshed-out collab editor):
                     "Unless you have a way to avoid race condition between 2+ users trying to do bootstrap simultaneously
                     you should never try to bootstrap on client. It's better to perform bootstrap within Yjs server." (should always be false basically) 
                     (NOTE: Would've needed to temporarily set it to true on first Yjs-Lexical sync had I gone that route, but I couldn't get it to work so whatever). */
                   />
-                  
-                  {/*) : (<div>Connecting...</div>)} */}
-                  
-                  {/* DEBUG: ^ Lowkey if I really can't figure out the problem -- maybe just set a condition var here, return to the client thing,
-                  and make the client re-poll until connection is established??? This is probably bad long term though tbf. */}
-
-
                   {/* NOTE: Well-aware that <CollaborationPlugin> allows for foreign cursor markers/overlay here.
                   I could have username={} cursorColor={} and all that jazz over here, but I want to use my RemoteCursorOverlay.jsx
-                  since it would feel like a waste otherwise... (and I get more customization with it) */}
-                  
-                  <PlainTextPlugin
+                  since it would feel like a waste otherwise... (and I get more customization with it) */}  
+                  {hydrated ? (<PlainTextPlugin
                     contentEditable={
                       <ContentEditable className={`content-editable black-outline ${isDraggingMD ? "dragging" : ""}`} onKeyDown={handleKeyInput} 
                       style={{
@@ -906,7 +904,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
                     }
                     placeholder={<div className="placeholder">Write your Markdown here...</div>}
                     ErrorBoundary={LexicalErrorBoundary}
-                  />
+                  />) : (<div>Connecting...</div>)}
                   <RemoteCursorOverlay editor={editor} otherCursors={otherCursors} fontSize={edFontSize}/> 
                 </div>
                 
