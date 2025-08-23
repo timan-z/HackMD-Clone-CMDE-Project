@@ -2,7 +2,7 @@
   "name": "yjs-server",
   "private": true,
   "scripts": {
-    "start": "node yjs-server.js"
+    "start": "USE_SERVER_SEED=1 node yjs-server.js"
   },
   "dependencies": {
     "ws": "^8.18.0",
