@@ -156,15 +156,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
 
-
   const providersById = useRef(new Map()); // 8/22/2025-DEBUG: Hrrghnhhh
   const [hydrated, setHydrated] = useState(false);  // 8/22/2025-DEBUG: Ah
 
-
-
   console.log("8/22/2025-DEBUG: How many times does the Editor.jsx page re-render?");
-
-
 
   // 8/20/2025-DEBUG: Dear God please help me.
   const providerRef = useRef(null); // 8/20/2025-DEBUG: im dumb.
@@ -622,8 +617,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       });
     }
   }
-
-
 
   // 8/22/2025-DEBUG: Below.
   useEffect(() => {
