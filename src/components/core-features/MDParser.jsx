@@ -19,7 +19,7 @@ let wasmReady = false;
 
 // Async init wrapper:
 export async function initComrak() {
-
+    if(wasmReady) return;
     console.log("8/23/2025-DEBUG: Inside function initComrak()...");
 
     try {
@@ -32,6 +32,12 @@ export async function initComrak() {
     }
 }
 //initComrak();
+
+// 8/23/2025-DEBUG: Below.
+export function isWasmReady() {
+    return wasmReady;
+}
+// 8/23/2025-DEBUG: Above.
 
 // This function below is supposed to take Markdown text and convert it to HTML:
 export const parseMarkdown = (markdownText) => {

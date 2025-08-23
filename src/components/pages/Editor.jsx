@@ -10,9 +10,7 @@ import { useLexicalComposerContext } from '@lexical/react/LexicalComposerContext
 import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $createParagraphNode, $createTextNode} from 'lexical';
 // custom imports:
 import { btnStyleEd } from "../utility/utilityFuncs.js";
-import { parseMarkdown } from "../core-features/MDParser.jsx";
-
-import { initComrak } from "../core-features/MDParser.jsx"; // 8/23/2025-DEBUG: Yeah.
+import { parseMarkdown, initComrak, isWasmReady } from "../core-features/MDParser.jsx"; // 8/23/2025: Yeah.
 
 import { findCursorPos } from '../utility/utilityFuncs.js';
 import { RemoteCursorOverlay } from '../core-features/RemoteCursorOverlay.jsx';
@@ -164,6 +162,8 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
 
   const initRustParser = useRef(false); // 8/23/2025-DEBUG: Debugging RUST Parser...
+  // ^ DEBUG: "initWasm" or "wasmReady" is also an appropriate name.
+  const [wasmReady, setWasmReady] = useState(isWasmReady()); // 8/23/2025-DEBUG: Hmm.
 
 
   console.log("8/22/2025-DEBUG: How many times does the Editor.jsx page re-render?");
@@ -229,8 +229,12 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   // 8/23/2025-DEBUG: Fixing the RUST parser. Below.
   useEffect(() => {
     if(!initRustParser.current) {
-      initComrak();
+      let mounted = true;
+      initComrak().then(() => {
+        if(mounted) setWasmReady(true);
+      });
       initRustParser.current = true;
+      return () => {mounted = false};
     }
   }, []);
   // 8/23/2025-DEBUG: Fixing the RUST parser. Above.
@@ -488,7 +492,9 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         sendCursorToServer(cursorPos.current, userData.username); // Let the Socket.IO server know this client's cursor position (important for my custom foreign cursor rendering).
 
         setEditorContent(textContent);  // This and the one below are for the Markdown renderer.
-        setParsedContent(parseMarkdown(textContent));
+        if(wasmReady) {
+          setParsedContent(parseMarkdown(textContent));
+        }
       });
     });
 
