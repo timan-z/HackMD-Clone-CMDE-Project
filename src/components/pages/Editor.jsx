@@ -635,6 +635,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
     doc.on("update", markIfRemote);
 
+    /* If we attached after an update was already applied, the doc may already be ready.
+    Give it one immediate pass before scheduling retries. */
+    if (checkReady()) return;
+
     let cancelled = false;
     let attempts = 0;
     const checkReady = () => {
@@ -663,7 +667,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       try { provider.disconnect(); } catch {}
       setTimeout(() => {
         if (!cancelled) {
-          try { provider.connect(); } catch {}
+          try { 
+            console.log("8/23/2025-DEBUG: About to call provider.connect()...");
+            provider.connect();
+            console.log("8/23/2025-DEBUG: Called provider.connect()...");
+          } catch {}
           setTimeout(tick, 500); // check again shortly
         }
       }, 100);
@@ -679,7 +687,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }, 1200);*/
 
     return () => {
-      //cancelled = true; // 8/23/2025-DEBUG: Removed.
+      cancelled = true; // 8/23/2025-DEBUG: Removed.
       clearTimeout(t);
       doc.off("update", markIfRemote);
     };
