@@ -635,12 +635,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
     doc.on("update", markIfRemote);
 
-    /* If we attached after an update was already applied, the doc may already be ready.
-    Give it one immediate pass before scheduling retries. */
-    if (checkReady()) return;
-
     let cancelled = false;
-    let attempts = 0;
     const checkReady = () => {
       const root = doc.share.has("root") ? doc.share.get("root") : null;
       const meta = doc.getMap("meta");
@@ -653,41 +648,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     };
 
     if (checkReady()) return;
-    // 8/23/2025-DEBUG: Below.
-    const tick = () => {
-      if (cancelled) return;
-      if (checkReady()) return;
-      if (attempts >= 4) { // ~ 4 tries over ~2 seconds
-        console.warn("[WS] No remote update after retries; leaving read-only until an update arrives");
-        return; // keep hydrated=false; your UI shows "Connecting..."
-      }
-      attempts += 1;
-      console.warn("[WS] Forcing resync attempt", { attempts });
-      // Gentle reconnect
-      try { provider.disconnect(); } catch {}
-      setTimeout(() => {
-        if (!cancelled) {
-          try { 
-            console.log("8/23/2025-DEBUG: About to call provider.connect()...");
-            provider.connect();
-            console.log("8/23/2025-DEBUG: Called provider.connect()...");
-          } catch {}
-          setTimeout(tick, 500); // check again shortly
-        }
-      }, 100);
-    };
-    const t = setTimeout(tick, 400); // first retry a bit after mount
-    // 8/23/2025-DEBUG: Above.
 
-    /*const t = setTimeout(() => {
+    const t = setTimeout(() => {
       if (!checkReady()) {
         console.warn("[WS] Still no remote update; proceeding with hydrated anyway");
         setHydrated(true);
       }
-    }, 1200);*/
+    }, 1200);
 
     return () => {
-      cancelled = true; // 8/23/2025-DEBUG: Removed.
+      cancelled = true;
       clearTimeout(t);
       doc.off("update", markIfRemote);
     };
@@ -720,26 +690,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       });
       // recovery for suspended tabs
       const onVis = () => {
-        if (!provider.wsconnected && provider.shouldConnect) {
-          console.log("8/23/2025-DEBUG: About to call provider.connect()...");
-          provider.connect();
-          console.log("8/23/2025-DEBUG: Called provider.connect()...");
-        }
+        if (!provider.wsconnected && provider.shouldConnect) provider.connect();
       };
       document.addEventListener("visibilitychange", onVis);
       providersById.current.set(id, provider);
     }
     // Defer connect so Lexical can bind its listeners first
-    /*queueMicrotask(() => {
+    queueMicrotask(() => {
       if (!provider.wsconnected && !provider.wsconnecting) provider.connect();
-    });*/
-    setTimeout(() => {
-      if (!provider.wsconnected && !provider.wsconnecting) {
-        console.log("8/23/2025-DEBUG: About to call provider.connect()...");
-        provider.connect();
-        console.log("8/23/2025-DEBUG: Called provider.connect()...");
-      }
-    }, 0);
+    });
     return provider; 
   }, [socket, userData]);
   // }, [socket, userData]);
