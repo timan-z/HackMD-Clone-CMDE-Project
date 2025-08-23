@@ -679,7 +679,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }, 1200);*/
 
     return () => {
-      cancelled = true;
+      //cancelled = true; // 8/23/2025-DEBUG: Removed.
       clearTimeout(t);
       doc.off("update", markIfRemote);
     };
