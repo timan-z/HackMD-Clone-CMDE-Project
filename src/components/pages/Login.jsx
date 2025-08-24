@@ -62,6 +62,7 @@ function Login({ setUser, setToken }) {
                 width: "100%",
                 backgroundColor: "#000",
                 display: "flex",
+                flexDirection:"column",
                 justifyContent: "center",
                 alignItems: "center",
                 fontFamily: "monospace",
@@ -235,6 +236,13 @@ function Login({ setUser, setToken }) {
                         Create an account.
                     </a>
                 </div>
+            </div>
+
+            {/* NOTE: Something I've added relatively late in the development cycle. Adding a note for recruiters or anyone coming to visit
+            the site — noting existing test "dummy" profiles that they can use to login w/o registering an account. (Also GitHub repo link maybe). */}
+            <div style={{marginTop:"15px", color:"red", display:"flex", flexDirection:"column", alignItems:"center"}}>
+                <div><b>For Visitors</b> — Some "dummy" test accounts: Username: <b>randomuser#</b> | email: <b>randomemail#@gmail.com</b> | password: <b>password</b> (where <b># ranges 1-3</b>).</div>
+                <div style={{color:"skyblue", marginTop:"10px"}}><a href="https://github.com/timan-z/HackMD-Clone-CMDE-Project" target="_blank" style={{textDecoration:"none"}}>Link to Github Repo</a></div>
             </div>
         </div>
     );

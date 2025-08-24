@@ -135,7 +135,7 @@ function Register() {
 
                                 {emailError && (
                                     <div style={{color: "#FF4C4C",fontSize: "14px",marginBottom: "5px",animation: "fadeInOut 2.5s ease-in-out",}}>
-                                        ⚠ Please enter a valid email.
+                                        ⚠ Please enter a "valid" email. (Just meet the *@*.* regex).
                                     </div>
                                 )}
 
