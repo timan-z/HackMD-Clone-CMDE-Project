@@ -43,7 +43,7 @@ export function isWasmReady() {
 export const parseMarkdown = (markdownText) => {
     if(comrakParser && wasmReady) {
         try {
-            console.log("DEBUG: Using comrakParser...");
+            //console.log("DEBUG: Using comrakParser...");
             return comrakParser(markdownText);
         } catch(err) {
             console.error("[ERROR][MDParser]: Comrak parsing failed, falling back to Markdown-It.", err);
