@@ -167,7 +167,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       initComrak().then(() => {
         if(mounted) setWasmReady(true);
       });
-      initRustParser.current = true;
+      //initRustParser.current = true;
       return () => {mounted = false};
     //}
   }, []);
@@ -425,9 +425,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
         sendCursorToServer(cursorPos.current, userData.username); // Let the Socket.IO server know this client's cursor position (important for my custom foreign cursor rendering).
 
         setEditorContent(textContent);  // This and the one below are for the Markdown renderer.
-        if(wasmReady) {
-          setParsedContent(parseMarkdown(textContent));
-        }
+        setParsedContent(parseMarkdown(textContent));
       });
     });
 
