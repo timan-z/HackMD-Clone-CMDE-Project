@@ -565,6 +565,16 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
   }
 
+  // start-up function (runs once yjs syncs up, websocket connects, etc):
+  const roomStartUp = () => {
+    socket.emit("ready-for-load", roomId);
+    // NOTE: Originally had this in the first UseEffect hook in the <Editor> area... (better here, guarantees <UsersListBar> will be filled):
+    console.log("Sending Room ID:(", roomId, ") User ID:(", userData.id, "), and username:(", userData.username, ") over to the Socket.IO server.");
+    // Because this site handles the capacity for multiple distinct Editor Rooms, I need Socket.IO to do the same to keep real-time interaction isolated:
+    socket.emit("join-room", roomId, userData.id, userData.username); // Join the specific Socket.IO room for this Editor Room.
+  }
+  // NOTE: ^ This was originally inside the <CollaborationPlugin> but I accidentally got rid of it when I made providerFactory an independent external thing woops.
+
   /* NOTE: This useEffect hook is one of the guards I had put in place to fight against the edge case I was facing where
   a minority (maybe ~20-30% tabs I'd open of an existing Editor page w/ content would not sync). After days of debugging
   and research, the issue seemed to be this: https://github.com/yjs/y-websocket/issues/81#issuecomment-1453185788 
@@ -592,7 +602,10 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       const meta = doc.getMap("meta");
       const bootstrapped = meta.get("bootstrapped") === true;
       if (gotRemoteUpdate || (provider.synced && root && (root.length > 0 || bootstrapped))) {
-        if (!cancelled) setHydrated(true);
+        if (!cancelled) {
+          setHydrated(true);
+          roomStartUp();
+        }
         return true;
       }
       return false;
@@ -604,6 +617,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       if (!checkReady()) {
         console.warn("[WS] Still no remote update; proceeding with hydrated anyway");
         setHydrated(true);
+        roomStartUp();
       }
     }, 1200);
 
