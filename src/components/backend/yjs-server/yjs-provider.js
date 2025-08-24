@@ -1,3 +1,9 @@
+/* NOTE: NO LONGER IN USE!!!
+This was the file I was running before changing over to yjs-server.js!
+This file essentially programmatically ran the "npx y-websocket ..." command on the Railway CLI or whatever the equivalent was to get 
+it to run over there! When developing locally, this was all I needed! But it was much better to host a server through code so I could 
+"seed" the Lexical document manually instead of bootstrapping from the client (which would causes problems). */
+
 const { spawn } = require("child_process");
 const path = require("path"); // 8/19/2025-DEBUG: ATTEMPTING TO ADD LevelDB PERSISTENCE DIRECTORY.
 const fs = require("fs"); // 8/19/2025-DEBUG: ATTEMPTING TO ADD LevelDB PERSISTENCE DIRECTORY.

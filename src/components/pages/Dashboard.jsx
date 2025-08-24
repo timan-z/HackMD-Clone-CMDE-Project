@@ -3,19 +3,15 @@ import { useNavigate } from "react-router-dom";
 import { createNewEdRoom, getAllRooms, generateInvLink, joinRoomViaInv, leaveRoom, deleteRoom } from "../utility/api.js";
 import { io } from "socket.io-client";
 import { btnStyleDB } from "../utility/utilityFuncs.js";
-
 import ManageUsersSection from "../misc-features/ManageUsersSection.jsx";
 
-// DEBUG: BELOW.
+// NOTE: socket_base string manipulation below has to do with Railway (where I'm hosting backend stuff) and how paths are specified over there.
 let socket_base = import.meta.env.VITE_SOCKET_BASE;
 if(socket_base.endsWith('/')) {
     socket_base = socket_base.slice(0, -1);
 }
-console.log("DEBUG: Value of socket_base => ", socket_base);
-// DEBUG: ABOVE.
-
-//const socket = io("http://localhost:4000");
-const socket = io(socket_base, { withCredentials: true}); // <-- DEBUG: Will need to change this when I host on backend (testing now for server.js addition).
+//console.log("DEBUG: Value of socket_base => ", socket_base);
+const socket = io(socket_base, { withCredentials: true});
 
 function Dashboard({ userData, logout, sendRoomID, loadUser, loadRoomUsers, setUser }) {
     const joinEdRoomLink = useRef(null);

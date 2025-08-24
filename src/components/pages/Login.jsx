@@ -1,5 +1,4 @@
-import React, {useState, useEffect, useRef} from "react";
-import { BrowserRouter as Router, Routes, Route, Navigate } from "react-router-dom";
+import {useState, useEffect, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import {login, getCurrentUser} from "../utility/api.js";
 

@@ -11,7 +11,6 @@ import { $getRoot, $getSelection, $isRangeSelection, $isTextNode, $createParagra
 // custom imports:
 import { btnStyleEd } from "../utility/utilityFuncs.js";
 import { parseMarkdown, initComrak, isWasmReady } from "../core-features/MDParser.jsx"; // 8/23/2025: Yeah.
-
 import { findCursorPos } from '../utility/utilityFuncs.js';
 import { RemoteCursorOverlay } from '../core-features/RemoteCursorOverlay.jsx';
 import Toolbar from "../core-features/Toolbar.jsx";
@@ -25,7 +24,13 @@ import { CollaborationPlugin } from '@lexical/react/LexicalCollaborationPlugin';
 import { io } from "socket.io-client";
 import { throttle } from "lodash";
 
-//import { encodeStateVector } from 'yjs'; // 8/19/2025-DEBUG: I'm losing my mind.
+// NOTE: socket_base string manipulation below has to do with Railway (where I'm hosting backend stuff) and how paths are specified over there.
+let socket_base = import.meta.env.VITE_SOCKET_BASE;
+if(socket_base.endsWith('/')) {
+    socket_base = socket_base.slice(0, -1);
+}
+//console.log("DEBUG: Value of socket_base => ", socket_base);
+//console.log("DEBUG: Value of VITE_YJS_WS_URL =>", import.meta.env.VITE_YJS_WS_URL);
 
 function initialEditorState() {
   const root = $getRoot();
@@ -35,16 +40,6 @@ function initialEditorState() {
   root.append(paragraph);
 }
 
-// DEBUG: BELOW.
-let socket_base = import.meta.env.VITE_SOCKET_BASE;
-if(socket_base.endsWith('/')) {
-    socket_base = socket_base.slice(0, -1);
-}
-console.log("DEBUG: Value of socket_base => ", socket_base);
-// DEBUG: ABOVE.
-
-console.log("DEBUG: Value of VITE_YJS_WS_URL =>", import.meta.env.VITE_YJS_WS_URL);
-// import.meta.env.VITE_YJS_WS_URL
 
 /* Using "socket" for the real-time interaction features but also tying RemoteCursorOverlay.jsx
 back to my Text Editor (while using <CollaborationPlugin/>). */
@@ -157,76 +152,15 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
   const [showUsersList, setShowUsersList] = useState(false);  
   const [showNotifs, setShowNotifs] = useState(false);
 
-  const providersById = useRef(new Map()); // 8/22/2025-DEBUG: Hrrghnhhh
-  const [hydrated, setHydrated] = useState(false);  // 8/22/2025-DEBUG: Ah
+  // Additions for Railway and Netlify (mostly the former) deployment:
+  const providersById = useRef(new Map());
+  const [hydrated, setHydrated] = useState(false);
+  // Additions for the RUST-powered markdown renderer (Comrak) that I'll now be relying on primarily:
+  const initRustParser = useRef(false);
+  const providerRef = useRef(null);
+  const [wasmReady, setWasmReady] = useState(isWasmReady());
 
-
-  const initRustParser = useRef(false); // 8/23/2025-DEBUG: Debugging RUST Parser...
-  // ^ DEBUG: "initWasm" or "wasmReady" is also an appropriate name.
-  const [wasmReady, setWasmReady] = useState(isWasmReady()); // 8/23/2025-DEBUG: Hmm.
-
-
-  console.log("8/22/2025-DEBUG: How many times does the Editor.jsx page re-render?");
-
-  // 8/20/2025-DEBUG: Dear God please help me.
-  const providerRef = useRef(null); // 8/20/2025-DEBUG: im dumb.
-  const [ready, setReady] = useState(false); // 8/20/2025-DEBUG: im dumb.
-  const [providerReady, setProviderReady] = useState(false);  // 8/20/2025-DEBUG: im dumb.
-  const [shouldBootstrap, setShouldBootstrap] = useState(null); // 8/20/2025-DEBUG: Help me.
-  // 8/20/2025-DEBUG: I'm dumb below.
-  // Guard #1:
-  /*useEffect(() => {
-    console.log("8/20/2025-DEBUG: Inside of the probing UseEffect hook...");
-    setReady(false);
-    const probeDoc = new Y.Doc();
-    const probe = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, probeDoc, { connect: true });
-
-    const onSynced = (s) => {
-      if(!s) return;
-      // Decide bootstrap *before* rendering the real plugin.
-      let rootFrag = null;
-      if(probeDoc.share.has('root')) {
-        rootFrag = probeDoc.share.get('root');  // DEBUG: Maybe do probeDoc.share.has first... (if this raises issues).
-      }
-      console.log("8/20/2025-DEBUG: The value of rootFrag => ", rootFrag);
-      const isEmpty = !rootFrag || rootFrag.length === 0;
-      console.log("8/20/2025-DEBUG: The value of isEmpty (next line be 'setShouldBootstrap(isEmpty)') => ", isEmpty);
-      setShouldBootstrap(isEmpty);
-      setReady(true);
-      probe.disconnect();
-      probeDoc.destroy();
-    };
-    probe.on('synced', onSynced);
-    return () => {
-      probe.off('synced', onSynced);
-      probe.disconnect();
-      probeDoc.destroy();
-    };
-  }, [roomId]);
-  // Guard #2:
-  useEffect(() => {
-    let p = providerRef.current;
-    if(!p) return;    
-    //const doc = new Y.Doc();
-    //p = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, roomId, doc, { connect: true});
-    const onSynced = (s) => {
-      if (s) {
-        console.log("8/20/2025-DEBUG: Inside the if(s) condition branch of Guard #2.");
-        setProviderReady(true);
-      }
-    };
-    p.on("synced", onSynced);
-    return () => {
-      console.log("8/20/2025-DEBUG: setProviderReady(false); is about to go ahead!");
-      p.off("synced", onSynced);
-      //p.disconnect();
-      //doc.destroy();
-      setProviderReady(false);
-    };
-  }, [ready, roomId]);*/
-  // 8/20/2025-DEBUG: I'm dumb above.
-
-  // 8/23/2025-DEBUG: Fixing the RUST parser. Below.
+  // useEffect hook that will run once (guards set in place) on page load to initialize Comrak (our RUST-powered MD renderer):
   useEffect(() => {
     if(!initRustParser.current) {
       let mounted = true;
@@ -237,7 +171,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       return () => {mounted = false};
     }
   }, []);
-  // 8/23/2025-DEBUG: Fixing the RUST parser. Above.
 
   // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
   const navigate = useNavigate();
@@ -452,7 +385,7 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
           socket.off("update-cursors");
           hasJoinedRef.current = false;
         });
-        socket.emit("leave-room", roomId, userData.id);
+        //socket.emit("leave-room", roomId, userData.id);
       }
     };
     window.addEventListener("beforeunload", handleBeforeUnload);
@@ -634,7 +567,11 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     }
   }
 
-  // 8/22/2025-DEBUG: Below.
+  /* NOTE: This useEffect hook is one of the guards I had put in place to fight against the edge case I was facing where
+  a minority (maybe ~20-30% tabs I'd open of an existing Editor page w/ content would not sync). After days of debugging
+  and research, the issue seemed to be this: https://github.com/yjs/y-websocket/issues/81#issuecomment-1453185788 
+  This guard and any related code I added reduced the frequency of that edge case from ~20-30% to maybe 5% at most!
+  */
   useEffect(() => {
     const provider = providerRef.current;
     if (!provider) return;
@@ -678,24 +615,23 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
       doc.off("update", markIfRemote);
     };
   }, [roomId]);
-  // 8/22/2025-DEBUG: Above.
 
-  // RAILWAY-DEBUG:[BELOW] Trying to fix the sync issue...
+  // providerFactory for <CollaborationPlugin/>:
   const providerFactory = useCallback((id, yjsDocMap) => {
-    console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
+    // console.log("RAILWAY-DEBUG: providerFactory START", { id, VITE: import.meta.env.VITE_YJS_WS_URL, ts: Date.now() });
     // Reuse doc if it exists
     let doc = yjsDocMap.get(id);
     if (!doc) {
       doc = new Y.Doc();
       yjsDocMap.set(id, doc);
-      console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
-    } else {
+      //console.log("RAILWAY-DEBUG: providerFactory: created new Y.Doc for", id);
+    } /*else {
       console.log("RAILWAY-DEBUG: providerFactory: reusing existing Y.Doc for", id);
-    }
+    }*/
 
     let provider = providersById.current.get(id);
     if(!provider) {
-      provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false }); // 8/19/2025-DEBUG: CONNECT DIRECTLY TO THE SERVER. (/22/2025 edit = connect is now false).
+      provider = new WebsocketProvider(import.meta.env.VITE_YJS_WS_URL, id, doc, { connect: false }); // NOTE: Not directly connecting to the server is intentional (related to edge case I was facing).
       providerRef.current = provider;
 
       provider.on("status", (evt) => {
@@ -717,8 +653,6 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
     });
     return provider; 
   }, [socket, userData]);
-  // }, [socket, userData]);
-  // RAILWAY-DEBUG:[ABOVE] Trying to fix the sync issue.
 
   return(
     <div id="the-editor-wrapper" className="editor-wrapper">

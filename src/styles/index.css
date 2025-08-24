@@ -1,9 +1,6 @@
-
-
 html, body {
   background-color:black;
 }
-
 
 /* This .placeholder styling is for the "placeholder text" that appears within the Text Editor pre-typing. */
 .placeholder {
@@ -191,7 +188,7 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 }
 /* DEBUG: Everything ABOVE is for making the LHS/RHS, Text Editor, Preview Panel 50/50 thing work! */
 
-/* DEBUG: Everything below is for the Text Editor Preview Toggle Functionality... */
+/* Everything below is for the Text Editor Preview Toggle Functionality... */
 .text-editor-space-split {
   /*display:relative;*/
   flex: 0 0 auto !important;
@@ -220,7 +217,7 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   flex-direction:column;
   flex:1 !important;
 }
-/* DEBUG: Everything above is for the Text Editor Preview Toggle Functionality... */
+/* Everything above is for the Text Editor Preview Toggle Functionality... */
 
 .main-text-editor {
   display:flex;
@@ -229,7 +226,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   height:100%;
   overflow:auto;
 }
-
 .editor-container {
   flex-grow: 1; /* Expand the content area to take up the remaining space */
   height:99.75%;
@@ -239,12 +235,10 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   border:1px solid black;
   background-color:gray;
 }
-
 .md-preview-panel {
   outline: black;
   outline-width:2px;
   background-color:#b0c4de;
-
   word-wrap: break-word;
   overflow-wrap: break-word;
   overflow-y:auto;
@@ -253,7 +247,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   max-width: 100%;
   box-sizing: border-box;
 }
-
 .resizeTEPP {
   cursor: ew-resize; /* debug: Change cursor when hovering over it */
   transition: background 0.2s ease-in-out;
@@ -262,7 +255,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   box-shadow: 0 0 6px #00FF41;
   z-index:9999;
 }
-
 .resizeTEPP:hover {
   background: #888; /* debug: Darker gray when hovered */
 }
@@ -280,7 +272,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 #to-dashboard-button {
   background: #008F11;
 }
-
 .users-l-add-shadow {
   box-shadow: 0px 0px 0px 4000px rgba(27, 61, 88, 0.5) inset;
 }
@@ -301,6 +292,7 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   color:"#00FF41";
   background-color:"#000";
 }
+
 /* Styling for the main "Sign in to HackMD Clone" box in the Login.jsx page and everything inside it: */
 #login-outermost-box {
   height:425px;
@@ -322,12 +314,6 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
   height:50%;
   width:90%;
 }
-
-
-
-
-
-
 #loginp-signin-btn {
   font-size:20px;
   font-weight:bold;
@@ -365,20 +351,3 @@ I have set that shadow's colour to be a dark-bright yellow (NOTE: subject to cha
 #notifications-area::-webkit-scrollbar-thumb:hover {
   background-color: #00cc33;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-

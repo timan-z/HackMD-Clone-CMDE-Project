@@ -1,4 +1,4 @@
-import React, {useState, useEffect, useRef} from "react";
+import {useState, useRef} from "react";
 import { useNavigate } from "react-router-dom";
 import {checkValidEmail} from "../utility/utilityFuncs.js";
 import {register} from "../utility/api.js";
