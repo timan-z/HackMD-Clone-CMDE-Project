@@ -162,14 +162,14 @@ function EditorContent({ token, loadUser, loadRoomUsers, roomId, userData, usern
 
   // useEffect hook that will run once (guards set in place) on page load to initialize Comrak (our RUST-powered MD renderer):
   useEffect(() => {
-    if(!initRustParser.current) {
+    //if(!initRustParser.current) {
       let mounted = true;
       initComrak().then(() => {
         if(mounted) setWasmReady(true);
       });
       initRustParser.current = true;
       return () => {mounted = false};
-    }
+    //}
   }, []);
 
   // Function for returning to the dashboard (invoked when the Dashboard Icon button is clicked):
