@@ -66,8 +66,6 @@ export const loginUser = async(req, res) => {
 };
 
 
-
-
 // 1.3. Function for retrieving Current User:
 export const getCurrentUser = async(req, res) => {
     // Look for JWT memory token in the Authorization header:
