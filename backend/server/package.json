@@ -1,5 +1,6 @@
 {
   "name": "yjs-server",
+  "type": "module",
   "private": true,
   "scripts": {
     "start": "USE_SERVER_SEED=1 node yjs-server.js"

@@ -2,7 +2,7 @@ import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken";
 import dotenv from "dotenv";
 import pg from "pg";
-import {checkValidEmail} from "../../utility/utilityFuncs.js";
+import {checkValidEmail} from "../utility/utilityFuncsBE.js";
 
 import {v4 as uuidv4} from 'uuid'; // For creating new Editor Rooms.
 /* NOTE:

@@ -1,88 +1,46 @@
-/* NOTE:+EDIT: NEW ADDITION AND PROJECT STRUCTURAL CHANGE AS OF 8/16/2025:
-The way this project is run locally is to have one process running to host the frontend (npm run dev)
-and then three others to run the backend processes (Express API Server, Socket.IO Server, and Yjs WebSocket provider).
+// NOTE: My command for starting this server is "node src/components/Server.js"
 
-- Makes sense that the frontend process is kept separate. The three others are all for the backend though, and since I'm
-planning on hosting them, I should merge them together (so I can serve them on one port on, say, Railway).
-
-So this file here "server.js" basically squashes socketIOServer.js and expressServer.js together.
-It will also embed the Yjs provider in it (my "npx y-websocket --port 1234" command). */
-
-// DEBUG:+EDIT:+TO-DO: ^ Embedding the Yjs provider more complicated than I was expecting, this is something I should return to later for the sake of time.
+/* For implementing real-time Text Editor collaboration between multiple users, I'll
+be using Socket.IO with Express as my backend for real-time synchronization. */
 import express from "express";
 import http from "http"; // Express runs on HTTP.
 import { Server } from "socket.io";
 import cors from "cors";
-import dotenv from "dotenv";
-import pg from "pg";
 import pkg from 'lodash';
+import { connect } from "http2";
 const { throttle } = pkg;
 
-// Routes:
-import authRoutes from "./routes/auth.js";
-import { saveRoomData } from "../utility/utilityFuncsBE.js"; // adjust relative path
-dotenv.config({ path:'./.env'});
+// FOR SERVER SET-UP STUFF:
+import * as Y from 'yjs';
+const yDocs = new Map();    // Key: roomId, Value: Y.Doc instance (serialized)
 
-// Socket.IO setup:
-const app = express();
-const server = http.createServer(app);
-// Socket.IO-related variables:
+import { saveRoomData } from "../temp_holder/src/components/utility/utilityFuncsBE.js";
+
 const firstUserJoined = new Map(); // will have boolean values (true/false) mapped to RoomId values...
 const latestEdDocs = new Map(); // Maps strings to roomIds.
 const latestEdTokens = new Map(); // ^ coincides with latestEdDocs, just saving a valid token so saveRoomData function works...
+
+/* NOTE-TO-SELF:
+ - io.emit will send this event to *all* clients (including the server, which here will be irrelevant).
+ - socket.emit will send the event *only* to the specific client that triggered it.
+ - socket.broadcast.emit will send the even to all *other* clients except the sender.
+*/
+
+// setup:
+const app = express();
+const server = http.createServer(app);
+
+const io = new Server(server, {
+    // You need this stuff below to bypass issues with cors.
+    cors: {
+        origin: "http://localhost:5173", // This is **my** frontend URL; NOTE: I should have a variable for this in .env I think.
+        methods: ["GET", "POST"],
+    },
+});
+
 let connectedUsers = {}; // This will my array var holding info about all the users currently connected to the webpage.
 let clientCursors = []; // This will be my array var holding the client-cursor info objects for rendering in each Text Editor. (RemoteCursorOverlay.jsx)
 
-// TO-DO: CLEAN UP THIS MESS I MADE.
-// DEBUG: IS THE PROBLEM THE SLASH???
-let FRONTEND_URL = null;
-if(process.env.FRONTEND_URL.endsWith('/')) {
-    console.log("endsWith if-condition was entered...");
-    FRONTEND_URL = process.env.FRONTEND_URL.slice(0, -1);   // remove last character.
-} else {
-    FRONTEND_URL = process.env.FRONTEND_URL;
-}
-if(!process.env.FRONTEND_URL) {
-    FRONTEND_URL = "http://localhost:5173"
-}
-// DEBUG: IS THE PROBLEM THE SLASH???
-
-// Attaching Socket.IO:
-const io = new Server(server, {
-  cors: {
-    //origin: process.env.FRONTEND_URL || "http://localhost:5173",
-    origin: [FRONTEND_URL, "http://localhost:5173", "https://hackmd-clone-cmde.netlify.app/*"],
-    methods: ["GET", "POST"],
-    credentials:true,
-  },
-});
-
-console.log("DEBUG: The value of FRONTEND_URL => ", FRONTEND_URL);
-
-// expressServer.js stuff:
-//app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:5173", credentials: true }));
-app.use(cors({ origin: FRONTEND_URL, credentials: true }));
-app.use(express.json()); // Parses incoming JSON requests. 
-
-// Postgres-related
-const pool = new pg.Pool({ connectionString: process.env.DATABASE_URL });
-pool.connect((err, client, release) => {
-  if (err) {
-    console.error("Error acquiring client", err);
-    return;
-  }
-  client.query("SELECT NOW()", (err, result) => {
-    release();
-    if (err) return console.error("Error executing query", err.stack);
-    console.log("PostgreSQL connected: ", result.rows);
-  });
-});
-
-// Routes:
-app.use("/api/auth", authRoutes);
-app.get("/", (req, res) => { res.send("Backend is running."); });
-
-// Socket.IO logic:
 io.on("connection", (socket) => {
     // connection notice (to the overall Socket.IO server):
     console.log("A user connected: ", socket.id);
@@ -295,6 +253,4 @@ io.on("connection", (socket) => {
 
 });
 
-// Start server:
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => { console.log(`Server running on port ${PORT}`); });
+server.listen(4000, () => console.log("Server running on port 4000")); // specify port 4000 as the server location.

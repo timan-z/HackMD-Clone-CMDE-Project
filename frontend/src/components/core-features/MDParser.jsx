@@ -1,4 +1,4 @@
-import init, { parse_markdown } from "rust-markdown";   // <-- new "main" parser.
+import init, { parse_markdown } from "../../../rust-markdown/pkg/rust_markdown";   // <-- new "main" parser.
 //import {parse_markdown} from "../../rust-markdown/pkg/rust_markdown.js";
 import MarkdownIt from "markdown-it";
 import markdownItTaskLists from "markdown-it-task-lists";

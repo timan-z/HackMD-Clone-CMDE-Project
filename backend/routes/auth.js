@@ -11,7 +11,7 @@ import {
     sendEdRoomMessage,
     getEdRoomMessages,
 } from '../controllers/authController.js';
-import { verifyToken } from '../../utility/utilityFuncsBE.js';
+import { verifyToken } from '../utility/utilityFuncsBE.js';
 //import { verify } from "jsonwebtoken";
 
 const router = express.Router();

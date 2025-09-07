@@ -13,7 +13,7 @@ import express from "express";
 import cors from "cors";
 import dotenv from "dotenv";
 import pg from "pg";
-import authRoutes from './routes/auth.js'; // authRoutes is just a variable name for the router being exported from auth.js
+import authRoutes from '../backend/routes/auth.js'; // authRoutes is just a variable name for the router being exported from auth.js
 
 dotenv.config({ path:'./.env'});
 
